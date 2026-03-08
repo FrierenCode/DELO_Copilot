@@ -1,0 +1,8 @@
+﻿{
+  "name": "delo-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('dist',{recursive:true}); fs.writeFileSync('dist/index.html','<!doctype html><html><head><meta charset=\\\"utf-8\\\"><meta name=\\\"viewport\\\" content=\\\"width=device-width,initial-scale=1\\\"><title>DELO Copilot</title></head><body><h1>DELO Copilot</h1><p>Build succeeded.</p></body></html>');\""
+  }
+}
