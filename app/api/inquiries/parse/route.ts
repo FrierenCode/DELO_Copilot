@@ -3,6 +3,7 @@ import { z } from "zod";
 import { parseService } from "@/services/parse-service";
 import { calculateQuote } from "@/services/quote-engine";
 import { generateChecks } from "@/services/check-engine";
+import { generateReplyDrafts } from "@/services/reply-generator";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { logInfo, logError } from "@/lib/logger";
 
@@ -39,16 +40,33 @@ export async function POST(req: NextRequest) {
     logInfo("parse request received", { source_type, length: raw_text.length });
 
     const { parsed_json, missing_fields } = await parseService({ raw_text, source_type });
+
     const quote_breakdown = calculateQuote({
       creator_profile: DEFAULT_CREATOR_PROFILE,
       inquiry: parsed_json,
     });
+
     const checks = generateChecks(parsed_json);
 
-    logInfo("parse request completed", { check_count: checks.length, missing_count: missing_fields.length });
+    const reply_drafts = await generateReplyDrafts({
+      parsed_json,
+      quote_breakdown,
+      missing_fields,
+    });
+
+    logInfo("reply drafts generated", {
+      strategy: missing_fields.length >= 3 ? "template_only" : "mock_negotiation",
+      missing_count: missing_fields.length,
+    });
+
+    logInfo("parse request completed", {
+      source_type,
+      check_count: checks.length,
+      missing_count: missing_fields.length,
+    });
 
     return NextResponse.json(
-      successResponse({ parsed_json, quote_breakdown, checks, missing_fields }),
+      successResponse({ parsed_json, quote_breakdown, checks, missing_fields, reply_drafts }),
     );
   } catch (err) {
     logError("parse request failed", { error: String(err) });
