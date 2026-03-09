@@ -14,6 +14,14 @@ export type ReplyTemplateInput = {
   quote_target: number;
   contact_name: string;
   compensation_type: string;
+  timeline: string;
+  usage_rights: string;
+  exclusivity: string;
 };
 
 export type ReplyStrategy = "template_only" | "mock_negotiation";
+
+export type ReplyGenerationResult = {
+  strategy: ReplyStrategy;
+  drafts: ReplyDrafts;
+};

@@ -1,5 +1,5 @@
 import type { InquiryData } from "@/types/inquiry";
-import type { ReplyDrafts, ReplyTemplateInput } from "@/types/reply";
+import type { ReplyGenerationResult, ReplyStrategy, ReplyTemplateInput } from "@/types/reply";
 import type { QuoteResult } from "@/services/quote-engine";
 import { chooseReplyStrategy } from "@/services/reply-routing-service";
 import {
@@ -14,9 +14,21 @@ type GenerateReplyDraftsParams = {
   missing_fields: string[];
 };
 
+async function generateNegotiationReply(
+  input: ReplyTemplateInput,
+  strategy: ReplyStrategy,
+): Promise<string> {
+  if (strategy === "template_only") {
+    return renderNegotiationFallbackReply(input);
+  }
+  // strategy === "mock_negotiation"
+  // Placeholder: real LLM call (reply_negotiation task) will replace this block
+  return renderNegotiationFallbackReply(input);
+}
+
 export async function generateReplyDrafts(
   params: GenerateReplyDraftsParams,
-): Promise<ReplyDrafts> {
+): Promise<ReplyGenerationResult> {
   const { parsed_json, quote_breakdown, missing_fields } = params;
 
   const templateInput: ReplyTemplateInput = {
@@ -27,6 +39,9 @@ export async function generateReplyDrafts(
     quote_target: quote_breakdown.target,
     contact_name: parsed_json.contact_name,
     compensation_type: parsed_json.compensation_type,
+    timeline: parsed_json.timeline,
+    usage_rights: parsed_json.usage_rights,
+    exclusivity: parsed_json.exclusivity,
   };
 
   const strategy = chooseReplyStrategy({
@@ -37,15 +52,9 @@ export async function generateReplyDrafts(
     hasExclusivity: parsed_json.exclusivity !== "not specified",
   });
 
-  // polite and quick are always generated via template (no LLM)
   const polite = renderPoliteReply(templateInput);
   const quick = renderQuickReply(templateInput);
+  const negotiation = await generateNegotiationReply(templateInput, strategy);
 
-  // negotiation: template-based for both strategies in this step.
-  // When real LLM integration is added, replace this block based on strategy:
-  //   "mock_negotiation" => call LLM with reply_negotiation task
-  //   "template_only"    => keep renderNegotiationFallbackReply
-  const negotiation = renderNegotiationFallbackReply(templateInput);
-
-  return { polite, negotiation, quick };
+  return { strategy, drafts: { polite, negotiation, quick } };
 }

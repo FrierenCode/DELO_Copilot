@@ -48,14 +48,14 @@ export async function POST(req: NextRequest) {
 
     const checks = generateChecks(parsed_json);
 
-    const reply_drafts = await generateReplyDrafts({
+    const { strategy, drafts } = await generateReplyDrafts({
       parsed_json,
       quote_breakdown,
       missing_fields,
     });
 
     logInfo("reply drafts generated", {
-      strategy: missing_fields.length >= 3 ? "template_only" : "mock_negotiation",
+      strategy,
       missing_count: missing_fields.length,
     });
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      successResponse({ parsed_json, quote_breakdown, checks, missing_fields, reply_drafts }),
+      successResponse({ parsed_json, quote_breakdown, checks, missing_fields, reply_drafts: drafts }),
     );
   } catch (err) {
     logError("parse request failed", { error: String(err) });
