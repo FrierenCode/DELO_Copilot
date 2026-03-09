@@ -2,27 +2,98 @@ import { inquirySchema } from "@/schemas/inquiry.schema";
 import type { InquiryData } from "@/types/inquiry";
 
 export async function parseService(raw_text: string): Promise<InquiryData> {
-  const parsed = inquirySchema.parse({
-    brand_name: "Unknown Brand",
-    contact_name: "Unknown Contact",
-    contact_channel: "email",
-    platform_requested: "instagram",
-    deliverables: "1 post",
-    timeline: "TBD",
-    compensation_type: "negotiable",
-    budget_mentioned: "not specified",
-    usage_rights: "not specified",
-    exclusivity: "not specified",
-    revisions: "not specified",
-    payment_terms: "not specified",
-  });
+  // TODO: replace with LLM extraction once AI integration is ready
+  const extracted = extractFields(raw_text);
+  return inquirySchema.parse(extracted);
+}
 
-  if (raw_text.trim().length === 0) {
-    return parsed;
-  }
+function extractFields(raw_text: string): Record<string, string> {
+  const text = raw_text.toLowerCase();
 
   return {
-    ...parsed,
-    contact_channel: "email",
+    brand_name: detectBrandName(raw_text),
+    contact_name: detectContactName(raw_text),
+    contact_channel: detectContactChannel(text),
+    platform_requested: detectPlatform(text),
+    deliverables: detectDeliverables(text),
+    timeline: detectTimeline(raw_text),
+    compensation_type: detectCompensation(text),
+    budget_mentioned: detectBudget(raw_text),
+    usage_rights: detectField(text, ["usage rights", "usage right", "secondary use"]),
+    exclusivity: detectField(text, ["exclusiv", "competitor", "category exclusive"]),
+    revisions: detectField(text, ["revision", "edit round", "feedback round"]),
+    payment_terms: detectField(text, ["net ", "net30", "net 30", "payment within", "invoice"]),
   };
+}
+
+function detectPlatform(text: string): string {
+  if (text.includes("instagram")) return "instagram";
+  if (text.includes("youtube")) return "youtube";
+  if (text.includes("tiktok")) return "tiktok";
+  if (text.includes("twitter") || text.includes("x.com")) return "twitter";
+  return "not specified";
+}
+
+function detectCompensation(text: string): string {
+  if (text.includes("fixed") || text.includes("flat fee")) return "fixed";
+  if (text.includes("rev share") || text.includes("revenue share")) return "revenue_share";
+  if (text.includes("barter") || text.includes("gifting")) return "barter";
+  return "negotiable";
+}
+
+function detectTimeline(rawText: string): string {
+  const match = rawText.match(/\b(\d+\s*(?:days?|weeks?|months?))\b/i);
+  if (match) return match[1];
+  return "not specified";
+}
+
+function detectBrandName(rawText: string): string {
+  const match = rawText.match(/(?:from|by|brand[:\s]+)\s*([A-Z][A-Za-z0-9\s&]+)/);
+  if (match) return match[1].trim();
+  return "not specified";
+}
+
+function detectContactName(rawText: string): string {
+  const match = rawText.match(/(?:hi[,\s]+|hello[,\s]+|my name is\s+|i(?:'m| am)\s+)([A-Z][a-z]+)/i);
+  if (match) return match[1].trim();
+  return "not specified";
+}
+
+function detectContactChannel(text: string): string {
+  if (text.includes("email") || text.includes("@")) return "email";
+  if (text.includes("dm") || text.includes("direct message")) return "dm";
+  if (text.includes("kakao")) return "kakao";
+  return "email";
+}
+
+function detectDeliverables(text: string): string {
+  const matches: string[] = [];
+  const patterns = [
+    /(\d+)\s*(?:instagram\s*)?(?:reel|reels)/,
+    /(\d+)\s*(?:youtube\s*)?(?:video|videos)/,
+    /(\d+)\s*(?:tiktok\s*)?(?:post|posts)/,
+    /(\d+)\s*(?:story|stories)/,
+  ];
+  for (const pattern of patterns) {
+    const m = text.match(pattern);
+    if (m) matches.push(m[0]);
+  }
+  return matches.length > 0 ? matches.join(", ") : "not specified";
+}
+
+function detectBudget(rawText: string): string {
+  const match = rawText.match(/(?:₩|KRW|USD|\$|budget[:\s]+)\s*([\d,]+(?:\.\d+)?[kmKM]?)/i);
+  if (match) return match[0].trim();
+  return "not specified";
+}
+
+function detectField(text: string, keywords: string[]): string {
+  for (const kw of keywords) {
+    const idx = text.indexOf(kw);
+    if (idx !== -1) {
+      const snippet = text.slice(idx, idx + 60).split(/[\n.]/)[0].trim();
+      return snippet;
+    }
+  }
+  return "not specified";
 }
