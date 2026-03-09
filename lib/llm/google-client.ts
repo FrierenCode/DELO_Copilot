@@ -1,3 +1,4 @@
+import "server-only";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { LlmClient } from "./provider";
 import type { LlmRequest, LlmResponse } from "./types";
@@ -9,10 +10,17 @@ export class GoogleClient implements LlmClient {
   private genAI: GoogleGenerativeAI;
 
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? "");
+    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not set");
+
+    this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
   async generate(req: LlmRequest): Promise<LlmResponse> {
+    if (req.model !== "gemini-2.0-flash-lite") {
+      throw new Error(`Unsupported Google model: ${req.model}`);
+    }
+
     const start = Date.now();
 
     const model = this.genAI.getGenerativeModel({

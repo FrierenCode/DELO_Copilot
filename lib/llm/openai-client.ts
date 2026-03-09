@@ -1,3 +1,4 @@
+import "server-only";
 import OpenAI from "openai";
 import type { LlmClient } from "./provider";
 import type { LlmRequest, LlmResponse } from "./types";
@@ -9,12 +10,17 @@ export class OpenAiClient implements LlmClient {
   private client: OpenAI;
 
   constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
+
+    this.client = new OpenAI({ apiKey });
   }
 
   async generate(req: LlmRequest): Promise<LlmResponse> {
+    if (req.model !== "gpt-4o-mini") {
+      throw new Error(`Unsupported OpenAI model: ${req.model}`);
+    }
+
     const start = Date.now();
 
     const completion = await this.client.chat.completions.create({

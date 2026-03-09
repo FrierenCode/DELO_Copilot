@@ -1,3 +1,4 @@
+import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { LlmClient } from "./provider";
 import type { LlmRequest, LlmResponse } from "./types";
@@ -9,12 +10,17 @@ export class AnthropicClient implements LlmClient {
   private client: Anthropic;
 
   constructor() {
-    this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
+
+    this.client = new Anthropic({ apiKey });
   }
 
   async generate(req: LlmRequest): Promise<LlmResponse> {
+    if (req.model !== "claude-sonnet-4-6") {
+      throw new Error(`Unsupported Anthropic model: ${req.model}`);
+    }
+
     const start = Date.now();
 
     const message = await this.client.messages.create({
