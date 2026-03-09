@@ -1,14 +1,11 @@
+import type { CreatorProfile, InquiryData } from "@/types/inquiry";
+
 export type FollowersBand = "under_10k" | "10k_50k" | "50k_100k" | "100k_500k" | "over_500k";
 export type AvgViewsBand = "under_5k" | "5k_20k" | "20k_50k" | "over_50k";
-export type Category = "beauty" | "fashion" | "food" | "tech" | "lifestyle" | "other";
 
 export type QuoteInput = {
-  followers_band: FollowersBand;
-  avg_views_band: AvgViewsBand;
-  category: Category;
-  usage_rights: boolean;
-  exclusivity: boolean;
-  timeline_days: number;
+  creator_profile: CreatorProfile;
+  inquiry: InquiryData;
 };
 
 export type QuoteResult = {
@@ -45,18 +42,31 @@ const AVG_VIEWS_LABEL: Record<AvgViewsBand, string> = {
   over_50k: "over 50k",
 };
 
+function timelineDays(timeline: string): number {
+  const match = timeline.match(/(\d+)\s*(day|week|month)/i);
+  if (!match) return 14;
+  const n = parseInt(match[1], 10);
+  const unit = match[2].toLowerCase();
+  if (unit.startsWith("week")) return n * 7;
+  if (unit.startsWith("month")) return n * 30;
+  return n;
+}
+
 export function calculateQuote(input: QuoteInput): QuoteResult {
-  const base_fee = BASE_FEE_MAP[input.followers_band];
-  const usage_rights_fee = input.usage_rights ? 200000 : 0;
-  const exclusivity_fee = input.exclusivity ? 150000 : 0;
-  const rush_fee = input.timeline_days < 7 ? 100000 : 0;
+  const { creator_profile, inquiry } = input;
+
+  const base_fee = BASE_FEE_MAP[creator_profile.followers_band];
+  const usage_rights_fee = inquiry.usage_rights !== "not specified" ? 200000 : 0;
+  const exclusivity_fee = inquiry.exclusivity !== "not specified" ? 150000 : 0;
+  const rush_fee = timelineDays(inquiry.timeline) < 7 ? 100000 : 0;
 
   const target = base_fee + usage_rights_fee + exclusivity_fee + rush_fee;
-  const floor = Math.round(target * 0.8);
+  const calculatedFloor = Math.round(target * 0.8);
+  const floor = Math.max(calculatedFloor, creator_profile.floor_rate);
   const premium = Math.round(target * 1.5);
 
-  const followersLabel = FOLLOWERS_BAND_LABEL[input.followers_band];
-  const viewsLabel = AVG_VIEWS_LABEL[input.avg_views_band];
+  const followersLabel = FOLLOWERS_BAND_LABEL[creator_profile.followers_band];
+  const viewsLabel = AVG_VIEWS_LABEL[creator_profile.avg_views_band];
 
   const extras: string[] = [];
   if (usage_rights_fee > 0) extras.push("usage rights");
@@ -64,9 +74,8 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
   if (rush_fee > 0) extras.push("rush delivery");
 
   const extrasNote = extras.length > 0 ? ` with ${extras.join(", ")}` : "";
-
   const explanation =
-    `Based on ${followersLabel} followers and ${viewsLabel} avg views in ${input.category} category${extrasNote}.`;
+    `Based on ${followersLabel} followers and ${viewsLabel} avg views in ${creator_profile.niche} niche${extrasNote}.`;
 
   return {
     base_fee,

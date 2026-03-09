@@ -1,19 +1,44 @@
 import { inquirySchema } from "@/schemas/inquiry.schema";
-import type { InquiryData } from "@/types/inquiry";
+import type { InquiryData, ParseInput, ParseResult } from "@/types/inquiry";
 
-export async function parseService(raw_text: string): Promise<InquiryData> {
+const MISSING_SENTINEL = "not specified";
+
+const REQUIRED_FIELDS: (keyof InquiryData)[] = [
+  "brand_name",
+  "contact_name",
+  "platform_requested",
+  "deliverables",
+  "timeline",
+  "compensation_type",
+  "budget_mentioned",
+  "usage_rights",
+  "exclusivity",
+  "revisions",
+  "payment_terms",
+];
+
+export async function parseService(input: ParseInput): Promise<ParseResult> {
   // TODO: replace with LLM extraction once AI integration is ready
-  const extracted = extractFields(raw_text);
-  return inquirySchema.parse(extracted);
+  const extracted = extractFields(input.raw_text, input.source_type);
+  const parsed_json = inquirySchema.parse(extracted);
+
+  const missing_fields = REQUIRED_FIELDS.filter(
+    (field) => parsed_json[field].toLowerCase().trim() === MISSING_SENTINEL,
+  );
+
+  return { parsed_json, missing_fields };
 }
 
-function extractFields(raw_text: string): Record<string, string> {
+function extractFields(raw_text: string, source_type: ParseInput["source_type"]): Record<string, string> {
   const text = raw_text.toLowerCase();
+
+  const contact_channel =
+    source_type !== "other" ? source_type : detectContactChannel(text);
 
   return {
     brand_name: detectBrandName(raw_text),
     contact_name: detectContactName(raw_text),
-    contact_channel: detectContactChannel(text),
+    contact_channel,
     platform_requested: detectPlatform(text),
     deliverables: detectDeliverables(text),
     timeline: detectTimeline(raw_text),
@@ -31,7 +56,7 @@ function detectPlatform(text: string): string {
   if (text.includes("youtube")) return "youtube";
   if (text.includes("tiktok")) return "tiktok";
   if (text.includes("twitter") || text.includes("x.com")) return "twitter";
-  return "not specified";
+  return MISSING_SENTINEL;
 }
 
 function detectCompensation(text: string): string {
@@ -44,26 +69,25 @@ function detectCompensation(text: string): string {
 function detectTimeline(rawText: string): string {
   const match = rawText.match(/\b(\d+\s*(?:days?|weeks?|months?))\b/i);
   if (match) return match[1];
-  return "not specified";
+  return MISSING_SENTINEL;
 }
 
 function detectBrandName(rawText: string): string {
   const match = rawText.match(/(?:from|by|brand[:\s]+)\s*([A-Z][A-Za-z0-9\s&]+)/);
   if (match) return match[1].trim();
-  return "not specified";
+  return MISSING_SENTINEL;
 }
 
 function detectContactName(rawText: string): string {
   const match = rawText.match(/(?:hi[,\s]+|hello[,\s]+|my name is\s+|i(?:'m| am)\s+)([A-Z][a-z]+)/i);
   if (match) return match[1].trim();
-  return "not specified";
+  return MISSING_SENTINEL;
 }
 
 function detectContactChannel(text: string): string {
   if (text.includes("email") || text.includes("@")) return "email";
   if (text.includes("dm") || text.includes("direct message")) return "dm";
-  if (text.includes("kakao")) return "kakao";
-  return "email";
+  return "other";
 }
 
 function detectDeliverables(text: string): string {
@@ -78,13 +102,13 @@ function detectDeliverables(text: string): string {
     const m = text.match(pattern);
     if (m) matches.push(m[0]);
   }
-  return matches.length > 0 ? matches.join(", ") : "not specified";
+  return matches.length > 0 ? matches.join(", ") : MISSING_SENTINEL;
 }
 
 function detectBudget(rawText: string): string {
   const match = rawText.match(/(?:₩|KRW|USD|\$|budget[:\s]+)\s*([\d,]+(?:\.\d+)?[kmKM]?)/i);
   if (match) return match[0].trim();
-  return "not specified";
+  return MISSING_SENTINEL;
 }
 
 function detectField(text: string, keywords: string[]): string {
@@ -95,5 +119,5 @@ function detectField(text: string, keywords: string[]): string {
       return snippet;
     }
   }
-  return "not specified";
+  return MISSING_SENTINEL;
 }

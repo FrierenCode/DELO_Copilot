@@ -1,3 +1,5 @@
+import type { FollowersBand, AvgViewsBand } from "@/services/quote-engine";
+
 export type InquiryData = {
   brand_name: string;
   contact_name: string;
@@ -11,4 +13,21 @@ export type InquiryData = {
   exclusivity: string;
   revisions: string;
   payment_terms: string;
+};
+
+export type CreatorProfile = {
+  followers_band: FollowersBand;
+  avg_views_band: AvgViewsBand;
+  niche: string;
+  floor_rate: number;
+};
+
+export type ParseInput = {
+  raw_text: string;
+  source_type: "email" | "dm" | "other";
+};
+
+export type ParseResult = {
+  parsed_json: InquiryData;
+  missing_fields: string[];
 };

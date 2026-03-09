@@ -8,7 +8,16 @@ import { logInfo, logError } from "@/lib/logger";
 
 const requestSchema = z.object({
   raw_text: z.string().min(1, "raw_text must not be empty"),
+  source_type: z.enum(["email", "dm", "other"]),
 });
+
+// Default creator profile used until auth + profile lookup is wired up
+const DEFAULT_CREATOR_PROFILE = {
+  followers_band: "50k_100k" as const,
+  avg_views_band: "20k_50k" as const,
+  niche: "lifestyle",
+  floor_rate: 300000,
+};
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -24,26 +33,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(errorResponse(parsed.error.issues[0].message), { status: 400 });
   }
 
-  const { raw_text } = parsed.data;
+  const { raw_text, source_type } = parsed.data;
 
   try {
-    logInfo("parse request received", { length: raw_text.length });
+    logInfo("parse request received", { source_type, length: raw_text.length });
 
-    const parsedInquiry = await parseService(raw_text);
-    const quote = calculateQuote({
-      followers_band: "50k_100k",
-      avg_views_band: "20k_50k",
-      category: "lifestyle",
-      usage_rights: parsedInquiry.usage_rights !== "not specified",
-      exclusivity: parsedInquiry.exclusivity !== "not specified",
-      timeline_days: 14,
+    const { parsed_json, missing_fields } = await parseService({ raw_text, source_type });
+    const quote_breakdown = calculateQuote({
+      creator_profile: DEFAULT_CREATOR_PROFILE,
+      inquiry: parsed_json,
     });
-    const checks = generateChecks(parsedInquiry);
+    const checks = generateChecks(parsed_json);
 
-    logInfo("parse request completed", { check_count: checks.length });
+    logInfo("parse request completed", { check_count: checks.length, missing_count: missing_fields.length });
 
     return NextResponse.json(
-      successResponse({ parsed_inquiry: parsedInquiry, quote, checks }),
+      successResponse({ parsed_json, quote_breakdown, checks, missing_fields }),
     );
   } catch (err) {
     logError("parse request failed", { error: String(err) });
