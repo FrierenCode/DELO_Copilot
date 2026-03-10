@@ -7,6 +7,9 @@ import {
   renderQuickReply,
   renderNegotiationFallbackReply,
 } from "@/services/reply-template-service";
+import { getLlmClient } from "@/lib/llm/client-factory";
+import { buildNegotiationReplyPrompt } from "@/lib/llm/prompts/negotiation-reply.prompt";
+import { MODEL_POLICY } from "@/lib/llm/registry";
 
 type GenerateReplyDraftsParams = {
   parsed_json: InquiryData;
@@ -21,9 +24,48 @@ async function generateNegotiationReply(
   if (strategy === "template_only") {
     return renderNegotiationFallbackReply(input);
   }
-  // strategy === "mock_negotiation"
-  // Placeholder: real LLM call (reply_negotiation task) will replace this block
-  return renderNegotiationFallbackReply(input);
+
+  try {
+    const model = MODEL_POLICY.reply_negotiation.primary;
+    const client = getLlmClient(model);
+    const prompt = buildNegotiationReplyPrompt(input);
+
+    const response = await client.generate({
+      task: "reply_negotiation",
+      model,
+      system: prompt.system,
+      input: prompt.user,
+      temperature: 0.4,
+      maxOutputTokens: 300,
+    });
+
+    const text = response.text.trim();
+
+    if (!text) {
+      console.info("[reply-generator] negotiation reply empty, using fallback", {
+        strategy,
+        model,
+        fallback_used: true,
+      });
+      return renderNegotiationFallbackReply(input);
+    }
+
+    console.info("[reply-generator] negotiation reply generated", {
+      strategy,
+      model,
+      latencyMs: response.latencyMs,
+      fallback_used: false,
+    });
+
+    return text;
+  } catch (error) {
+    console.error("[reply-generator] negotiation reply failed, using fallback", {
+      strategy,
+      fallback_used: true,
+      reason: String(error),
+    });
+    return renderNegotiationFallbackReply(input);
+  }
 }
 
 export async function generateReplyDrafts(
