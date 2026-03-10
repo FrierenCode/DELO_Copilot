@@ -18,25 +18,96 @@ export type ParseLlmResult = {
   };
 };
 
+// Patch 2: strip code fences before JSON.parse
+function extractJsonText(raw: string): string {
+  const trimmed = raw.trim();
+  // Match ```json ... ``` or ``` ... ```
+  const fenced = trimmed.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/);
+  if (fenced) return fenced[1].trim();
+  return trimmed;
+}
+
+type AttemptStage = "PRIMARY" | "FALLBACK";
+
 async function attemptParse(
   input: ParseInput,
   model: LlmModel,
+  stage: AttemptStage,
 ): Promise<InquiryData> {
   const client = getLlmClient(model);
   const prompt = buildParseInquiryPrompt(input);
 
-  const response = await client.generate({
-    task: "parse_inquiry",
-    model,
-    system: prompt.system,
-    input: prompt.user,
-    temperature: 0,
-    maxOutputTokens: 400,
-  });
+  let response: Awaited<ReturnType<typeof client.generate>>;
+  try {
+    response = await client.generate({
+      task: "parse_inquiry",
+      model,
+      system: prompt.system,
+      input: prompt.user,
+      temperature: 0,
+      maxOutputTokens: 400,
+    });
+  } catch (err) {
+    logError("parse attempt provider error", {
+      model,
+      stage,
+      reason_code: `${stage}_PROVIDER_ERROR`,
+      prompt_version: PARSE_PROMPT_VERSION,
+      source_type: input.source_type,
+      reason: String(err),
+    });
+    throw err;
+  }
 
-  const raw = JSON.parse(response.text.trim()) as Record<string, unknown>;
-  const normalized = normalizeInquiryFields(raw);
-  return inquirySchema.parse(normalized);
+  // Patch 1: null-safe text handling
+  const text = (response.text ?? "").trim();
+
+  if (!text) {
+    const reason_code = `${stage}_EMPTY_RESPONSE`;
+    logError("parse attempt empty response", {
+      model,
+      stage,
+      reason_code,
+      prompt_version: PARSE_PROMPT_VERSION,
+      source_type: input.source_type,
+    });
+    throw new Error(reason_code);
+  }
+
+  // Patch 2: strip code fences
+  const jsonText = extractJsonText(text);
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = JSON.parse(jsonText) as Record<string, unknown>;
+  } catch (err) {
+    const reason_code = `${stage}_JSON_PARSE_FAILED`;
+    logError("parse attempt json parse failed", {
+      model,
+      stage,
+      reason_code,
+      prompt_version: PARSE_PROMPT_VERSION,
+      source_type: input.source_type,
+      reason: String(err),
+    });
+    throw new Error(reason_code);
+  }
+
+  try {
+    const normalized = normalizeInquiryFields(raw);
+    return inquirySchema.parse(normalized);
+  } catch (err) {
+    const reason_code = `${stage}_SCHEMA_VALIDATION_FAILED`;
+    logError("parse attempt schema validation failed", {
+      model,
+      stage,
+      reason_code,
+      prompt_version: PARSE_PROMPT_VERSION,
+      source_type: input.source_type,
+      reason: String(err),
+    });
+    throw new Error(reason_code);
+  }
 }
 
 export async function parseWithLlm(input: ParseInput): Promise<ParseLlmResult> {
@@ -46,7 +117,7 @@ export async function parseWithLlm(input: ParseInput): Promise<ParseLlmResult> {
   logInfo("parse llm primary started", { model: primaryModel, prompt_version: PARSE_PROMPT_VERSION });
 
   try {
-    const parsed_json = await attemptParse(input, primaryModel);
+    const parsed_json = await attemptParse(input, primaryModel, "PRIMARY");
 
     logInfo("parse llm primary succeeded", { model: primaryModel });
 
@@ -68,7 +139,7 @@ export async function parseWithLlm(input: ParseInput): Promise<ParseLlmResult> {
     logInfo("parse llm fallback started", { model: fallbackModel });
 
     try {
-      const parsed_json = await attemptParse(input, fallbackModel);
+      const parsed_json = await attemptParse(input, fallbackModel, "FALLBACK");
 
       logInfo("parse llm fallback succeeded", { model: fallbackModel });
 

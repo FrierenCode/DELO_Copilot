@@ -40,7 +40,7 @@ async function generateNegotiationReply(
       maxOutputTokens: 300,
     });
 
-    const text = response.text.trim();
+    const text = (response.text ?? "").trim();
 
     if (!text) {
       logInfo("negotiation reply empty, using fallback", {
