@@ -1,5 +1,5 @@
-import { inquirySchema } from "@/schemas/inquiry.schema";
 import type { InquiryData, ParseInput, ParseResult } from "@/types/inquiry";
+import { parseWithLlm } from "@/services/parse-llm-service";
 
 const MISSING_SENTINEL = "not specified";
 
@@ -18,9 +18,7 @@ const REQUIRED_FIELDS: (keyof InquiryData)[] = [
 ];
 
 export async function parseService(input: ParseInput): Promise<ParseResult> {
-  // TODO: replace with LLM extraction once AI integration is ready
-  const extracted = extractFields(input.raw_text, input.source_type);
-  const parsed_json = inquirySchema.parse(extracted);
+  const { parsed_json } = await parseWithLlm(input);
 
   const missing_fields = REQUIRED_FIELDS.filter(
     (field) => parsed_json[field].toLowerCase().trim() === MISSING_SENTINEL,

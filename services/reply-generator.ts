@@ -10,6 +10,7 @@ import {
 import { getLlmClient } from "@/lib/llm/client-factory";
 import { buildNegotiationReplyPrompt } from "@/lib/llm/prompts/negotiation-reply.prompt";
 import { MODEL_POLICY } from "@/lib/llm/registry";
+import { logInfo, logError } from "@/lib/logger";
 
 type GenerateReplyDraftsParams = {
   parsed_json: InquiryData;
@@ -42,7 +43,7 @@ async function generateNegotiationReply(
     const text = response.text.trim();
 
     if (!text) {
-      console.info("[reply-generator] negotiation reply empty, using fallback", {
+      logInfo("negotiation reply empty, using fallback", {
         strategy,
         model,
         fallback_used: true,
@@ -50,7 +51,7 @@ async function generateNegotiationReply(
       return renderNegotiationFallbackReply(input);
     }
 
-    console.info("[reply-generator] negotiation reply generated", {
+    logInfo("negotiation reply generated", {
       strategy,
       model,
       latencyMs: response.latencyMs,
@@ -59,7 +60,7 @@ async function generateNegotiationReply(
 
     return text;
   } catch (error) {
-    console.error("[reply-generator] negotiation reply failed, using fallback", {
+    logError("negotiation reply failed, using fallback", {
       strategy,
       fallback_used: true,
       reason: String(error),
