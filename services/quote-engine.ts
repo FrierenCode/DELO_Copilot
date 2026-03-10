@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { CreatorProfile, InquiryData } from "@/types/inquiry";
 
 export type FollowersBand = "under_10k" | "10k_50k" | "50k_100k" | "100k_500k" | "over_500k";

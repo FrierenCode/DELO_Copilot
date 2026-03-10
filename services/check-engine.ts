@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { InquiryData } from "@/types/inquiry";
 
 export type CheckPriority = "HIGH" | "MEDIUM" | "LOW";

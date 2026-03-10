@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { InquiryData, ParseInput, ParseResult } from "@/types/inquiry";
 import { parseWithLlm } from "@/services/parse-llm-service";
 import { logInfo } from "@/lib/logger";

@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { DealStatus } from "@/types/deal";
 
 const ALLOWED_TRANSITIONS: Record<DealStatus, DealStatus[]> = {

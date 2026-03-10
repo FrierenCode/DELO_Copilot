@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * Thin Sentry wrapper.
  * No-op when SENTRY_DSN is not configured.

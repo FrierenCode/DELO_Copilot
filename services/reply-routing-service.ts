@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ReplyStrategy } from "@/types/reply";
 
 type RoutingInput = {

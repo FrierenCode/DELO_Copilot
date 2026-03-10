@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
+export const dynamic = "force-dynamic";
 import { parseService } from "@/services/parse-service";
 import { calculateQuote } from "@/services/quote-engine";
 import { generateChecks } from "@/services/check-engine";

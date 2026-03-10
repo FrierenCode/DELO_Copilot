@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { Deal } from "@/types/deal";
 
 export type AlertSummary = {

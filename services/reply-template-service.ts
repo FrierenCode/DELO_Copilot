@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ReplyTemplateInput } from "@/types/reply";
 
 const MISSING_SENTINEL = "not specified";

@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { InquiryData } from "@/types/inquiry";
 import type { ReplyGenerationResult, ReplyStrategy, ReplyTemplateInput } from "@/types/reply";
 import type { QuoteResult } from "@/services/quote-engine";
