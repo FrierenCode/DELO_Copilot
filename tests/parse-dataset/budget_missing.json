@@ -1,0 +1,34 @@
+{
+  "id": "budget_missing",
+  "description": "Email that mentions a collaboration but no budget figure",
+  "source_type": "email",
+  "raw_text": "Hi there,\n\nMy name is Lisa and I work at GlowLab Cosmetics. We're planning a YouTube campaign for our new serum line and would love to feature you.\n\nWe're looking for a 10-minute dedicated review video on YouTube. We'd need it published within 2 weeks.\n\nCould you send us your media kit and rates? We'll review and come back with a proposal.\n\nBest,\nLisa Park\nInfluencer Relations, GlowLab Cosmetics",
+  "expected_fields": {
+    "brand_name": "GlowLab Cosmetics",
+    "contact_name": "Lisa Park",
+    "contact_channel": "email",
+    "platform_requested": "youtube",
+    "deliverables": "1 YouTube dedicated review video",
+    "timeline": "2 weeks",
+    "compensation_type": "negotiable",
+    "budget_mentioned": "not specified",
+    "usage_rights": "not specified",
+    "exclusivity": "not specified",
+    "revisions": "not specified",
+    "payment_terms": "not specified"
+  },
+  "expected_missing_fields": [
+    "compensation_type",
+    "budget_mentioned",
+    "usage_rights",
+    "exclusivity",
+    "revisions",
+    "payment_terms"
+  ],
+  "expected_checks": [
+    "MISSING_PAYMENT_TERMS",
+    "MISSING_USAGE_RIGHTS",
+    "UNCLEAR_EXCLUSIVITY",
+    "MISSING_REVISIONS"
+  ]
+}

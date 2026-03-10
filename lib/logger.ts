@@ -1,3 +1,5 @@
+import { captureException } from "@/lib/sentry";
+
 type LogLevel = "info" | "error";
 
 type LogPayload = {
@@ -22,4 +24,5 @@ export function logInfo(message: string, meta?: Record<string, unknown>): void {
 
 export function logError(message: string, meta?: Record<string, unknown>): void {
   console.error(JSON.stringify(createLog("error", message, meta)));
+  captureException(new Error(message), meta);
 }

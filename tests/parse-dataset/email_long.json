@@ -1,0 +1,22 @@
+{
+  "id": "email_long",
+  "description": "Long formal email with full details from a brand manager",
+  "source_type": "email",
+  "raw_text": "Hi Sarah,\n\nI'm James from Lumina Beauty — a premium skincare brand. We came across your Instagram and YouTube channels and we're very impressed by your content quality and audience engagement.\n\nWe'd love to collaborate with you on our upcoming Spring launch campaign. Here's what we're looking for:\n\nDeliverables:\n- 1 YouTube video (dedicated, 8-10 min)\n- 2 Instagram Reels\n- 3 Instagram Stories\n\nTimeline: We're targeting a go-live date around April 15th, so we'd need final content by April 10th — approximately 3 weeks from now.\n\nBudget: We have a budget of KRW 2,500,000 for this campaign. We can discuss a breakdown if needed.\n\nUsage Rights: We'd like to repurpose the content for our website and paid social ads for 6 months.\n\nExclusivity: We'd request that you don't partner with competing skincare brands for 30 days after publish.\n\nRevisions: We typically allow 2 rounds of revisions.\n\nPayment Terms: Net 30 from invoice date.\n\nPlease let us know your rates and availability. Looking forward to working with you!\n\nBest regards,\nJames Kim\nBrand Partnerships Manager\nLumina Beauty",
+  "expected_fields": {
+    "brand_name": "Lumina Beauty",
+    "contact_name": "James Kim",
+    "contact_channel": "email",
+    "platform_requested": "instagram",
+    "deliverables": "1 YouTube video, 2 Instagram Reels, 3 Instagram Stories",
+    "timeline": "3 weeks",
+    "compensation_type": "fixed",
+    "budget_mentioned": "KRW 2,500,000",
+    "usage_rights": "website and paid social ads for 6 months",
+    "exclusivity": "competing skincare brands for 30 days",
+    "revisions": "2 rounds",
+    "payment_terms": "Net 30"
+  },
+  "expected_missing_fields": [],
+  "expected_checks": []
+}

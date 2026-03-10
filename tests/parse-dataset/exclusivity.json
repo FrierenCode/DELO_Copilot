@@ -1,0 +1,26 @@
+{
+  "id": "exclusivity",
+  "description": "Email with explicit exclusivity clause covering competitor brands",
+  "source_type": "email",
+  "raw_text": "Hi,\n\nI'm Rachel from PureBean Coffee. We'd love to work with you on an Instagram Reel campaign for our cold brew launch.\n\nDetails:\n- 1 Instagram Reel (60 sec)\n- Timeline: 2 weeks\n- Budget: KRW 900,000\n- Revisions: Up to 2 rounds\n- Payment: Within 7 days of publish\n\nExclusivity clause: We require that you do not promote any competing coffee or beverage brands for 45 days before and after publish date.\n\nLooking forward to your reply.\n\nRachel Moon\nPureBean Coffee",
+  "expected_fields": {
+    "brand_name": "PureBean Coffee",
+    "contact_name": "Rachel Moon",
+    "contact_channel": "email",
+    "platform_requested": "instagram",
+    "deliverables": "1 Instagram Reel",
+    "timeline": "2 weeks",
+    "compensation_type": "fixed",
+    "budget_mentioned": "KRW 900,000",
+    "usage_rights": "not specified",
+    "exclusivity": "no competing coffee or beverage brands for 45 days",
+    "revisions": "2 rounds",
+    "payment_terms": "within 7 days of publish"
+  },
+  "expected_missing_fields": [
+    "usage_rights"
+  ],
+  "expected_checks": [
+    "MISSING_USAGE_RIGHTS"
+  ]
+}

@@ -1,4 +1,4 @@
-﻿const requiredEnv = [
+const requiredEnv = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
@@ -16,8 +16,11 @@ function readEnv(name: RequiredEnv): string {
   return value;
 }
 
+// Use getters so env vars are read at access time (runtime), not at module
+// load time (build time). This prevents build failures when env vars are
+// absent from the CI / build environment.
 export const env = {
-  NEXT_PUBLIC_SUPABASE_URL: readEnv("NEXT_PUBLIC_SUPABASE_URL"),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  SUPABASE_SERVICE_ROLE_KEY: readEnv("SUPABASE_SERVICE_ROLE_KEY"),
+  get NEXT_PUBLIC_SUPABASE_URL() { return readEnv("NEXT_PUBLIC_SUPABASE_URL"); },
+  get NEXT_PUBLIC_SUPABASE_ANON_KEY() { return readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"); },
+  get SUPABASE_SERVICE_ROLE_KEY() { return readEnv("SUPABASE_SERVICE_ROLE_KEY"); },
 };

@@ -5,6 +5,7 @@ import { getLlmClient } from "@/lib/llm/client-factory";
 import { MODEL_POLICY } from "@/lib/llm/registry";
 import { buildParseInquiryPrompt, PARSE_PROMPT_VERSION } from "@/lib/llm/prompts/parse-inquiry.prompt";
 import { normalizeInquiryFields } from "@/lib/normalize-inquiry";
+import { extractFirstJSONObject } from "@/lib/llm/extract-json";
 import { logInfo, logError } from "@/lib/logger";
 import type { LlmModel } from "@/lib/llm/types";
 
@@ -17,15 +18,6 @@ export type ParseLlmResult = {
     prompt_version: string;
   };
 };
-
-// Patch 2: strip code fences before JSON.parse
-function extractJsonText(raw: string): string {
-  const trimmed = raw.trim();
-  // Match ```json ... ``` or ``` ... ```
-  const fenced = trimmed.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/);
-  if (fenced) return fenced[1].trim();
-  return trimmed;
-}
 
 type AttemptStage = "PRIMARY" | "FALLBACK";
 
@@ -74,21 +66,23 @@ async function attemptParse(
     throw new Error(reason_code);
   }
 
-  // Patch 2: strip code fences
-  const jsonText = extractJsonText(text);
-
+  // Step 10: use extractFirstJSONObject for robust extraction
   let raw: Record<string, unknown>;
   try {
-    raw = JSON.parse(jsonText) as Record<string, unknown>;
+    raw = extractFirstJSONObject(text);
   } catch (err) {
-    const reason_code = `${stage}_JSON_PARSE_FAILED`;
-    logError("parse attempt json parse failed", {
+    const extractionError = err instanceof Error ? err.message : String(err);
+    const reason_code =
+      extractionError === "NO_JSON_OBJECT"
+        ? `${stage}_JSON_PARSE_FAILED`
+        : `${stage}_JSON_PARSE_FAILED`;
+    logError("parse attempt json extraction failed", {
       model,
       stage,
       reason_code,
+      extraction_error: extractionError,
       prompt_version: PARSE_PROMPT_VERSION,
       source_type: input.source_type,
-      reason: String(err),
     });
     throw new Error(reason_code);
   }

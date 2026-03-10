@@ -1,0 +1,36 @@
+{
+  "id": "dm_short",
+  "description": "Short informal DM with minimal details",
+  "source_type": "dm",
+  "raw_text": "hey! i'm mia from fitfuel protein. we love your content 🔥 would you be down for a collab? we do instagram posts. lmk what you charge!",
+  "expected_fields": {
+    "brand_name": "fitfuel protein",
+    "contact_name": "mia",
+    "contact_channel": "dm",
+    "platform_requested": "instagram",
+    "deliverables": "not specified",
+    "timeline": "not specified",
+    "compensation_type": "negotiable",
+    "budget_mentioned": "not specified",
+    "usage_rights": "not specified",
+    "exclusivity": "not specified",
+    "revisions": "not specified",
+    "payment_terms": "not specified"
+  },
+  "expected_missing_fields": [
+    "deliverables",
+    "timeline",
+    "budget_mentioned",
+    "usage_rights",
+    "exclusivity",
+    "revisions",
+    "payment_terms"
+  ],
+  "expected_checks": [
+    "MISSING_PAYMENT_TERMS",
+    "MISSING_USAGE_RIGHTS",
+    "UNCLEAR_EXCLUSIVITY",
+    "MISSING_REVISIONS",
+    "MISSING_TIMELINE"
+  ]
+}

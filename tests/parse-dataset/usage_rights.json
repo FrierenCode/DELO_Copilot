@@ -1,0 +1,28 @@
+{
+  "id": "usage_rights",
+  "description": "Email with explicit usage rights clause",
+  "source_type": "email",
+  "raw_text": "Dear Creator,\n\nWe're reaching out from NovaSport — an athletic wear brand. We'd like you to create 3 Instagram Reels featuring our new training collection.\n\nTimeline: 3 weeks from signing.\nBudget: KRW 1,800,000.\nPayment: Net 15.\n\nUsage rights: We require a perpetual, worldwide license to use the content across all our digital channels including website, social media, email, and YouTube ads. This includes the right to edit and adapt the content.\n\nPlease confirm if these terms work for you.\n\nRegards,\nAlex Choi\nNovaSport Brand Team",
+  "expected_fields": {
+    "brand_name": "NovaSport",
+    "contact_name": "Alex Choi",
+    "contact_channel": "email",
+    "platform_requested": "instagram",
+    "deliverables": "3 Instagram Reels",
+    "timeline": "3 weeks",
+    "compensation_type": "fixed",
+    "budget_mentioned": "KRW 1,800,000",
+    "usage_rights": "perpetual worldwide license, all digital channels, right to edit",
+    "exclusivity": "not specified",
+    "revisions": "not specified",
+    "payment_terms": "Net 15"
+  },
+  "expected_missing_fields": [
+    "exclusivity",
+    "revisions"
+  ],
+  "expected_checks": [
+    "UNCLEAR_EXCLUSIVITY",
+    "MISSING_REVISIONS"
+  ]
+}

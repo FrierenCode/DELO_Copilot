@@ -1,0 +1,30 @@
+{
+  "id": "budget_present",
+  "description": "Email with explicit budget figure",
+  "source_type": "email",
+  "raw_text": "Hello,\n\nI'm Tom from TechGear Pro. We'd like to partner with you for a TikTok campaign.\n\nWe need 2 TikTok videos showcasing our new wireless earbuds. Timeline is flexible — around 4 weeks. Our budget for this is USD 800. Payment will be made within 14 days of content approval.\n\nLet me know if you're interested.\n\nTom Lee\nMarketing Lead, TechGear Pro",
+  "expected_fields": {
+    "brand_name": "TechGear Pro",
+    "contact_name": "Tom Lee",
+    "contact_channel": "email",
+    "platform_requested": "tiktok",
+    "deliverables": "2 TikTok videos",
+    "timeline": "4 weeks",
+    "compensation_type": "fixed",
+    "budget_mentioned": "USD 800",
+    "usage_rights": "not specified",
+    "exclusivity": "not specified",
+    "revisions": "not specified",
+    "payment_terms": "within 14 days of content approval"
+  },
+  "expected_missing_fields": [
+    "usage_rights",
+    "exclusivity",
+    "revisions"
+  ],
+  "expected_checks": [
+    "MISSING_USAGE_RIGHTS",
+    "UNCLEAR_EXCLUSIVITY",
+    "MISSING_REVISIONS"
+  ]
+}
