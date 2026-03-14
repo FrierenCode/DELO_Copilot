@@ -8,7 +8,13 @@ import { findInquiryByHash, createInquiry } from "@/repositories/inquiries-repo"
 import { getCachedParse, storeParse } from "@/repositories/parse-cache-repo";
 import { PARSE_PROMPT_VERSION } from "@/lib/llm/prompts/parse-inquiry.prompt";
 import { trackEvent } from "@/lib/analytics";
-import { logInfo } from "@/lib/logger";
+import { logError, logInfo } from "@/lib/logger";
+import {
+  ParsePipelineError,
+  summarizeError,
+  toParsePipelineError,
+} from "@/lib/parse-error";
+import type { ParseLlmResult } from "@/services/parse-llm-service";
 
 const MISSING_SENTINEL = "not specified";
 const MAX_RAW_TEXT = 10_000;
@@ -47,7 +53,25 @@ export async function parseService(
 
   const hash = await createInquiryHash(sanitized_text, input.source_type, PARSE_PROMPT_VERSION);
 
-  const existing = userId ? await findInquiryByHash(hash, userId) : null;
+  let existing = null;
+  if (userId) {
+    try {
+      existing = await findInquiryByHash(hash, userId);
+    } catch (err) {
+      throw toParsePipelineError(
+        err,
+        "PARSE_CACHE_ERROR",
+        "Failed to read scoped inquiry cache.",
+        {
+          route: "parse",
+          cache_lookup_stage: "inquiries_lookup",
+          provider_called: false,
+          source_type: input.source_type,
+        },
+      );
+    }
+  }
+
   if (existing) {
     logInfo("parse inquiry cache hit", {
       hash: hash.slice(0, 8),
@@ -68,20 +92,53 @@ export async function parseService(
     };
   }
 
-  const cached = await getCachedParse(hash);
+  let cached = null;
+  try {
+    cached = await getCachedParse(hash);
+  } catch (err) {
+    throw toParsePipelineError(
+      err,
+      "PARSE_CACHE_ERROR",
+      "Failed to read parse cache.",
+      {
+        route: "parse",
+        cache_lookup_stage: "parse_cache_lookup",
+        provider_called: false,
+        source_type: input.source_type,
+      },
+    );
+  }
+
   if (cached) {
-    const inquiry = await createInquiry({
-      user_id: userId ?? null,
-      input_hash: hash,
-      raw_text_preview: rawText.slice(0, RAW_PREVIEW_LEN),
-      sanitized_text: cached.sanitized_text ?? sanitized_text,
-      source_type: input.source_type,
-      parsed_json: cached.parsed_json,
-      missing_fields: cached.missing_fields,
-      quote_breakdown_json: null,
-      checks_json: [],
-      parser_meta: cached.parser_meta,
-    });
+    let inquiry;
+    try {
+      inquiry = await createInquiry({
+        user_id: userId ?? null,
+        input_hash: hash,
+        raw_text_preview: rawText.slice(0, RAW_PREVIEW_LEN),
+        sanitized_text: cached.sanitized_text ?? sanitized_text,
+        source_type: input.source_type,
+        parsed_json: cached.parsed_json,
+        missing_fields: cached.missing_fields,
+        quote_breakdown_json: null,
+        checks_json: [],
+        parser_meta: cached.parser_meta,
+      });
+    } catch (err) {
+      throw toParsePipelineError(
+        err,
+        "INQUIRY_PERSIST_FAILED",
+        "Failed to persist cached inquiry.",
+        {
+          route: "parse",
+          provider: cached.parser_meta.provider,
+          model: cached.parser_meta.model,
+          cache_lookup_stage: "parse_cache_hit_persist",
+          provider_called: false,
+          source_type: input.source_type,
+        },
+      );
+    }
 
     logInfo("parse global cache hit", {
       hash: hash.slice(0, 8),
@@ -108,10 +165,30 @@ export async function parseService(
     cache_hit: false,
   });
 
-  const { parsed_json, parser_meta } = await parseWithLlm({
-    raw_text: sanitized_text,
-    source_type: input.source_type,
-  });
+  let parsed_json: ParseLlmResult["parsed_json"];
+  let parser_meta: ParseLlmResult["parser_meta"];
+  try {
+    ({ parsed_json, parser_meta } = await parseWithLlm({
+      raw_text: sanitized_text,
+      source_type: input.source_type,
+    }));
+  } catch (err) {
+    if (err instanceof ParsePipelineError) {
+      throw err;
+    }
+
+    throw toParsePipelineError(
+      err,
+      "PARSE_FAILED",
+      "Failed to parse inquiry.",
+      {
+        route: "parse",
+        cache_lookup_stage: "llm_parse",
+        provider_called: false,
+        source_type: input.source_type,
+      },
+    );
+  }
 
   const missing_fields = REQUIRED_FIELDS.filter(
     (field) => parsed_json[field].toLowerCase().trim() === MISSING_SENTINEL,
@@ -133,20 +210,52 @@ export async function parseService(
     });
   }
 
-  const inquiry = await createInquiry({
-    user_id: userId ?? null,
-    input_hash: hash,
-    raw_text_preview: rawText.slice(0, RAW_PREVIEW_LEN),
-    sanitized_text,
-    source_type: input.source_type,
-    parsed_json,
-    missing_fields,
-    quote_breakdown_json: null,
-    checks_json: [],
-    parser_meta,
-  });
+  let inquiry;
+  try {
+    inquiry = await createInquiry({
+      user_id: userId ?? null,
+      input_hash: hash,
+      raw_text_preview: rawText.slice(0, RAW_PREVIEW_LEN),
+      sanitized_text,
+      source_type: input.source_type,
+      parsed_json,
+      missing_fields,
+      quote_breakdown_json: null,
+      checks_json: [],
+      parser_meta,
+    });
+  } catch (err) {
+    throw toParsePipelineError(
+      err,
+      "INQUIRY_PERSIST_FAILED",
+      "Failed to persist parsed inquiry.",
+      {
+        route: "parse",
+        provider: parser_meta.provider,
+        model: parser_meta.model,
+        cache_lookup_stage: "inquiry_persist",
+        provider_called: true,
+        source_type: input.source_type,
+      },
+    );
+  }
 
-  storeParse(hash, sanitized_text, { parsed_json, missing_fields, parser_meta });
+  try {
+    await storeParse(hash, sanitized_text, { parsed_json, missing_fields, parser_meta });
+  } catch (err) {
+    const details = summarizeError(err);
+    logError("parse cache store failed", {
+      route: "parse",
+      provider: parser_meta.provider,
+      model: parser_meta.model,
+      cache_lookup_stage: "parse_cache_store",
+      provider_called: true,
+      source_type: input.source_type,
+      code: "PARSE_CACHE_ERROR",
+      non_blocking: true,
+      ...details,
+    });
+  }
 
   return { inquiry_id: inquiry.id, parsed_json, missing_fields };
 }

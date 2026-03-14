@@ -16,19 +16,16 @@ export type ParseCacheEntry = {
 };
 
 export async function getCachedParse(hash: string): Promise<ParseCacheEntry | null> {
-  try {
-    const db = createAdminClient();
-    const { data, error } = await db
-      .from("parse_cache")
-      .select("sanitized_text, parsed_json, missing_fields, parser_meta")
-      .eq("input_hash", hash)
-      .maybeSingle();
+  const db = createAdminClient();
+  const { data, error } = await db
+    .from("parse_cache")
+    .select("sanitized_text, parsed_json, missing_fields, parser_meta")
+    .eq("input_hash", hash)
+    .maybeSingle();
 
-    if (error || !data) return null;
-    return data as ParseCacheEntry;
-  } catch {
-    return null;
-  }
+  if (error) throw new Error(`parse_cache.read failed: ${error.message}`);
+  if (!data) return null;
+  return data as ParseCacheEntry;
 }
 
 export async function storeParse(
@@ -36,16 +33,14 @@ export async function storeParse(
   sanitizedText: string,
   entry: ParseCacheEntry,
 ): Promise<void> {
-  try {
-    const db = createAdminClient();
-    await db.from("parse_cache").upsert({
-      input_hash: hash,
-      sanitized_text: sanitizedText,
-      parsed_json: entry.parsed_json,
-      missing_fields: entry.missing_fields,
-      parser_meta: entry.parser_meta,
-    });
-  } catch {
-    // Non-critical — cache write failures must not block the response
-  }
+  const db = createAdminClient();
+  const { error } = await db.from("parse_cache").upsert({
+    input_hash: hash,
+    sanitized_text: sanitizedText,
+    parsed_json: entry.parsed_json,
+    missing_fields: entry.missing_fields,
+    parser_meta: entry.parser_meta,
+  });
+
+  if (error) throw new Error(`parse_cache.write failed: ${error.message}`);
 }

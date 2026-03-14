@@ -15,6 +15,11 @@ import { DEFAULT_CREATOR_PROFILE } from "@/services/deal-service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
+import {
+  getParseErrorResponse,
+  isParsePipelineError,
+  summarizeError,
+} from "@/lib/parse-error";
 
 const requestSchema = z.object({
   raw_text: z.string().min(1, "raw_text must not be empty"),
@@ -135,13 +140,31 @@ export async function POST(req: NextRequest) {
       }),
     );
   } catch (err) {
-    logError("parse request failed", { error: String(err), source_type, plan });
+    const details = isParsePipelineError(err)
+      ? {
+          code: err.code,
+          ...err.diagnostics,
+        }
+      : {
+          code: "PARSE_FAILED" as const,
+          route: "parse" as const,
+          source_type,
+          ...summarizeError(err),
+        };
+    const parseErrorCode = details.code;
+    const { status, message } = getParseErrorResponse(parseErrorCode);
+    const provider = "provider" in details ? details.provider : undefined;
+    const model = "model" in details ? details.model : undefined;
+
+    logError("parse request failed", { source_type, plan, ...details });
     analytics.track("parse_failed", {
-      parse_failure_reason: String(err),
+      parse_failure_reason: parseErrorCode,
+      provider,
+      model,
     });
     return NextResponse.json(
-      errorResponse("PARSE_FAILED", "Failed to parse inquiry"),
-      { status: 500 },
+      errorResponse(parseErrorCode, message),
+      { status },
     );
   }
 }

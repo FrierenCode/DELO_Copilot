@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { InquiryData } from "@/types/inquiry";
+import { ParsePipelineError } from "@/lib/parse-error";
 
 const mockFindInquiryByHash = vi.fn();
 const mockCreateInquiry = vi.fn();
@@ -161,5 +162,33 @@ describe("parseService", () => {
     await parseService({ raw_text: "collab?", source_type: "email" });
 
     expect(mockStoreParse).toHaveBeenCalled();
+  });
+
+  it("logs and continues when parse_cache write fails", async () => {
+    const { logError } = await import("@/lib/logger");
+    mockParseWithLlm.mockResolvedValue({ parsed_json: parsedJson, parser_meta: parserMeta });
+    mockCreateInquiry.mockResolvedValue(makeInquiryRecord());
+    mockStoreParse.mockRejectedValue(new Error("parse_cache.write failed: boom"));
+
+    const result = await parseService({ raw_text: "collab?", source_type: "email" });
+
+    expect(result.inquiry_id).toBe("inquiry-123");
+    expect(logError).toHaveBeenCalledWith(
+      "parse cache store failed",
+      expect.objectContaining({
+        code: "PARSE_CACHE_ERROR",
+        non_blocking: true,
+        cache_lookup_stage: "parse_cache_store",
+      }),
+    );
+  });
+
+  it("throws INQUIRY_PERSIST_FAILED when inquiry insert fails", async () => {
+    mockParseWithLlm.mockResolvedValue({ parsed_json: parsedJson, parser_meta: parserMeta });
+    mockCreateInquiry.mockRejectedValue(new Error("inquiries.create failed: permission denied"));
+
+    await expect(parseService({ raw_text: "collab?", source_type: "email" })).rejects.toMatchObject({
+      code: "INQUIRY_PERSIST_FAILED",
+    } satisfies Partial<ParsePipelineError>);
   });
 });
