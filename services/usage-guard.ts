@@ -9,6 +9,10 @@ export type UserPlan = PlanTier;
 
 export type GuardAction = "PARSE" | "SAVE_DEAL" | "VIEW_ALERTS" | "NEGOTIATION_AI";
 
+/**
+ * Canonical billing source of truth for the current repository.
+ * No subscriptions table exists yet, so all plan reads go through user_plans only.
+ */
 async function getUserPlan(userId: string): Promise<UserPlan> {
   const db = createAdminClient();
   const { data } = await db
@@ -60,7 +64,7 @@ export async function checkUsageLimit(
       .eq("action", "NEGOTIATION_AI")
       .gte("created_at", startOfMonth.toISOString());
 
-    if ((count ?? 0) >= policy.negotiation_ai_per_month) {
+    if (policy.negotiation_ai_per_month !== null && (count ?? 0) >= policy.negotiation_ai_per_month) {
       logInfo("usage limit reached", { userId, action, plan, count });
       throw new Error("NEGOTIATION_AI_LIMIT_REACHED");
     }
@@ -78,7 +82,7 @@ export async function checkUsageLimit(
       .eq("action", "PARSE")
       .gte("created_at", startOfMonth.toISOString());
 
-    if ((count ?? 0) >= policy.parse_per_month) {
+    if (policy.parse_per_month !== null && (count ?? 0) >= policy.parse_per_month) {
       logInfo("usage limit reached", { userId, action, plan, count });
       throw new Error("PLAN_LIMIT_PARSE_REACHED");
     }
@@ -90,7 +94,7 @@ export async function checkUsageLimit(
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId);
 
-    if ((count ?? 0) >= policy.deal_save_limit) {
+    if (policy.deal_save_limit !== null && (count ?? 0) >= policy.deal_save_limit) {
       logInfo("usage limit reached", { userId, action, plan, count });
       throw new Error("PLAN_LIMIT_DEAL_SAVE_REACHED");
     }

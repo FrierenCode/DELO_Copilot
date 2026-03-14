@@ -5,15 +5,12 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { findDealsByUserId } from "@/repositories/deals-repo";
 import { computeAlerts } from "@/services/alert-engine";
-import { checkUsageLimit } from "@/services/usage-guard";
+import { checkUsageLimit, getUserPlanForUser } from "@/services/usage-guard";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { trackEvent } from "@/lib/analytics";
+import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
 
-// ------------------------------------------------------------------
-// GET /api/deals/alerts — PRO-only query-computed alert summary
-// ------------------------------------------------------------------
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,7 +20,13 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
   }
 
-  // Plan gate — alerts are PRO only
+  const plan = await getUserPlanForUser(user.id);
+  const analytics = createAnalyticsTracker({
+    user_id: user.id,
+    plan,
+    request_id: getRequestId(req),
+  });
+
   try {
     await checkUsageLimit(user.id, "VIEW_ALERTS");
   } catch (err) {
@@ -39,7 +42,7 @@ export async function GET(_req: NextRequest) {
     const alerts = computeAlerts(deals);
 
     logInfo("alerts fetched", { user_id: user.id, deal_count: deals.length });
-    trackEvent(user.id, "alerts_viewed", { deal_count: deals.length });
+    analytics.track("alerts_viewed", { deal_count: deals.length });
 
     return NextResponse.json(successResponse({ alerts }));
   } catch (err) {

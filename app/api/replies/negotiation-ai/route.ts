@@ -14,21 +14,19 @@ import { findInquiryById } from "@/repositories/inquiries-repo";
 import { findDealById } from "@/repositories/deals-repo";
 import { createReplyDrafts } from "@/repositories/reply-drafts-repo";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { trackEvent } from "@/lib/analytics";
+import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
 import type { ReplyTemplateInput } from "@/types/reply";
 
 const requestSchema = z.object({
   inquiry_id: z.string().uuid(),
-  /** Optional — if provided, the generated draft is stored in reply_drafts */
   deal_id: z.string().uuid().optional(),
-  /** Override quote target (e.g. after user edits) */
   quote_target: z.number().positive().optional(),
   missing_fields: z.array(z.string()).default([]),
 });
 
 export async function POST(req: NextRequest) {
-  // Auth required — this is a Pro feature
+  const requestId = getRequestId(req);
   const supabase = await createClient();
   const {
     data: { user },
@@ -42,6 +40,11 @@ export async function POST(req: NextRequest) {
   }
 
   const plan = await getUserPlanForUser(user.id);
+  const analytics = createAnalyticsTracker({
+    user_id: user.id,
+    plan,
+    request_id: requestId,
+  });
 
   let body: unknown;
   try {
@@ -63,12 +66,11 @@ export async function POST(req: NextRequest) {
 
   const { inquiry_id, deal_id, quote_target, missing_fields } = parsed.data;
 
-  // Plan gate — negotiation AI is Pro only
   try {
     await checkUsageLimit(user.id, "NEGOTIATION_AI");
   } catch (err) {
     const code = err instanceof Error ? err.message : "FEATURE_NOT_AVAILABLE_ON_FREE";
-    trackEvent(user.id, "paywall_viewed", { action: "NEGOTIATION_AI", reason: code, plan });
+    analytics.track("paywall_viewed", { action: "NEGOTIATION_AI", reason: code });
     return NextResponse.json(
       errorResponse(
         code,
@@ -80,7 +82,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve inquiry and verify ownership
   const inquiry = await findInquiryById(inquiry_id);
   if (!inquiry) {
     return NextResponse.json(
@@ -96,7 +97,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Optionally verify deal ownership
   if (deal_id) {
     const deal = await findDealById(deal_id);
     if (!deal || deal.user_id !== user.id) {
@@ -107,11 +107,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Daily budget guard
   const budget = await checkLlmBudget();
   if (!budget.allowed) {
     logInfo("negotiation ai blocked by budget guard", { user_id: user.id });
-    trackEvent(user.id, "budget_guard_triggered", { endpoint: "negotiation-ai", plan });
+    analytics.track("budget_guard_triggered", { endpoint: "negotiation-ai" });
     return NextResponse.json(
       errorResponse(
         "DAILY_BUDGET_GUARD_TRIGGERED",
@@ -123,7 +122,6 @@ export async function POST(req: NextRequest) {
 
   const { parsed_json } = inquiry;
   const effectiveQuoteTarget = quote_target ?? inquiry.quote_breakdown_json?.target ?? 0;
-
   const templateInput: ReplyTemplateInput = {
     brand_name: parsed_json.brand_name,
     platform_requested: parsed_json.platform_requested,
@@ -158,7 +156,6 @@ export async function POST(req: NextRequest) {
 
     if (!text) throw new Error("EMPTY_RESPONSE");
 
-    // Record LLM call for budget tracking and usage metering
     recordLlmCall("reply_negotiation");
     await recordUsageEvent(user.id, "NEGOTIATION_AI");
 
@@ -169,15 +166,13 @@ export async function POST(req: NextRequest) {
       latency_ms,
     });
 
-    trackEvent(user.id, "negotiation_ai_requested", {
+    analytics.track("negotiation_ai_requested", {
       model,
       provider: model.startsWith("gpt") ? "openai" : "anthropic",
       latency_ms,
       fallback_used: false,
-      plan,
     });
 
-    // Store draft if a deal is linked
     if (deal_id) {
       await createReplyDrafts([{ deal_id, tone: "negotiation", body: text }]);
     }
@@ -198,13 +193,12 @@ export async function POST(req: NextRequest) {
       reason: String(err),
     });
 
-    trackEvent(user.id, "fallback_used", {
+    analytics.track("fallback_used", {
       model,
       provider: model.startsWith("gpt") ? "openai" : "anthropic",
       latency_ms,
       fallback_used: true,
       endpoint: "negotiation-ai",
-      plan,
     });
 
     const fallback = renderNegotiationFallbackReply(templateInput);

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { findProfileByUserId, upsertProfile } from "@/repositories/creator-profiles-repo";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { trackEvent } from "@/lib/analytics";
+import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
 
 const profileSchema = z.object({
@@ -14,12 +14,12 @@ const profileSchema = z.object({
   avg_views_band: z.enum(["under_5k", "5k_20k", "20k_50k", "over_50k"]),
   niche: z.string().min(1).max(100),
   floor_rate: z.number().int().min(0),
+  primary_platform: z.string().min(1).max(50),
+  geo_region: z.string().min(1).max(50),
+  currency: z.string().min(1).max(10),
 });
 
-// ------------------------------------------------------------------
-// GET /api/creator-profile — return profile or null (no 404)
-// ------------------------------------------------------------------
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -29,8 +29,14 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
   }
 
+  const analytics = createAnalyticsTracker({
+    user_id: user.id,
+    request_id: getRequestId(req),
+  });
+
   try {
     const profile = await findProfileByUserId(user.id);
+    analytics.track("profile_viewed");
     return NextResponse.json(successResponse({ profile }));
   } catch (err) {
     logError("creator profile fetch failed", { user_id: user.id, error: String(err) });
@@ -41,10 +47,7 @@ export async function GET(_req: NextRequest) {
   }
 }
 
-// ------------------------------------------------------------------
-// PUT /api/creator-profile — create or update profile
-// ------------------------------------------------------------------
-export async function PUT(req: NextRequest) {
+async function saveProfile(req: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -72,13 +75,21 @@ export async function PUT(req: NextRequest) {
     );
   }
 
+  const analytics = createAnalyticsTracker({
+    user_id: user.id,
+    request_id: getRequestId(req),
+  });
+
   try {
     const profile = await upsertProfile(user.id, validated.data);
 
     logInfo("creator profile saved", { user_id: user.id });
-    trackEvent(user.id, "profile_saved", {
+    analytics.track("profile_saved", {
       followers_band: profile.followers_band,
       niche: profile.niche,
+      primary_platform: profile.primary_platform,
+      geo_region: profile.geo_region,
+      currency: profile.currency,
     });
 
     return NextResponse.json(successResponse({ profile }));
@@ -89,4 +100,12 @@ export async function PUT(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+export async function POST(req: NextRequest) {
+  return saveProfile(req);
+}
+
+export async function PUT(req: NextRequest) {
+  return saveProfile(req);
 }

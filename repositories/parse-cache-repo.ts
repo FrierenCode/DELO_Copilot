@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { InquiryData } from "@/types/inquiry";
 
 export type ParseCacheEntry = {
+  sanitized_text?: string;
   parsed_json: InquiryData;
   missing_fields: string[];
   parser_meta: {
@@ -19,7 +20,7 @@ export async function getCachedParse(hash: string): Promise<ParseCacheEntry | nu
     const db = createAdminClient();
     const { data, error } = await db
       .from("parse_cache")
-      .select("parsed_json, missing_fields, parser_meta")
+      .select("sanitized_text, parsed_json, missing_fields, parser_meta")
       .eq("input_hash", hash)
       .maybeSingle();
 

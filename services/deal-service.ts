@@ -14,6 +14,9 @@ export const DEFAULT_CREATOR_PROFILE: CreatorProfile = {
   avg_views_band: "20k_50k",
   niche: "lifestyle",
   floor_rate: 300000,
+  primary_platform: "instagram",
+  geo_region: "KR",
+  currency: "KRW",
 };
 
 const DEFAULT_NEXT_ACTION = "Send reply";

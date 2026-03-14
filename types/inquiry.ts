@@ -20,6 +20,9 @@ export type CreatorProfile = {
   avg_views_band: AvgViewsBand;
   niche: string;
   floor_rate: number;
+  primary_platform: string;
+  geo_region: string;
+  currency: string;
 };
 
 export type ParseInput = {

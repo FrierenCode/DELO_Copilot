@@ -13,7 +13,7 @@ import { getPlanPolicy } from "@/lib/plan-policy";
 import { findProfileByUserId } from "@/repositories/creator-profiles-repo";
 import { DEFAULT_CREATOR_PROFILE } from "@/services/deal-service";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { trackEvent } from "@/lib/analytics";
+import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
 
 const requestSchema = z.object({
@@ -22,7 +22,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  // Optional auth — unauthenticated callers are treated as free tier
+  const requestId = getRequestId(req);
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,9 +31,6 @@ export async function POST(req: NextRequest) {
   const userId = user?.id;
   const plan = userId ? await getUserPlanForUser(userId) : "free";
   const policy = getPlanPolicy(plan);
-  const creator_profile = userId
-    ? (await findProfileByUserId(userId)) ?? DEFAULT_CREATOR_PROFILE
-    : DEFAULT_CREATOR_PROFILE;
 
   let body: unknown;
   try {
@@ -54,14 +51,22 @@ export async function POST(req: NextRequest) {
   }
 
   const { raw_text, source_type } = parsed.data;
+  const creator_profile = userId
+    ? (await findProfileByUserId(userId)) ?? DEFAULT_CREATOR_PROFILE
+    : DEFAULT_CREATOR_PROFILE;
+  const analytics = createAnalyticsTracker({
+    user_id: userId ?? "anon",
+    plan,
+    request_id: requestId,
+    source_type,
+  });
 
-  // Usage guard — only enforced for authenticated users
   if (userId) {
     try {
       await checkUsageLimit(userId, "PARSE");
     } catch (err) {
       const code = err instanceof Error ? err.message : "PLAN_LIMIT_PARSE_REACHED";
-      trackEvent(userId, "paywall_viewed", { action: "PARSE", reason: code, plan });
+      analytics.track("paywall_viewed", { action: "PARSE", reason: code });
       return NextResponse.json(
         errorResponse(code, "Monthly parse limit reached. Upgrade to Pro for more."),
         { status: 429 },
@@ -69,7 +74,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  trackEvent(userId ?? "anon", "parse_started", { source_type, plan });
+  analytics.track("parse_started");
 
   try {
     logInfo("parse request received", { source_type, length: raw_text.length, plan });
@@ -83,13 +88,10 @@ export async function POST(req: NextRequest) {
       await recordUsageEvent(userId, "PARSE");
     }
 
-    trackEvent(userId ?? "anon", "parse_succeeded", {
-      source_type,
+    analytics.track("parse_succeeded", {
       missing_fields_count: missing_fields.length,
-      plan,
     });
 
-    // Quote and checks — always computed deterministically server-side
     const quote_breakdown = calculateQuote({
       creator_profile,
       inquiry: parsed_json,
@@ -97,13 +99,10 @@ export async function POST(req: NextRequest) {
 
     const checks = generateChecks(parsed_json);
 
-    trackEvent(userId ?? "anon", "quote_viewed", {
-      plan,
-      source_type,
+    analytics.track("quote_viewed", {
       checks_count: checks.length,
     });
 
-    // Reply drafts — plan-gated
     const { strategy, drafts } = generateReplyDrafts({
       parsed_json,
       quote_breakdown,
@@ -124,12 +123,9 @@ export async function POST(req: NextRequest) {
       successResponse({
         inquiry_id,
         parsed_json,
-        // FREE: simplified quote (target + explanation only)
-        // PRO:  full breakdown with fee components
         quote_breakdown: policy.full_quote_breakdown
           ? quote_breakdown
           : { target: quote_breakdown.target, explanation: quote_breakdown.explanation },
-        // FREE: empty checks list; PRO: full list
         checks: policy.full_checks_list ? checks : [],
         missing_fields,
         reply_drafts: drafts,
@@ -140,10 +136,8 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     logError("parse request failed", { error: String(err), source_type, plan });
-    trackEvent(userId ?? "anon", "parse_failed", {
-      source_type,
+    analytics.track("parse_failed", {
       parse_failure_reason: String(err),
-      plan,
     });
     return NextResponse.json(
       errorResponse("PARSE_FAILED", "Failed to parse inquiry"),

@@ -7,12 +7,12 @@
 export type PlanTier = "free" | "pro";
 
 export type PlanPolicy = {
-  /** Maximum parse calls per calendar month */
-  parse_per_month: number;
-  /** Maximum saved deals (cumulative) */
-  deal_save_limit: number;
-  /** Maximum negotiation AI calls per calendar month (0 = disabled) */
-  negotiation_ai_per_month: number;
+  /** Maximum parse calls per calendar month. Null = unlimited. */
+  parse_per_month: number | null;
+  /** Maximum saved deals (cumulative). Null = unlimited. */
+  deal_save_limit: number | null;
+  /** Maximum negotiation AI calls per calendar month. Null = unlimited; 0 = disabled. */
+  negotiation_ai_per_month: number | null;
   /** Which reply tones are returned in parse response */
   reply_tones: ("polite" | "quick" | "negotiation")[];
   /** Whether dashboard alert panel is returned */
@@ -37,9 +37,9 @@ export const PLAN_POLICIES: Record<PlanTier, PlanPolicy> = {
     negotiation_ai_enabled: false,
   },
   pro: {
-    parse_per_month: 100,
-    deal_save_limit: 200,
-    negotiation_ai_per_month: 50,
+    parse_per_month: null,
+    deal_save_limit: null,
+    negotiation_ai_per_month: null,
     reply_tones: ["polite", "quick", "negotiation"],
     alerts_enabled: true,
     full_quote_breakdown: true,

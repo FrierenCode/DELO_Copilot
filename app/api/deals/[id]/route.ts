@@ -10,16 +10,16 @@ import { findDraftsByDealId } from "@/repositories/reply-drafts-repo";
 import { findLogsByDealId, createStatusLog } from "@/repositories/deal-status-log-repo";
 import { validateStatusTransition } from "@/services/status-transition";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { trackEvent } from "@/lib/analytics";
+import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
 import type { DealStatus } from "@/types/deal";
 
-const DEAL_STATUSES: [DealStatus, ...DealStatus[]] = [
+const dealStatuses: [DealStatus, ...DealStatus[]] = [
   "Lead", "Replied", "Negotiating", "Confirmed", "Delivered", "Paid", "ClosedLost",
 ];
 
 const patchSchema = z.object({
-  status: z.enum(DEAL_STATUSES).optional(),
+  status: z.enum(dealStatuses).optional(),
   notes: z.string().max(2000).optional(),
   next_action: z.string().max(500).optional(),
   next_action_due_at: z.string().datetime().optional(),
@@ -28,15 +28,11 @@ const patchSchema = z.object({
   payment_due_date: z.string().datetime().optional(),
 });
 
-// ------------------------------------------------------------------
-// GET /api/deals/:id — single deal with checks, drafts, status log
-// ------------------------------------------------------------------
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,6 +41,11 @@ export async function GET(
   if (!user) {
     return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
   }
+
+  const analytics = createAnalyticsTracker({
+    user_id: user.id,
+    request_id: getRequestId(req),
+  });
 
   try {
     const deal = await findDealById(id);
@@ -67,7 +68,7 @@ export async function GET(
     ]);
 
     logInfo("deal viewed", { user_id: user.id, deal_id: id });
-    trackEvent(user.id, "deal_viewed", { deal_id: id, status: deal.status });
+    analytics.track("deal_viewed", { deal_id: id, status: deal.status });
 
     return NextResponse.json(successResponse({ deal, checks, drafts, status_logs }));
   } catch (err) {
@@ -79,15 +80,11 @@ export async function GET(
   }
 }
 
-// ------------------------------------------------------------------
-// PATCH /api/deals/:id — update deal fields + enforce status machine
-// ------------------------------------------------------------------
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -96,6 +93,11 @@ export async function PATCH(
   if (!user) {
     return NextResponse.json(errorResponse("UNAUTHORIZED", "Unauthorized"), { status: 401 });
   }
+
+  const analytics = createAnalyticsTracker({
+    user_id: user.id,
+    request_id: getRequestId(req),
+  });
 
   let body: unknown;
   try {
@@ -131,7 +133,6 @@ export async function PATCH(
 
     const { status: newStatus, ...rest } = validated.data;
 
-    // Status transition validation
     if (newStatus && newStatus !== deal.status) {
       try {
         validateStatusTransition(deal.status, newStatus);
@@ -149,7 +150,6 @@ export async function PATCH(
     const updates = { ...rest, ...(newStatus ? { status: newStatus } : {}) };
     const updated = await updateDeal(id, updates);
 
-    // Log status change
     if (newStatus && newStatus !== deal.status) {
       await createStatusLog({
         deal_id: id,
@@ -157,7 +157,7 @@ export async function PATCH(
         to_status: newStatus,
       });
 
-      trackEvent(user.id, "deal_status_changed", {
+      analytics.track("deal_status_changed", {
         deal_id: id,
         from_status: deal.status,
         to_status: newStatus,
@@ -169,6 +169,7 @@ export async function PATCH(
       deal_id: id,
       status_changed: newStatus !== undefined && newStatus !== deal.status,
     });
+    analytics.track("deal_updated", { deal_id: id, status: updated.status });
 
     return NextResponse.json(successResponse({ deal: updated }));
   } catch (err) {
