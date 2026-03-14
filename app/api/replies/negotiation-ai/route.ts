@@ -136,7 +136,11 @@ export async function POST(req: NextRequest) {
   };
 
   const model = MODEL_POLICY.reply_negotiation.primary;
+  const provider = model.startsWith("gpt") ? "openai" : "anthropic";
   const start = Date.now();
+
+  // Track intent before LLM call
+  analytics.track("negotiation_ai_requested", { model, provider });
 
   try {
     const client = getLlmClient(model);
@@ -166,12 +170,7 @@ export async function POST(req: NextRequest) {
       latency_ms,
     });
 
-    analytics.track("negotiation_ai_requested", {
-      model,
-      provider: model.startsWith("gpt") ? "openai" : "anthropic",
-      latency_ms,
-      fallback_used: false,
-    });
+    analytics.track("negotiation_ai_succeeded", { model, provider, latency_ms });
 
     if (deal_id) {
       await createReplyDrafts([{ deal_id, tone: "negotiation", body: text }]);
@@ -193,11 +192,10 @@ export async function POST(req: NextRequest) {
       reason: String(err),
     });
 
-    analytics.track("fallback_used", {
+    analytics.track("negotiation_ai_failed", {
       model,
-      provider: model.startsWith("gpt") ? "openai" : "anthropic",
+      provider,
       latency_ms,
-      fallback_used: true,
       endpoint: "negotiation-ai",
     });
 

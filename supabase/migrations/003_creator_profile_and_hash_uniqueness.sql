@@ -5,18 +5,23 @@
 -- Stores the creator's audience/pricing data used for quote engine
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS creator_profiles (
-  id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id        UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
 
-  followers_band TEXT        NOT NULL DEFAULT '50k_100k'
+  followers_band   TEXT        NOT NULL DEFAULT '50k_100k'
     CHECK (followers_band IN ('under_10k', '10k_50k', '50k_100k', '100k_500k', 'over_500k')),
-  avg_views_band TEXT        NOT NULL DEFAULT '20k_50k'
+  avg_views_band   TEXT        NOT NULL DEFAULT '20k_50k'
     CHECK (avg_views_band IN ('under_5k', '5k_20k', '20k_50k', 'over_50k')),
-  niche          TEXT        NOT NULL DEFAULT 'general',
-  floor_rate     INTEGER     NOT NULL DEFAULT 0,
+  niche            TEXT        NOT NULL DEFAULT 'general',
+  floor_rate       INTEGER     NOT NULL DEFAULT 0,
 
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- Extended PRD fields
+  primary_platform TEXT        NOT NULL DEFAULT 'instagram',
+  geo_region       TEXT        NOT NULL DEFAULT 'KR',
+  currency         TEXT        NOT NULL DEFAULT 'KRW',
+
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   UNIQUE (user_id)
 );

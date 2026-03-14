@@ -92,7 +92,8 @@ export function createAnalyticsTracker(context: AnalyticsTrackerContext) {
       properties?: Omit<AnalyticsProperties, keyof AnalyticsCommonProperties>,
       options?: { dedupeKey?: string },
     ): void {
-      const dedupeKey = options?.dedupeKey ?? properties?.dedupe_key ?? event;
+      const dedupeKey: string =
+        options?.dedupeKey ?? (properties?.dedupe_key as string | undefined) ?? event;
       if (emitted.has(dedupeKey)) return;
       emitted.add(dedupeKey);
 
