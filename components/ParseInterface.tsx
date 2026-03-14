@@ -88,7 +88,7 @@ export function ParseInterface() {
           <InquiryCard data={result.parsed_json} missingFields={result.missing_fields} />
           <QuoteCard data={result.quote_breakdown} />
           <ChecksCard checks={result.checks} />
-          <ReplyCard drafts={result.reply_drafts} />
+          <ReplyCard drafts={result.reply_drafts} inquiryId={result.inquiry_id} />
         </div>
       )}
     </div>

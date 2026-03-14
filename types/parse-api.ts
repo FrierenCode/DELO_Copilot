@@ -34,6 +34,15 @@ export type ReplyDrafts = {
   negotiation: string | null;
 };
 
+export type InquirySummary = {
+  id: string;
+  brand: string;
+  platform: string;
+  deliverables: string;
+  suggested_price: number | null;
+  created_at: string;
+};
+
 export type ParseApiResult = {
   inquiry_id: string;
   parsed_json: ParsedInquiry;
