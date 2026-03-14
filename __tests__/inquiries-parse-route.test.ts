@@ -47,11 +47,13 @@ vi.mock("@/services/reply-generator", () => ({
   generateReplyDrafts: (...args: unknown[]) => mockGenerateReplyDrafts(...args),
 }));
 
+const mockTrack = vi.fn();
+
 vi.mock("@/lib/analytics", async () => {
   const actual = await vi.importActual<typeof import("@/lib/analytics")>("@/lib/analytics");
   return {
     ...actual,
-    createAnalyticsTracker: () => ({ track: vi.fn() }),
+    createAnalyticsTracker: () => ({ track: mockTrack }),
   };
 });
 
@@ -65,6 +67,7 @@ import { POST } from "@/app/api/inquiries/parse/route";
 describe("inquiries parse route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTrack.mockReset();
     mockGetUser.mockResolvedValue({ data: { user: null } });
     mockCheckUsageLimit.mockResolvedValue(undefined);
     mockRecordUsageEvent.mockResolvedValue(undefined);
@@ -143,6 +146,142 @@ describe("inquiries parse route", () => {
         code: "PARSE_FAILED",
         message: "Failed to parse inquiry.",
       },
+    });
+  });
+
+  it("returns 502 for PROVIDER_REQUEST_FAILED", async () => {
+    mockParseService.mockRejectedValue(
+      new ParsePipelineError("PROVIDER_REQUEST_FAILED", "rate limited", {
+        route: "parse",
+        provider: "openai",
+        model: "gpt-4o-mini",
+        cache_lookup_stage: "llm_parse",
+        provider_called: true,
+        failure_stage: "generate",
+      }),
+    );
+
+    const response = await POST(new NextRequest("http://localhost/api/inquiries/parse", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: "hello", source_type: "email" }),
+    }));
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: {
+        code: "PROVIDER_REQUEST_FAILED",
+        message: "Parse provider request failed.",
+      },
+    });
+  });
+
+  it("returns 500 for INQUIRY_PERSIST_FAILED", async () => {
+    mockParseService.mockRejectedValue(
+      new ParsePipelineError("INQUIRY_PERSIST_FAILED", "db write failed", {
+        route: "parse",
+        provider: "openai",
+        model: "gpt-4o-mini",
+        cache_lookup_stage: "inquiry_persist",
+        provider_called: true,
+      }),
+    );
+
+    const response = await POST(new NextRequest("http://localhost/api/inquiries/parse", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: "hello", source_type: "email" }),
+    }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: {
+        code: "INQUIRY_PERSIST_FAILED",
+        message: "Failed to persist parsed inquiry.",
+      },
+    });
+  });
+
+  it("returns 200 and full response shape for a valid parse", async () => {
+    const parsedJson = {
+      brand_name: "Acme",
+      contact_name: "Jane",
+      contact_channel: "email",
+      platform_requested: "instagram",
+      deliverables: "2 reels",
+      timeline: "2 weeks",
+      compensation_type: "fixed",
+      budget_mentioned: "500 USD",
+      usage_rights: "not specified",
+      exclusivity: "not specified",
+      revisions: "not specified",
+      payment_terms: "not specified",
+    };
+    mockParseService.mockResolvedValue({
+      inquiry_id: "inq-abc",
+      parsed_json: parsedJson,
+      missing_fields: ["usage_rights", "exclusivity", "revisions", "payment_terms"],
+    });
+    mockCalculateQuote.mockReturnValue({ target: 800, explanation: "standard rate" });
+    mockGenerateChecks.mockReturnValue([{ id: "check-1", label: "Low budget", passed: false }]);
+    mockGenerateReplyDrafts.mockReturnValue({ strategy: "negotiate", drafts: [{ tone: "polite", body: "Hi" }] });
+
+    const response = await POST(new NextRequest("http://localhost/api/inquiries/parse", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: "Hi we'd like to collab", source_type: "email" }),
+    }));
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.success).toBe(true);
+    expect(body.data.inquiry_id).toBe("inq-abc");
+    expect(body.data.parsed_json).toEqual(parsedJson);
+    expect(body.data.missing_fields).toHaveLength(4);
+  });
+
+  it("emits parse_failed analytics with parse_failure_code field", async () => {
+    mockParseService.mockRejectedValue(
+      new ParsePipelineError("PARSE_SCHEMA_INVALID", "schema mismatch", {
+        route: "parse",
+        provider_called: true,
+      }),
+    );
+
+    await POST(new NextRequest("http://localhost/api/inquiries/parse", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: "hello", source_type: "email" }),
+    }));
+
+    const failedCall = mockTrack.mock.calls.find((c) => c[0] === "parse_failed");
+    expect(failedCall).toBeDefined();
+    expect(failedCall![1]).toEqual(expect.objectContaining({
+      parse_failure_code: "PARSE_SCHEMA_INVALID",
+    }));
+  });
+
+  it("returns 400 for missing source_type", async () => {
+    const response = await POST(new NextRequest("http://localhost/api/inquiries/parse", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: "hello" }),
+    }));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      success: false,
+      error: { code: "INVALID_REQUEST" },
+    });
+  });
+
+  it("returns 400 for empty raw_text", async () => {
+    const response = await POST(new NextRequest("http://localhost/api/inquiries/parse", {
+      method: "POST",
+      body: JSON.stringify({ raw_text: "", source_type: "email" }),
+    }));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      success: false,
+      error: { code: "INVALID_REQUEST" },
     });
   });
 });

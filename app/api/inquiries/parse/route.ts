@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
 
     logError("parse request failed", { source_type, plan, ...details });
     analytics.track("parse_failed", {
-      parse_failure_reason: parseErrorCode,
+      parse_failure_code: parseErrorCode,
       provider,
       model,
     });

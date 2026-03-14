@@ -183,12 +183,64 @@ describe("parseService", () => {
     );
   });
 
-  it("throws INQUIRY_PERSIST_FAILED when inquiry insert fails", async () => {
+  it("throws INQUIRY_PERSIST_FAILED when inquiry insert fails after LLM parse", async () => {
     mockParseWithLlm.mockResolvedValue({ parsed_json: parsedJson, parser_meta: parserMeta });
     mockCreateInquiry.mockRejectedValue(new Error("inquiries.create failed: permission denied"));
 
     await expect(parseService({ raw_text: "collab?", source_type: "email" })).rejects.toMatchObject({
       code: "INQUIRY_PERSIST_FAILED",
     } satisfies Partial<ParsePipelineError>);
+  });
+
+  it("throws INQUIRY_PERSIST_FAILED when inquiry insert fails on global cache hit", async () => {
+    mockGetCachedParse.mockResolvedValue({
+      sanitized_text: "Hi",
+      parsed_json: parsedJson,
+      missing_fields: [],
+      parser_meta: parserMeta,
+    });
+    mockCreateInquiry.mockRejectedValue(new Error("inquiries.create failed: disk full"));
+
+    await expect(parseService({ raw_text: "Hi", source_type: "email" })).rejects.toMatchObject({
+      code: "INQUIRY_PERSIST_FAILED",
+    } satisfies Partial<ParsePipelineError>);
+  });
+
+  it("throws PARSE_CACHE_ERROR when scoped inquiry lookup fails", async () => {
+    mockFindInquiryByHash.mockRejectedValue(new Error("inquiries.findByHash failed: connection reset"));
+
+    await expect(
+      parseService({ raw_text: "collab?", source_type: "email" }, "user-abc"),
+    ).rejects.toMatchObject({
+      code: "PARSE_CACHE_ERROR",
+      diagnostics: expect.objectContaining({
+        cache_lookup_stage: "inquiries_lookup",
+      }),
+    } satisfies Partial<ParsePipelineError>);
+  });
+
+  it("throws PARSE_CACHE_ERROR when global parse cache lookup fails", async () => {
+    mockGetCachedParse.mockRejectedValue(new Error("parse_cache.read failed: timeout"));
+
+    await expect(
+      parseService({ raw_text: "collab?", source_type: "email" }),
+    ).rejects.toMatchObject({
+      code: "PARSE_CACHE_ERROR",
+      diagnostics: expect.objectContaining({
+        cache_lookup_stage: "parse_cache_lookup",
+      }),
+    } satisfies Partial<ParsePipelineError>);
+  });
+
+  it("re-throws ParsePipelineError from LLM service without wrapping", async () => {
+    const original = new ParsePipelineError("PROVIDER_REQUEST_FAILED", "rate limited", {
+      route: "parse",
+      provider_called: true,
+    });
+    mockParseWithLlm.mockRejectedValue(original);
+
+    await expect(
+      parseService({ raw_text: "collab?", source_type: "email" }),
+    ).rejects.toBe(original);
   });
 });

@@ -4,8 +4,8 @@ type ModelPolicy = Record<LlmTask, { primary: LlmModel; fallback: LlmModel }>;
 
 export const MODEL_POLICY: ModelPolicy = {
   parse_inquiry: {
-    primary: "gemini-2.0-flash-lite",
-    fallback: "gpt-4o-mini",
+    primary: "gpt-4o-mini",
+    fallback: "gemini-2.5-flash-lite",
   },
   reply_negotiation: {
     primary: "gpt-4o-mini",

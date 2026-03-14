@@ -17,7 +17,7 @@ export class GoogleClient implements LlmClient {
   }
 
   async generate(req: LlmRequest): Promise<LlmResponse> {
-    if (req.model !== "gemini-2.0-flash-lite") {
+    if (req.model !== "gemini-2.0-flash-lite" && req.model !== "gemini-2.5-flash-lite") {
       throw new Error(`Unsupported Google model: ${req.model}`);
     }
 

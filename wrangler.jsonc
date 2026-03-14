@@ -7,16 +7,24 @@
     "nodejs_compat",
     "global_fetch_strictly_public"
   ],
+
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "delo-copilot"
     }
   ],
+
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://qlwbvhudrbsgriqdmkyh.supabase.co",
+
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsd2J2aHVkcmJzZ3JpcWRta3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTMzNDMsImV4cCI6MjA4ODYyOTM0M30.iz3CjSJAAgAOeswqaIB2_CwrSsamfo-3UViTAP-gHSI"
+  },
 
   "observability": {
     "enabled": true

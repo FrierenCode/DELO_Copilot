@@ -34,6 +34,7 @@ export type ParseDiagnostics = {
   prompt_version?: string;
   source_type?: string;
   stage?: "PRIMARY" | "FALLBACK";
+  failure_stage?: "client_init" | "generate" | "extract_json" | "schema_validate";
   attempts?: Array<{
     provider?: string;
     model?: string;
