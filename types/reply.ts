@@ -2,8 +2,10 @@ export type ReplyTone = "polite" | "negotiation" | "quick";
 
 export type ReplyDrafts = {
   polite: string;
-  negotiation: string;
-  quick: string;
+  /** null when user's plan does not include this tone */
+  quick: string | null;
+  /** null when user's plan does not include this tone */
+  negotiation: string | null;
 };
 
 export type ReplyTemplateInput = {

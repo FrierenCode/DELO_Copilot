@@ -1,16 +1,13 @@
 import "server-only";
+
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPlanPolicy } from "@/lib/plan-policy";
+import type { PlanTier } from "@/lib/plan-policy";
 import { logInfo } from "@/lib/logger";
 
-export type UserPlan = "free" | "pro";
+export type UserPlan = PlanTier;
 
-export type GuardAction = "PARSE" | "SAVE_DEAL" | "GENERATE_REPLY" | "VIEW_ALERTS" | "NEGOTIATION_AI";
-
-const FREE_LIMITS = {
-  PARSE_PER_MONTH: 20,
-  SAVED_DEALS_TOTAL: 5,
-  NEGOTIATION_AI_PER_MONTH: 3,
-} as const;
+export type GuardAction = "PARSE" | "SAVE_DEAL" | "VIEW_ALERTS" | "NEGOTIATION_AI";
 
 async function getUserPlan(userId: string): Promise<UserPlan> {
   const db = createAdminClient();
@@ -22,31 +19,58 @@ async function getUserPlan(userId: string): Promise<UserPlan> {
   return (data?.plan as UserPlan) ?? "free";
 }
 
+export async function getUserPlanForUser(userId: string): Promise<UserPlan> {
+  return getUserPlan(userId);
+}
+
 /**
- * Enforces usage limits per action.
- * Throws:
- *   "USAGE_LIMIT_EXCEEDED"            — user has hit their plan limit
- *   "ALERTS_DISABLED_ON_FREE_PLAN"    — free plan cannot access alerts
+ * Enforces plan-based usage limits.
+ *
+ * Error codes thrown:
+ *   PLAN_LIMIT_PARSE_REACHED      — monthly parse quota exhausted
+ *   PLAN_LIMIT_DEAL_SAVE_REACHED  — deal save limit exhausted
+ *   FEATURE_NOT_AVAILABLE_ON_FREE — feature requires Pro plan
+ *   ALERTS_NOT_AVAILABLE_ON_FREE  — dashboard alerts require Pro plan
+ *   NEGOTIATION_AI_LIMIT_REACHED  — monthly negotiation AI quota exhausted
  */
 export async function checkUsageLimit(
   userId: string,
   action: GuardAction,
 ): Promise<void> {
   const plan = await getUserPlan(userId);
-
-  if (plan === "pro") return; // unlimited
+  const policy = getPlanPolicy(plan);
 
   if (action === "VIEW_ALERTS") {
-    throw new Error("ALERTS_DISABLED_ON_FREE_PLAN");
+    if (!policy.alerts_enabled) {
+      throw new Error("ALERTS_NOT_AVAILABLE_ON_FREE");
+    }
+    return;
+  }
+
+  if (action === "NEGOTIATION_AI") {
+    if (!policy.negotiation_ai_enabled) {
+      throw new Error("FEATURE_NOT_AVAILABLE_ON_FREE");
+    }
+    const startOfMonth = startOfCurrentMonth();
+    const db = createAdminClient();
+    const { count } = await db
+      .from("usage_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("action", "NEGOTIATION_AI")
+      .gte("created_at", startOfMonth.toISOString());
+
+    if ((count ?? 0) >= policy.negotiation_ai_per_month) {
+      logInfo("usage limit reached", { userId, action, plan, count });
+      throw new Error("NEGOTIATION_AI_LIMIT_REACHED");
+    }
+    return;
   }
 
   const db = createAdminClient();
 
   if (action === "PARSE") {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
+    const startOfMonth = startOfCurrentMonth();
     const { count } = await db
       .from("usage_events")
       .select("id", { count: "exact", head: true })
@@ -54,9 +78,9 @@ export async function checkUsageLimit(
       .eq("action", "PARSE")
       .gte("created_at", startOfMonth.toISOString());
 
-    if ((count ?? 0) >= FREE_LIMITS.PARSE_PER_MONTH) {
+    if ((count ?? 0) >= policy.parse_per_month) {
       logInfo("usage limit reached", { userId, action, plan, count });
-      throw new Error("USAGE_LIMIT_EXCEEDED");
+      throw new Error("PLAN_LIMIT_PARSE_REACHED");
     }
   }
 
@@ -66,33 +90,15 @@ export async function checkUsageLimit(
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId);
 
-    if ((count ?? 0) >= FREE_LIMITS.SAVED_DEALS_TOTAL) {
+    if ((count ?? 0) >= policy.deal_save_limit) {
       logInfo("usage limit reached", { userId, action, plan, count });
-      throw new Error("USAGE_LIMIT_EXCEEDED");
-    }
-  }
-
-  if (action === "NEGOTIATION_AI") {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const { count } = await db
-      .from("usage_events")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("action", "NEGOTIATION_AI")
-      .gte("created_at", startOfMonth.toISOString());
-
-    if ((count ?? 0) >= FREE_LIMITS.NEGOTIATION_AI_PER_MONTH) {
-      logInfo("usage limit reached", { userId, action, plan, count });
-      throw new Error("USAGE_LIMIT_EXCEEDED");
+      throw new Error("PLAN_LIMIT_DEAL_SAVE_REACHED");
     }
   }
 }
 
 /**
- * Records a usage event for metering purposes.
+ * Records a usage event for metering.
  * Non-throwing — failures are silently ignored to avoid blocking user actions.
  */
 export async function recordUsageEvent(
@@ -105,4 +111,11 @@ export async function recordUsageEvent(
   } catch {
     // Non-critical — do not propagate
   }
+}
+
+function startOfCurrentMonth(): Date {
+  const d = new Date();
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }

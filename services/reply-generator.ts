@@ -3,6 +3,8 @@ import "server-only";
 import type { InquiryData } from "@/types/inquiry";
 import type { ReplyGenerationResult, ReplyTemplateInput } from "@/types/reply";
 import type { QuoteResult } from "@/services/quote-engine";
+import type { PlanTier } from "@/lib/plan-policy";
+import { getPlanPolicy } from "@/lib/plan-policy";
 import { chooseReplyStrategy } from "@/services/reply-routing-service";
 import {
   renderPoliteReply,
@@ -14,19 +16,23 @@ type GenerateReplyDraftsParams = {
   parsed_json: InquiryData;
   quote_breakdown: QuoteResult;
   missing_fields: string[];
+  /** Determines which tones are included; defaults to "free" */
+  plan?: PlanTier;
 };
 
 /**
- * Generates all three reply drafts using deterministic templates only.
+ * Returns deterministic reply drafts gated by plan:
+ *   FREE  → polite only; quick = null, negotiation = null
+ *   PRO   → all three tones
  *
- * The negotiation draft returned here is a high-quality template.
- * For an LLM-personalised negotiation reply, clients should call
- * POST /api/replies/negotiation-ai on demand.
+ * This function never calls an LLM.
+ * For AI-refined negotiation, the client calls POST /api/replies/negotiation-ai.
  */
 export function generateReplyDrafts(
   params: GenerateReplyDraftsParams,
 ): ReplyGenerationResult {
-  const { parsed_json, quote_breakdown, missing_fields } = params;
+  const { parsed_json, quote_breakdown, missing_fields, plan = "free" } = params;
+  const policy = getPlanPolicy(plan);
 
   const templateInput: ReplyTemplateInput = {
     brand_name: parsed_json.brand_name,
@@ -49,12 +55,16 @@ export function generateReplyDrafts(
     hasExclusivity: parsed_json.exclusivity !== "not specified",
   });
 
+  const tones = policy.reply_tones;
+
   return {
     strategy,
     drafts: {
       polite: renderPoliteReply(templateInput),
-      quick: renderQuickReply(templateInput),
-      negotiation: renderNegotiationFallbackReply(templateInput),
+      quick: tones.includes("quick") ? renderQuickReply(templateInput) : null,
+      negotiation: tones.includes("negotiation")
+        ? renderNegotiationFallbackReply(templateInput)
+        : null,
     },
   };
 }
