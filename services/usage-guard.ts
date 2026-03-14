@@ -4,11 +4,12 @@ import { logInfo } from "@/lib/logger";
 
 export type UserPlan = "free" | "pro";
 
-export type GuardAction = "PARSE" | "SAVE_DEAL" | "GENERATE_REPLY" | "VIEW_ALERTS";
+export type GuardAction = "PARSE" | "SAVE_DEAL" | "GENERATE_REPLY" | "VIEW_ALERTS" | "NEGOTIATION_AI";
 
 const FREE_LIMITS = {
   PARSE_PER_MONTH: 20,
   SAVED_DEALS_TOTAL: 5,
+  NEGOTIATION_AI_PER_MONTH: 3,
 } as const;
 
 async function getUserPlan(userId: string): Promise<UserPlan> {
@@ -66,6 +67,24 @@ export async function checkUsageLimit(
       .eq("user_id", userId);
 
     if ((count ?? 0) >= FREE_LIMITS.SAVED_DEALS_TOTAL) {
+      logInfo("usage limit reached", { userId, action, plan, count });
+      throw new Error("USAGE_LIMIT_EXCEEDED");
+    }
+  }
+
+  if (action === "NEGOTIATION_AI") {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count } = await db
+      .from("usage_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("action", "NEGOTIATION_AI")
+      .gte("created_at", startOfMonth.toISOString());
+
+    if ((count ?? 0) >= FREE_LIMITS.NEGOTIATION_AI_PER_MONTH) {
       logInfo("usage limit reached", { userId, action, plan, count });
       throw new Error("USAGE_LIMIT_EXCEEDED");
     }

@@ -12,6 +12,10 @@ export type AnalyticsProperties = {
   source_type?: string;
   fallback_used?: boolean;
   strategy?: string;
+  cache_hit?: boolean;
+  daily_count?: number;
+  limit?: number;
+  endpoint?: string;
   [key: string]: unknown;
 };
 

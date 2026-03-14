@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     const checks = generateChecks(parsed_json);
 
-    const { strategy, drafts } = await generateReplyDrafts({
+    const { strategy, drafts } = generateReplyDrafts({
       parsed_json,
       quote_breakdown,
       missing_fields,

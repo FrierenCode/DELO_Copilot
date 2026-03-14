@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { InquiryData } from "@/types/inquiry";
-import type { ReplyGenerationResult, ReplyStrategy, ReplyTemplateInput } from "@/types/reply";
+import type { ReplyGenerationResult, ReplyTemplateInput } from "@/types/reply";
 import type { QuoteResult } from "@/services/quote-engine";
 import { chooseReplyStrategy } from "@/services/reply-routing-service";
 import {
@@ -9,10 +9,6 @@ import {
   renderQuickReply,
   renderNegotiationFallbackReply,
 } from "@/services/reply-template-service";
-import { getLlmClient } from "@/lib/llm/client-factory";
-import { buildNegotiationReplyPrompt } from "@/lib/llm/prompts/negotiation-reply.prompt";
-import { MODEL_POLICY } from "@/lib/llm/registry";
-import { logInfo, logError } from "@/lib/logger";
 
 type GenerateReplyDraftsParams = {
   parsed_json: InquiryData;
@@ -20,60 +16,16 @@ type GenerateReplyDraftsParams = {
   missing_fields: string[];
 };
 
-async function generateNegotiationReply(
-  input: ReplyTemplateInput,
-  strategy: ReplyStrategy,
-): Promise<string> {
-  if (strategy === "template_only") {
-    return renderNegotiationFallbackReply(input);
-  }
-
-  try {
-    const model = MODEL_POLICY.reply_negotiation.primary;
-    const client = getLlmClient(model);
-    const prompt = buildNegotiationReplyPrompt(input);
-
-    const response = await client.generate({
-      task: "reply_negotiation",
-      model,
-      system: prompt.system,
-      input: prompt.user,
-      temperature: 0.4,
-      maxOutputTokens: 300,
-    });
-
-    const text = (response.text ?? "").trim();
-
-    if (!text) {
-      logInfo("negotiation reply empty, using fallback", {
-        strategy,
-        model,
-        fallback_used: true,
-      });
-      return renderNegotiationFallbackReply(input);
-    }
-
-    logInfo("negotiation reply generated", {
-      strategy,
-      model,
-      latencyMs: response.latencyMs,
-      fallback_used: false,
-    });
-
-    return text;
-  } catch (error) {
-    logError("negotiation reply failed, using fallback", {
-      strategy,
-      fallback_used: true,
-      reason: String(error),
-    });
-    return renderNegotiationFallbackReply(input);
-  }
-}
-
-export async function generateReplyDrafts(
+/**
+ * Generates all three reply drafts using deterministic templates only.
+ *
+ * The negotiation draft returned here is a high-quality template.
+ * For an LLM-personalised negotiation reply, clients should call
+ * POST /api/replies/negotiation-ai on demand.
+ */
+export function generateReplyDrafts(
   params: GenerateReplyDraftsParams,
-): Promise<ReplyGenerationResult> {
+): ReplyGenerationResult {
   const { parsed_json, quote_breakdown, missing_fields } = params;
 
   const templateInput: ReplyTemplateInput = {
@@ -97,9 +49,12 @@ export async function generateReplyDrafts(
     hasExclusivity: parsed_json.exclusivity !== "not specified",
   });
 
-  const polite = renderPoliteReply(templateInput);
-  const quick = renderQuickReply(templateInput);
-  const negotiation = await generateNegotiationReply(templateInput, strategy);
-
-  return { strategy, drafts: { polite, negotiation, quick } };
+  return {
+    strategy,
+    drafts: {
+      polite: renderPoliteReply(templateInput),
+      quick: renderQuickReply(templateInput),
+      negotiation: renderNegotiationFallbackReply(templateInput),
+    },
+  };
 }
