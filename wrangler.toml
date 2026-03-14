@@ -1,9 +1,0 @@
-name = "creator-deal-copilot"
-main = ".open-next/worker.js"
-compatibility_date = "2024-12-01"
-
-[assets]
-directory = ".open-next/assets"
-
-[build]
-command = "npm run build && npx opennextjs-cloudflare build"
