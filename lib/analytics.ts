@@ -16,6 +16,17 @@ export type AnalyticsProperties = {
   daily_count?: number;
   limit?: number;
   endpoint?: string;
+  // deal events
+  deal_id?: string;
+  deal_count?: number;
+  status?: string;
+  from_status?: string;
+  to_status?: string;
+  action?: string;
+  reason?: string;
+  // profile events
+  followers_band?: string;
+  niche?: string;
   [key: string]: unknown;
 };
 

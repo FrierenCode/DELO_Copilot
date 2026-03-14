@@ -62,8 +62,8 @@ export async function parseService(
   // Step 2: deterministic hash
   const hash = await createInquiryHash(sanitized_text, input.source_type, PARSE_PROMPT_VERSION);
 
-  // Step 3: canonical dedup via inquiries table
-  const existing = await findInquiryByHash(hash);
+  // Step 3: canonical dedup — per-user only; anonymous parses skip dedup
+  const existing = userId ? await findInquiryByHash(hash, userId) : null;
   if (existing) {
     logInfo("parse inquiry cache hit", {
       hash: hash.slice(0, 8),

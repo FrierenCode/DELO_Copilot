@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { ParseResult } from "@/types/inquiry";
+import type { ParseResult, CreatorProfile } from "@/types/inquiry";
 import type { DealInsert, DealCheckInsert, ReplyDraftInsert } from "@/types/deal";
 import type { ReplyTone } from "@/types/reply";
 import type { PlanTier } from "@/lib/plan-policy";
@@ -9,10 +9,9 @@ import { generateChecks } from "@/services/check-engine";
 import { generateReplyDrafts } from "@/services/reply-generator";
 import { logInfo } from "@/lib/logger";
 
-// Same stub profile used in the parse route — will be replaced by per-user profile lookup
-const DEFAULT_CREATOR_PROFILE = {
-  followers_band: "50k_100k" as const,
-  avg_views_band: "20k_50k" as const,
+export const DEFAULT_CREATOR_PROFILE: CreatorProfile = {
+  followers_band: "50k_100k",
+  avg_views_band: "20k_50k",
   niche: "lifestyle",
   floor_rate: 300000,
 };
@@ -27,6 +26,7 @@ export type DealServiceInput = {
   source_type: "email" | "dm" | "other";
   selected_reply_tone?: ReplyTone;
   plan?: PlanTier;
+  creator_profile?: CreatorProfile;
 };
 
 export type DealServiceOutput = {
@@ -45,11 +45,12 @@ export type DealServiceOutput = {
  */
 export function buildDealPayload(input: DealServiceInput): DealServiceOutput {
   const { user_id, inquiry_id, parse_result, source_type, plan = "free" } = input;
+  const creator_profile = input.creator_profile ?? DEFAULT_CREATOR_PROFILE;
   const { parsed_json, missing_fields } = parse_result;
 
   // 1. Quote engine — server-computed, never from client
   const quote_breakdown = calculateQuote({
-    creator_profile: DEFAULT_CREATOR_PROFILE,
+    creator_profile,
     inquiry: parsed_json,
   });
 

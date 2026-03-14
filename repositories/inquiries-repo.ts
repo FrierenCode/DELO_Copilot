@@ -28,14 +28,21 @@ export type InquiryRecord = {
 
 export type InquiryInsert = Omit<InquiryRecord, "id" | "created_at">;
 
-/** Dedup lookup — returns the most recent matching inquiry. */
-export async function findInquiryByHash(hash: string): Promise<InquiryRecord | null> {
+/**
+ * Dedup lookup scoped to a specific user.
+ * Anonymous users (no userId) always get a fresh parse — no dedup.
+ */
+export async function findInquiryByHash(
+  hash: string,
+  userId: string,
+): Promise<InquiryRecord | null> {
   try {
     const db = createAdminClient();
     const { data, error } = await db
       .from("inquiries")
       .select()
       .eq("input_hash", hash)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

@@ -5,10 +5,11 @@ export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
 import { parseService } from "@/services/parse-service";
-import { buildDealPayload } from "@/services/deal-service";
+import { buildDealPayload, DEFAULT_CREATOR_PROFILE } from "@/services/deal-service";
 import { computeAlerts } from "@/services/alert-engine";
 import { checkUsageLimit, recordUsageEvent, getUserPlanForUser } from "@/services/usage-guard";
 import { findInquiryById } from "@/repositories/inquiries-repo";
+import { findProfileByUserId } from "@/repositories/creator-profiles-repo";
 import { createDeal, findDealsByUserId } from "@/repositories/deals-repo";
 import { createDealChecks } from "@/repositories/deal-checks-repo";
 import { createReplyDrafts } from "@/repositories/reply-drafts-repo";
@@ -100,6 +101,8 @@ export async function POST(req: NextRequest) {
   }
 
   const plan = await getUserPlanForUser(user.id);
+  const creator_profile =
+    (await findProfileByUserId(user.id)) ?? DEFAULT_CREATOR_PROFILE;
 
   let body: unknown;
   try {
@@ -247,6 +250,7 @@ export async function POST(req: NextRequest) {
       source_type: source_type ?? "other",
       selected_reply_tone,
       plan,
+      creator_profile,
     });
   } catch (err) {
     logError("deal save: payload build failed", { user_id: user.id, error: String(err) });

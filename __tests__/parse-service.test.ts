@@ -86,7 +86,10 @@ describe("parseService", () => {
     // LLM must NOT be called on cache hit
     mockParseWithLlm.mockRejectedValue(new Error("LLM should not be called on cache hit"));
 
-    const result = await parseService({ raw_text: "Hi, we'd like to collab", source_type: "email" });
+    const result = await parseService(
+      { raw_text: "Hi, we'd like to collab", source_type: "email" },
+      "user-123",
+    );
 
     expect(result.inquiry_id).toBe("inquiry-123");
     expect(mockParseWithLlm).not.toHaveBeenCalled();
@@ -95,7 +98,10 @@ describe("parseService", () => {
   it("returns cached parsed_json on hash hit without calling LLM", async () => {
     mockFindInquiryByHash.mockResolvedValue(makeInquiryRecord());
 
-    const result = await parseService({ raw_text: "Hi, we'd like to collab", source_type: "email" });
+    const result = await parseService(
+      { raw_text: "Hi, we'd like to collab", source_type: "email" },
+      "user-123",
+    );
 
     expect(result.parsed_json).toEqual(PARSED_JSON);
     expect(mockParseWithLlm).not.toHaveBeenCalled();

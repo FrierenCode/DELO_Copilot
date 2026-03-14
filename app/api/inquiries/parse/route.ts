@@ -10,6 +10,8 @@ import { generateChecks } from "@/services/check-engine";
 import { generateReplyDrafts } from "@/services/reply-generator";
 import { checkUsageLimit, recordUsageEvent, getUserPlanForUser } from "@/services/usage-guard";
 import { getPlanPolicy } from "@/lib/plan-policy";
+import { findProfileByUserId } from "@/repositories/creator-profiles-repo";
+import { DEFAULT_CREATOR_PROFILE } from "@/services/deal-service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { trackEvent } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
@@ -18,14 +20,6 @@ const requestSchema = z.object({
   raw_text: z.string().min(1, "raw_text must not be empty"),
   source_type: z.enum(["email", "dm", "other"]),
 });
-
-// Default creator profile — will be replaced by per-user profile lookup
-const DEFAULT_CREATOR_PROFILE = {
-  followers_band: "50k_100k" as const,
-  avg_views_band: "20k_50k" as const,
-  niche: "lifestyle",
-  floor_rate: 300000,
-};
 
 export async function POST(req: NextRequest) {
   // Optional auth — unauthenticated callers are treated as free tier
@@ -37,6 +31,9 @@ export async function POST(req: NextRequest) {
   const userId = user?.id;
   const plan = userId ? await getUserPlanForUser(userId) : "free";
   const policy = getPlanPolicy(plan);
+  const creator_profile = userId
+    ? (await findProfileByUserId(userId)) ?? DEFAULT_CREATOR_PROFILE
+    : DEFAULT_CREATOR_PROFILE;
 
   let body: unknown;
   try {
@@ -94,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     // Quote and checks — always computed deterministically server-side
     const quote_breakdown = calculateQuote({
-      creator_profile: DEFAULT_CREATOR_PROFILE,
+      creator_profile,
       inquiry: parsed_json,
     });
 
