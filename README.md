@@ -60,6 +60,17 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - Vitest 기반 테스트 스위트
 - `db/schema.sql` 기반 최종 스키마 스냅샷 문서
 
+## 최근 업데이트
+
+최근 코드 기준으로 문서에 반영해야 하는 변경점은 아래와 같습니다.
+
+- `/dashboard/intake`에 2단 레이아웃의 Intake Workspace가 추가되어 parse 결과 확인 후 바로 deal 저장까지 이어집니다.
+- deal 저장 API가 `initial_status`를 받아 `Lead`, `Replied`, `Negotiating` 중 초기 상태를 지정할 수 있습니다.
+- `GET /api/deals`가 `status` query filter를 지원하고, 허용 플랜에서는 alert summary를 함께 반환합니다.
+- `POST /api/deals`는 `inquiry_id` 우선 저장 경로와 `raw_text + source_type` fallback 저장 경로를 모두 지원합니다.
+- creator profile API는 `POST`와 `PUT`가 동일 저장 로직을 공유하며, onboarding wizard가 PRD 입력값을 API 스키마로 변환합니다.
+- 테스트 범위에 deals route, alerts route, creator profile route 회귀 검증이 추가되었습니다.
+
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
 - `GET /api/health`
@@ -253,6 +264,13 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Dashboard`: 보호된 인증 확인 화면
 - `Onboarding`: creator profile 초기 입력 위저드
 - `Dashboard Intake`: 온보딩 완료 후 parse workspace로 유도하는 시작 화면
+
+`Dashboard Intake` 구현 메모:
+
+- 좌측 입력 패널에서 문의 원문과 source type을 설정합니다.
+- 우측 결과 패널이 `empty -> loading -> success/error` 상태로 전환됩니다.
+- parse 성공 후 sticky action bar에서 reply tone과 initial deal status를 선택해 저장합니다.
+- 샘플 문의 자동 입력 버튼이 있어 초기 흐름을 빠르게 점검할 수 있습니다.
 
 ### 10. 딜 저장과 운영 데이터
 
@@ -520,6 +538,7 @@ reply draft 수정 결과를 inquiry에 저장합니다.
 
 - `inquiry_id` 경로가 우선이며 이 경우 재파싱이 없습니다.
 - `raw_text + source_type` 경로는 fallback이며 parse quota를 사용합니다.
+- `initial_status`로 `Lead`, `Replied`, `Negotiating` 중 시작 상태를 지정할 수 있습니다.
 - 저장 시 `deals`, `deal_checks`, `reply_drafts`가 함께 생성됩니다.
 
 ### `GET /api/deals/[id]`
@@ -653,12 +672,18 @@ npm run deploy
 npm run test
 ```
 
+최근 추가된 회귀 테스트:
+
+- `__tests__/deals-route.test.ts`: status filter 전달과 `initial_status` 저장 검증
+- `__tests__/deals-alerts-route.test.ts`: alert 플랜 gate와 구조화 응답 검증
+- `__tests__/creator-profile-route.test.ts`: expanded profile field 저장과 `PUT` alias 검증
+
 ## 개발 우선순위
 
 현재 구현 기준으로 남아 있는 큰 작업은 아래와 같습니다.
 
 1. Dashboard UI를 실제 운영 보드로 확장
-2. Onboarding과 Dashboard를 실제 intake workspace로 연결
+2. Dashboard를 실제 운영 보드로 확장하고 `/dashboard/intake`와 역할을 분리
 3. Settings 화면 기능 구현
 4. Billing 및 Pro 전환 플로우 연결
 5. E2E 테스트 강화
