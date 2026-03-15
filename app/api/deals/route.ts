@@ -27,6 +27,7 @@ const postSchema = z
     source_type: z.enum(["email", "dm", "other"]).optional(),
     parsed_json: z.record(z.string(), z.unknown()).optional(),
     selected_reply_tone: z.enum(["polite", "quick", "negotiation"]).optional(),
+    initial_status: z.enum(["Lead", "Replied", "Negotiating"]).optional(),
   })
   .refine(
     (d) => d.inquiry_id || (d.raw_text && d.source_type),
@@ -149,6 +150,7 @@ export async function POST(req: NextRequest) {
     source_type,
     parsed_json: clientParsedJson,
     selected_reply_tone,
+    initial_status,
   } = validated.data;
 
   try {
@@ -268,6 +270,10 @@ export async function POST(req: NextRequest) {
       errorResponse("INTERNAL_ERROR", "Failed to build deal"),
       { status: 500 },
     );
+  }
+
+  if (initial_status) {
+    payload.deal_insert.status = initial_status;
   }
 
   try {
