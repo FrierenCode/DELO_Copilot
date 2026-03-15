@@ -51,6 +51,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - inquiry history/detail 조회 및 reply draft 수정 API
 - deals 생성, 조회, 수정, 상태 전이, 상태 로그 저장
 - creator profile 저장/조회 API
+- creator profile 온보딩 위저드와 PRD 입력값 매핑 레이어
 - Supabase OTP 로그인, `/login` 진입, `/auth/callback` 세션 교환
 - `middleware.ts` 기반 `/dashboard` 보호
 - PostHog 이벤트 추적, Sentry 연동, 구조화 로그
@@ -85,6 +86,8 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/settings`
 - `/login`
 - `/dashboard`
+- `/onboarding`
+- `/dashboard/intake`
 
 입력 예시:
 
@@ -219,7 +222,25 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 현재 `Dashboard` 페이지는 인증 연결 확인용 최소 화면입니다.
 
-### 8. UI 워크스페이스
+### 8. 온보딩과 프로필 설정
+
+현재 구현된 초기 온보딩 흐름은 아래와 같습니다.
+
+- `/onboarding`에서 6단계 creator profile setup 진행
+- 기존 profile이 있으면 `/dashboard/intake`로 redirect
+- 저장이 끝나면 `/api/creator-profile`에 POST 후 `/dashboard/intake`로 이동
+- `lib/creator-profile-mapper.ts`에서 PRD용 band 값을 기존 backend enum으로 변환
+
+온보딩 수집 항목:
+
+- primary platform
+- niche
+- audience band
+- average views band
+- geo region
+- floor rate
+
+### 9. UI 워크스페이스
 
 현재 구현된 화면은 아래와 같습니다.
 
@@ -230,8 +251,10 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Settings`: placeholder 화면
 - `Login`: OTP 로그인 화면
 - `Dashboard`: 보호된 인증 확인 화면
+- `Onboarding`: creator profile 초기 입력 위저드
+- `Dashboard Intake`: 온보딩 완료 후 parse workspace로 유도하는 시작 화면
 
-### 9. 딜 저장과 운영 데이터
+### 10. 딜 저장과 운영 데이터
 
 현재 아래 서버 구성이 실제로 연결되어 있습니다.
 
@@ -283,13 +306,16 @@ app/
     replies/negotiation-ai/
   auth/callback/
   dashboard/
+    intake/
   deal/[id]/
   history/
   login/
+  onboarding/
   parse/
   settings/
 components/
   inquiry/
+  onboarding/
   results/
   ui/
 db/
@@ -297,6 +323,7 @@ db/
 lib/
   analytics.ts
   analytics-contract.ts
+  creator-profile-mapper.ts
   inquiry/
   llm/
   logger.ts
@@ -347,6 +374,7 @@ wrangler.jsonc
 - `usage-guard`: 플랜별 사용량 제한과 기능 gate 처리
 - `alert-engine`: 후속 관리용 alert 계산
 - `middleware.ts`: 세션 refresh 및 `/dashboard` 보호
+- `creator-profile-mapper.ts`: 온보딩 입력값을 기존 creator profile API 스키마로 변환
 - `db/schema.sql`: migration 001~006 기준 최종 스키마 참고본
 
 ## 빠른 시작
@@ -630,9 +658,9 @@ npm run test
 현재 구현 기준으로 남아 있는 큰 작업은 아래와 같습니다.
 
 1. Dashboard UI를 실제 운영 보드로 확장
-2. Settings 화면 기능 구현
-3. Billing 및 Pro 전환 플로우 연결
-4. 후속 액션 편집 UI 고도화
+2. Onboarding과 Dashboard를 실제 intake workspace로 연결
+3. Settings 화면 기능 구현
+4. Billing 및 Pro 전환 플로우 연결
 5. E2E 테스트 강화
 
 ## 현재 상태 요약
@@ -646,6 +674,7 @@ npm run test
 - inquiry history/detail 조회
 - reply draft 수정 및 저장
 - deal 저장, 상태 관리, alert 계산
+- creator profile 온보딩과 intake 진입 흐름
 - Free/Pro 사용량 제한과 기능 gate
 - PostHog, Sentry, 구조화 로그 기반 관측
 - Cloudflare Workers 배포 설정
