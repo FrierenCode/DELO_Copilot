@@ -78,6 +78,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/terms`, `/privacy`, `CookieBanner`가 추가되어 결제/분석 도입에 필요한 기본 법적 고지와 쿠키 동의 UI가 포함되었습니다.
 - `POST /api/analytics/event`와 `trackClientEvent`가 추가되어 랜딩 CTA, 체크아웃 시작, 답장 복사 같은 클라이언트 이벤트를 서버 경유로 수집합니다.
 - 랜딩 페이지 `/`가 실제 마케팅 진입점으로 교체되어 Hero, 기능 소개, CTA, 누적 deal count, 법적 링크를 노출합니다.
+- 랜딩 페이지 CTA에 `/parse`로 직접 이동하는 `직접 붙여넣기` 경로가 추가되어 가입 전 체험 진입점이 하나 더 생겼습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -269,6 +270,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `services/billing-service.ts`가 checkout session 생성과 webhook 이벤트별 상태 반영을 담당합니다.
 - webhook 처리는 `stripe_event_id`를 사용해 idempotent 하게 동작합니다.
 - `past_due` 또는 해지 이벤트가 오면 플랜을 다시 `free`로 내립니다.
+- 현재 플랜 판정의 단일 source of truth는 `subscriptions`가 아니라 `user_plans`이며, webhook이 이를 동기화합니다.
 - 환경 변수로 `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID`가 필요합니다.
 
 ### 9. 온보딩과 프로필 설정
@@ -322,9 +324,10 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 랜딩 / 설정 / 공통 레이아웃 구현 메모:
 
-- `/` 랜딩 페이지는 누적 deals 수를 보여주고 `무료로 시작하기`, `샘플로 바로 체험` CTA를 제공합니다.
+- `/` 랜딩 페이지는 누적 deals 수를 보여주고 `무료로 시작하기`, `샘플로 바로 체험`, `직접 붙여넣기` CTA를 제공합니다.
 - `CookieBanner`가 로컬 스토리지 기반 쿠키 동의 상태를 관리합니다.
 - 설정 화면에서는 checkout 시작 전 `checkout_started` 클라이언트 이벤트를 전송합니다.
+- Intake 체크 항목 카드에는 "운영 참고용이며 법률 자문이 아니다"라는 고지가 함께 노출됩니다.
 
 ### 11. 딜 저장과 운영 데이터
 
