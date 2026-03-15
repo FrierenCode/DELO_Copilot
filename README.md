@@ -65,11 +65,13 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 최근 코드 기준으로 문서에 반영해야 하는 변경점은 아래와 같습니다.
 
 - `/dashboard/intake`에 2단 레이아웃의 Intake Workspace가 추가되어 parse 결과 확인 후 바로 deal 저장까지 이어집니다.
+- `/dashboard`가 더 이상 인증 확인용 플레이스홀더가 아니라 summary cards, tab filter, Pro alert panel을 갖춘 운영 보드로 동작합니다.
+- `/dashboard/deals/[id]` 상세 화면에서 상태 전이, 일정, 메모를 수정하고 상태 로그를 확인할 수 있습니다.
 - deal 저장 API가 `initial_status`를 받아 `Lead`, `Replied`, `Negotiating` 중 초기 상태를 지정할 수 있습니다.
 - `GET /api/deals`가 `status` query filter를 지원하고, 허용 플랜에서는 alert summary를 함께 반환합니다.
 - `POST /api/deals`는 `inquiry_id` 우선 저장 경로와 `raw_text + source_type` fallback 저장 경로를 모두 지원합니다.
 - creator profile API는 `POST`와 `PUT`가 동일 저장 로직을 공유하며, onboarding wizard가 PRD 입력값을 API 스키마로 변환합니다.
-- 테스트 범위에 deals route, alerts route, creator profile route 회귀 검증이 추가되었습니다.
+- 테스트 범위에 deals route, deals detail route, alerts route, creator profile route, dashboard helper 회귀 검증이 추가되었습니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -99,6 +101,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/dashboard`
 - `/onboarding`
 - `/dashboard/intake`
+- `/dashboard/deals/[id]`
 
 입력 예시:
 
@@ -231,7 +234,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `middleware.ts`에서 세션 refresh
 - `/dashboard` 및 하위 경로 보호
 
-현재 `Dashboard` 페이지는 인증 연결 확인용 최소 화면입니다.
+현재 `Dashboard`는 저장된 딜 목록을 상태 탭으로 분류해 보여주고, 요약 카드와 Pro 전용 alert panel을 함께 노출하는 운영 보드입니다.
 
 ### 8. 온보딩과 프로필 설정
 
@@ -261,9 +264,10 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Deal Detail`: inquiry 상세 결과, quote, checks, reply draft 편집
 - `Settings`: placeholder 화면
 - `Login`: OTP 로그인 화면
-- `Dashboard`: 보호된 인증 확인 화면
+- `Dashboard`: 저장된 deals를 요약 카드, 탭 필터, alert panel과 함께 보여주는 운영 보드
+- `Dashboard Deal Detail`: 상태 전이, 일정, 결제일, 메모, 상태 로그를 수정/확인하는 상세 화면
 - `Onboarding`: creator profile 초기 입력 위저드
-- `Dashboard Intake`: 온보딩 완료 후 parse workspace로 유도하는 시작 화면
+- `Dashboard Intake`: 온보딩 완료 후 바로 parse -> save deal로 이어지는 2단 워크스페이스
 
 `Dashboard Intake` 구현 메모:
 
@@ -271,6 +275,14 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - 우측 결과 패널이 `empty -> loading -> success/error` 상태로 전환됩니다.
 - parse 성공 후 sticky action bar에서 reply tone과 initial deal status를 선택해 저장합니다.
 - 샘플 문의 자동 입력 버튼이 있어 초기 흐름을 빠르게 점검할 수 있습니다.
+
+`Dashboard` / `Dashboard Deal Detail` 구현 메모:
+
+- `calcSummary`가 total, active, dueThisWeek, confirmed pipeline 금액을 계산합니다.
+- 목록 화면은 `all`, `active`, `done`, `lost` 탭으로 딜을 필터링합니다.
+- Pro 플랜에서는 활성 alert가 있을 때만 alert panel을 노출합니다.
+- 상세 화면은 `PATCH /api/deals/[id]`를 호출해 상태, next action, deadline, payment due date, notes를 갱신합니다.
+- 잘못된 상태 전이는 422 응답으로 막고, 성공한 전이는 `deal_status_logs`에 기록됩니다.
 
 ### 10. 딜 저장과 운영 데이터
 
@@ -324,6 +336,7 @@ app/
     replies/negotiation-ai/
   auth/callback/
   dashboard/
+    deals/[id]/
     intake/
   deal/[id]/
   history/
@@ -332,8 +345,10 @@ app/
   parse/
   settings/
 components/
+  dashboard/
   inquiry/
   onboarding/
+  intake/
   results/
   ui/
 db/
@@ -663,6 +678,7 @@ npm run deploy
 - parse service / parse LLM service
 - inquiry parse route
 - deals / alerts / creator-profile routes
+- deals/:id route / dashboard helpers
 - alert engine / usage guard / status transition
 - reply generator / analytics / sanitize / hash helpers
 
@@ -675,22 +691,24 @@ npm run test
 최근 추가된 회귀 테스트:
 
 - `__tests__/deals-route.test.ts`: status filter 전달과 `initial_status` 저장 검증
+- `__tests__/deals-id-route.test.ts`: 소유권 검사, 상태 전이 검증, status log 생성 검증
 - `__tests__/deals-alerts-route.test.ts`: alert 플랜 gate와 구조화 응답 검증
 - `__tests__/creator-profile-route.test.ts`: expanded profile field 저장과 `PUT` alias 검증
+- `__tests__/dashboard-helpers.test.ts`: 탭 필터, summary 계산, 날짜/통화 포맷 helper 검증
 
 ## 개발 우선순위
 
 현재 구현 기준으로 남아 있는 큰 작업은 아래와 같습니다.
 
-1. Dashboard UI를 실제 운영 보드로 확장
-2. Dashboard를 실제 운영 보드로 확장하고 `/dashboard/intake`와 역할을 분리
-3. Settings 화면 기능 구현
-4. Billing 및 Pro 전환 플로우 연결
-5. E2E 테스트 강화
+1. Dashboard와 `/dashboard/intake`의 역할 분리를 더 선명하게 다듬기
+2. Settings 화면 기능 구현
+3. Billing 및 Pro 전환 플로우 연결
+4. E2E 테스트 강화
+5. 대시보드 UX polish와 실데이터 운영 플로우 보강
 
 ## 현재 상태 요약
 
-현재 저장소는 "문의 파싱 + inquiry 저장 + 딜 저장 API + 플랜 gate + 인증 흐름 + 최소 UI + Cloudflare 배포 설정"까지 연결된 MVP입니다.
+현재 저장소는 "문의 파싱 + inquiry 저장 + 딜 저장 API + 운영 대시보드 + 플랜 gate + 인증 흐름 + Cloudflare 배포 설정"까지 연결된 MVP입니다.
 
 이미 반영된 요소:
 
@@ -699,6 +717,7 @@ npm run test
 - inquiry history/detail 조회
 - reply draft 수정 및 저장
 - deal 저장, 상태 관리, alert 계산
+- dashboard 목록/상세 조회와 상태 로그 기록
 - creator profile 온보딩과 intake 진입 흐름
 - Free/Pro 사용량 제한과 기능 gate
 - PostHog, Sentry, 구조화 로그 기반 관측
