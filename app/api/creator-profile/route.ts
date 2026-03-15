@@ -81,9 +81,13 @@ async function saveProfile(req: NextRequest) {
   });
 
   try {
+    const existingProfile = await findProfileByUserId(user.id);
     const profile = await upsertProfile(user.id, validated.data);
 
     logInfo("creator profile saved", { user_id: user.id });
+    if (!existingProfile) {
+      analytics.track("onboarding_completed");
+    }
     analytics.track("profile_saved", {
       followers_band: profile.followers_band,
       niche: profile.niche,

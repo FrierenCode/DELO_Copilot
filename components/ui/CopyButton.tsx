@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { trackClientEvent } from "@/lib/analytics-client";
 
 type CopyButtonProps = {
   text: string;
@@ -15,6 +16,7 @@ export function CopyButton({ text, className }: CopyButtonProps) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      trackClientEvent("reply_copied");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // ignore clipboard errors

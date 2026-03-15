@@ -15,6 +15,7 @@ import { DEFAULT_CREATOR_PROFILE } from "@/services/deal-service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { logInfo, logError } from "@/lib/logger";
+import { captureException } from "@/lib/sentry";
 import {
   getParseErrorResponse,
   isParsePipelineError,
@@ -157,6 +158,7 @@ export async function POST(req: NextRequest) {
     const model = "model" in details ? details.model : undefined;
 
     logError("parse request failed", { source_type, plan, ...details });
+    captureException(err, { route: "inquiries/parse", source_type, plan });
     analytics.track("parse_failed", {
       parse_failure_code: parseErrorCode,
       provider,

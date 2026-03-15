@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CopyButton } from "@/components/ui/CopyButton";
 import type { ReplyDrafts } from "@/types/parse-api";
+import { trackClientEvent } from "@/lib/analytics-client";
 
 type ReplyTone = "polite" | "quick" | "negotiation";
 
@@ -45,7 +46,7 @@ export function IntakeReply({ drafts, selectedTone, onToneChange }: Props) {
           <button
             key={tone}
             type="button"
-            onClick={() => onToneChange(tone)}
+            onClick={() => { onToneChange(tone); trackClientEvent("reply_tab_changed", { tone }); }}
             className={[
               "flex-1 rounded-md py-1.5 text-xs font-medium transition-colors",
               selectedTone === tone

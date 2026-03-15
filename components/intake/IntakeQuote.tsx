@@ -45,6 +45,10 @@ export function IntakeQuote({ data }: Props) {
       {data.explanation && (
         <p className="text-sm leading-relaxed text-neutral-600">{data.explanation}</p>
       )}
+
+      <p className="mt-3 text-xs text-neutral-400">
+        이 견적은 운영 참고용 가이드이며, 법률·세무·회계 자문이 아닙니다.
+      </p>
     </div>
   );
 }

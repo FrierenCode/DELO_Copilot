@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { RootNav } from "@/components/RootNav";
 import { RootMain } from "@/components/RootMain";
+import { CookieBanner } from "@/components/CookieBanner";
 
 export const metadata: Metadata = {
   title: "Creator Deal Copilot",
@@ -23,6 +24,7 @@ export default function RootLayout({
          */}
         <RootNav />
         <RootMain>{children}</RootMain>
+        <CookieBanner />
       </body>
     </html>
   );

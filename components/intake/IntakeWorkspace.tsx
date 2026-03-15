@@ -8,6 +8,7 @@ import { IntakeQuote } from "@/components/intake/IntakeQuote";
 import { IntakeChecks } from "@/components/intake/IntakeChecks";
 import { IntakeReply } from "@/components/intake/IntakeReply";
 import type { ParseApiResult } from "@/types/parse-api";
+import { trackClientEvent } from "@/lib/analytics-client";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ export function IntakeWorkspace() {
   function handleSampleFill() {
     setText(SAMPLE_INQUIRY);
     setSourceType("other");
+    trackClientEvent("sample_inquiry_used");
   }
 
   async function handleSave() {
@@ -156,6 +158,7 @@ export function IntakeWorkspace() {
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                onPaste={() => trackClientEvent("inquiry_pasted", { source_type: sourceType })}
                 disabled={panelState === "loading"}
                 placeholder="브랜드 이메일이나 DM을 붙여넣으세요"
                 rows={10}

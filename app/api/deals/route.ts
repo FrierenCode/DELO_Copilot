@@ -16,6 +16,7 @@ import { createReplyDrafts } from "@/repositories/reply-drafts-repo";
 import { createAnalyticsTracker, getRequestId } from "@/lib/analytics";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { logInfo, logError } from "@/lib/logger";
+import { captureException } from "@/lib/sentry";
 import { inquirySchema } from "@/schemas/inquiry.schema";
 import type { ParseResult } from "@/types/inquiry";
 import type { DealStatus } from "@/types/deal";
@@ -100,6 +101,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(successResponse({ alerts, deals }));
   } catch (err) {
     logError("deals dashboard failed", { user_id: user.id, error: String(err) });
+    captureException(err, { route: "deals/GET", userId: user.id });
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to load deals"),
       { status: 500 },
@@ -313,6 +315,7 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     logError("deal save: persistence failed", { user_id: user.id, error: String(err) });
+    captureException(err, { route: "deals/POST", userId: user.id });
     return NextResponse.json(
       errorResponse("INTERNAL_ERROR", "Failed to save deal"),
       { status: 500 },

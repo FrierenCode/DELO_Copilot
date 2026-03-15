@@ -47,6 +47,10 @@ export function QuoteCard({ data }: QuoteCardProps) {
         {data.explanation && (
           <p className="text-sm text-neutral-600">{data.explanation}</p>
         )}
+
+        <p className="text-xs text-neutral-400">
+          이 견적은 운영 참고용 가이드이며, 법률·세무·회계 자문이 아닙니다.
+        </p>
       </div>
     </Card>
   );

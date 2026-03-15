@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { findProfileByUserId } from "@/repositories/creator-profiles-repo";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { trackEvent } from "@/lib/analytics";
 
 export default async function OnboardingPage() {
   // Auth check — redirect unauthenticated users.
@@ -15,6 +16,8 @@ export default async function OnboardingPage() {
   // Profile check — skip onboarding if already completed.
   const profile = await findProfileByUserId(user.id);
   if (profile) redirect("/dashboard/intake");
+
+  trackEvent(user.id, "onboarding_started");
 
   return <OnboardingWizard />;
 }

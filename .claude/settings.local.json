@@ -23,7 +23,8 @@
       "Bash(cd:*)",
       "Bash(ls:*)",
       "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ],
     "deny": [
       "MCPSearch"
