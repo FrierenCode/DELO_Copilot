@@ -73,6 +73,12 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - creator profile API는 `POST`와 `PUT`가 동일 저장 로직을 공유하며, onboarding wizard가 PRD 입력값을 API 스키마로 변환합니다.
 - 테스트 범위에 deals route, deals detail route, alerts route, creator profile route, dashboard helper 회귀 검증이 추가되었습니다.
 
+이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
+
+- `Dashboard` 헤더와 Pro 잠금 문구가 실제 운영 보드 맥락에 맞는 한국어 카피로 정리되었습니다.
+- `Dashboard Deal Detail` 편집 폼의 저장/오류 문구와 라벨이 한국어 기준으로 다듬어져 실제 사용 흐름 설명과 일치합니다.
+- 저장된 딜이 없을 때 `EmptyDealsState`가 `/parse`로 바로 이동하는 CTA를 제공해 첫 분석 진입점을 명확히 보여줍니다.
+
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
 - `GET /api/health`
@@ -704,7 +710,7 @@ npm run test
 2. Settings 화면 기능 구현
 3. Billing 및 Pro 전환 플로우 연결
 4. E2E 테스트 강화
-5. 대시보드 UX polish와 실데이터 운영 플로우 보강
+5. 실데이터 운영 기준의 세부 UX polish와 알림/후속 액션 흐름 보강
 
 ## 현재 상태 요약
 
@@ -726,10 +732,10 @@ npm run test
 
 아직 완성되지 않은 영역:
 
-- 실사용 중심 Dashboard UI
 - Settings 기능
 - 결제/Billing
 - 더 강한 E2E 검증
+- 실데이터 기반 운영 자동화 polish
 
 ## GTM 메모
 
