@@ -8,7 +8,6 @@ import {
   syncUserPlan,
 } from "@/repositories/subscriptions-repo";
 import { logInfo, logError } from "@/lib/logger";
-import { captureException } from "@/lib/sentry";
 import { trackEvent } from "@/lib/analytics";
 
 export type CheckoutResult = { url: string };
@@ -182,5 +181,3 @@ async function findSubscriptionByCustomerIdOrUserId(userId: string) {
   const { findSubscriptionByUserId } = await import("@/repositories/subscriptions-repo");
   return findSubscriptionByUserId(userId);
 }
-
-export { captureException };

@@ -63,6 +63,9 @@ export function IntakeChecks({ checks }: Props) {
           );
         })}
       </div>
+      <p className="mt-3 text-xs text-neutral-400">
+        이 확인 항목은 운영 참고용이며, 법률 자문이 아닙니다.
+      </p>
     </div>
   );
 }

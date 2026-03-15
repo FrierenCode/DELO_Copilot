@@ -65,6 +65,13 @@ export default async function LandingPage() {
             event="landing_cta_clicked"
             eventProps={{ cta: "demo" }}
           />
+          <LandingCtaButton
+            href="/parse"
+            variant="secondary"
+            label="직접 붙여넣기"
+            event="landing_cta_clicked"
+            eventProps={{ cta: "parse" }}
+          />
         </div>
       </section>
 
