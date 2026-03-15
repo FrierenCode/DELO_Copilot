@@ -1,0 +1,33 @@
+{
+  "cleanupPeriodDays": 14,
+  "env": {
+    "MAX_THINKING_TOKENS": "8000",
+    "ENABLE_TOOL_SEARCH": "false"
+  },
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(npm test:*)",
+      "Bash(curl:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(cd \"C:/Users/PC/Desktop/모음/business/creator-deal-copilot\" && npm run build 2>&1)",
+      "Bash(tree -L 4 -I 'node_modules|.next' \"C:\\\\Users\\\\PC\\\\Desktop\\\\모음\\\\business\\\\creator-deal-copilot\" 2>/dev/null || find \"C:\\\\Users\\\\PC\\\\Desktop\\\\모음\\\\business\\\\creator-deal-copilot\" -type f -not -path \"*/node_modules/*\" -not -path \"*/.next/*\" | sed 's|C:\\\\Users\\\\PC\\\\Desktop\\\\모음\\\\business\\\\creator-deal-copilot||' | sort)",
+      "Bash(cd \"C:\\\\Users\\\\PC\\\\Desktop\\\\모음\\\\business\\\\creator-deal-copilot\" && npx tsc --noEmit 2>&1 | head -60)",
+      "Bash(cd \"C:\\\\Users\\\\PC\\\\Desktop\\\\모음\\\\business\\\\creator-deal-copilot\" && npx tsc --noEmit 2>&1)",
+      "Bash(ls \"C:\\\\Users\\\\PC\\\\Desktop\\\\모음\\\\business\\\\creator-deal-copilot\\\\app\\\\api\\\\\" 2>/dev/null || echo \"listing failed\")",
+      "Bash(cd \"/c/Users/PC/Desktop/모음/business/creator-deal-copilot\" && npx tsc --noEmit 2>&1 | head -60)",
+      "Bash(cd \"/c/Users/PC/Desktop/모음/business/creator-deal-copilot\" && npx tsc --noEmit 2>&1)",
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [
+      "MCPSearch"
+    ]
+  },
+  "model": "opusplan"
+}

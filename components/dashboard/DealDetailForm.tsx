@@ -137,6 +137,26 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
         </div>
       )}
 
+      {/* Inquiry context — read-only parsed fields */}
+      {(deal.deliverables_summary || deal.budget_mentioned) && (
+        <Card title="문의 요약">
+          <div className="space-y-1 text-sm text-neutral-700">
+            {deal.deliverables_summary && (
+              <div>
+                <span className="text-xs text-neutral-500">납품 항목 </span>
+                {deal.deliverables_summary}
+              </div>
+            )}
+            {deal.budget_mentioned && (
+              <div>
+                <span className="text-xs text-neutral-500">언급 예산 </span>
+                {deal.budget_mentioned}
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Quote summary */}
         <Card title="견적">

@@ -39,8 +39,14 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-neutral-500">브랜드 협업 딜을 관리합니다.</p>
       </div>
 
-      {/* Alerts — Pro only, shown only when there are active alerts */}
+      {/* Alerts — Pro only */}
       {alerts && alerts.items.length > 0 && <AlertPanel alerts={alerts} />}
+      {!policy.alerts_enabled && (
+        <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-500">
+          <span className="font-medium text-neutral-700">운영 알림</span>은 Pro 전용 기능입니다.
+          마감 임박, 미결 항목 등의 알림을 받으려면 Pro로 업그레이드하세요.
+        </div>
+      )}
 
       <SummaryCards summary={summary} />
 

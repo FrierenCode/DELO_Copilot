@@ -9,7 +9,7 @@ export function EmptyDealsState() {
       </p>
       <p className="mt-1 text-sm text-neutral-400">첫 문의를 분석해보세요.</p>
       <Button asChild className="mt-5">
-        <Link href="/dashboard/intake">문의 분석하기</Link>
+        <Link href="/parse">문의 분석하기</Link>
       </Button>
     </div>
   );
