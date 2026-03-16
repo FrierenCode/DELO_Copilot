@@ -25,7 +25,9 @@
 
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsd2J2aHVkcmJzZ3JpcWRta3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTMzNDMsImV4cCI6MjA4ODYyOTM0M30.iz3CjSJAAgAOeswqaIB2_CwrSsamfo-3UViTAP-gHSI",
 
-    "NEXT_PUBLIC_APP_URL": "https://delo-copilot.gigigitg95.workers.dev/"
+    "NEXT_PUBLIC_APP_URL": "https://delo-copilot.gigigitg95.workers.dev/",
+
+    "POLAR_PRODUCT_ID":"f07a37a4-6e41-4ba4-b42f-f168b35c0fff"
   },
 
   "observability": {
