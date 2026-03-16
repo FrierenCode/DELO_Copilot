@@ -16,24 +16,16 @@ vi.mock("@/repositories/subscriptions-repo", () => ({
   syncUserPlan: (...args: unknown[]) => mockSyncUserPlan(...args),
 }));
 
-vi.mock("@/lib/stripe", () => ({
-  getStripe: () => ({
-    subscriptions: {
-      retrieve: vi.fn(async () => ({ current_period_end: 9999999999 })),
-    },
-    customers: {
-      create: vi.fn(async () => ({ id: "cus_new" })),
-    },
-    checkout: {
-      sessions: {
-        create: vi.fn(async () => ({
-          id: "cs_123",
-          url: "https://checkout.stripe.com/pay/cs_123",
-        })),
-      },
+vi.mock("@/lib/polar", () => ({
+  getPolar: () => ({
+    checkouts: {
+      create: vi.fn(async () => ({
+        url: "https://checkout.polar.sh/checkout/cs_123",
+      })),
     },
   }),
-  getPriceId: () => "price_pro",
+  getProductId: () => "prod_pro",
+  getWebhookSecret: () => "whsec_test",
 }));
 
 const mockTrackEvent = vi.fn();
@@ -53,51 +45,53 @@ vi.mock("@/lib/sentry", () => ({
 // ── Dynamic imports (module level) ───────────────────────────────────────────
 
 const {
-  handleCheckoutCompleted,
+  handleSubscriptionCreated,
   handleSubscriptionUpdated,
-  handleSubscriptionDeleted,
+  handleSubscriptionRevoked,
 } = await import("@/services/billing-service");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const CUSTOMER_ID = "cus_123";
+const CUSTOMER_ID = "cus_polar_123";
 const USER_ID = "user-1";
-const SUB_ID = "sub_123";
+const SUB_ID = "sub_polar_123";
+const MODIFIED_AT = new Date("2024-01-01T00:00:00.000Z");
+const PERIOD_END = new Date("2025-01-01T00:00:00.000Z");
 
-function makeCheckoutEvent(userId = USER_ID, customerId = CUSTOMER_ID, subId: string | null = SUB_ID) {
+function makeSubscriptionData(overrides: Record<string, unknown> = {}) {
   return {
-    id: "evt_checkout_001",
-    type: "checkout.session.completed",
-    data: {
-      object: {
-        id: "cs_123",
-        customer: customerId,
-        subscription: subId,
-        metadata: { supabase_user_id: userId },
-      },
-    },
-  } as never;
+    id: SUB_ID,
+    customerId: CUSTOMER_ID,
+    status: "active",
+    currentPeriodEnd: PERIOD_END,
+    modifiedAt: MODIFIED_AT,
+    metadata: { supabase_user_id: USER_ID },
+    ...overrides,
+  };
 }
 
-function makeSubEvent(
-  type: string,
-  customerId = CUSTOMER_ID,
-  subId = SUB_ID,
-  status = "active",
-  periodEnd = 9999999999,
-) {
+function makeCreatedEvent(overrides: Record<string, unknown> = {}) {
   return {
-    id: `evt_sub_${type}_${Date.now()}`,
-    type,
-    data: {
-      object: {
-        id: subId,
-        customer: customerId,
-        status,
-        current_period_end: periodEnd,
-      },
-    },
-  } as never;
+    type: "subscription.created" as const,
+    timestamp: new Date(),
+    data: makeSubscriptionData(overrides),
+  };
+}
+
+function makeUpdatedEvent(overrides: Record<string, unknown> = {}) {
+  return {
+    type: "subscription.updated" as const,
+    timestamp: new Date(),
+    data: makeSubscriptionData(overrides),
+  };
+}
+
+function makeRevokedEvent(overrides: Record<string, unknown> = {}) {
+  return {
+    type: "subscription.revoked" as const,
+    timestamp: new Date(),
+    data: makeSubscriptionData(overrides),
+  };
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -110,16 +104,16 @@ describe("billing-service", () => {
     mockSyncUserPlan.mockResolvedValue(undefined);
     mockFindByCustomerId.mockResolvedValue({
       user_id: USER_ID,
-      stripe_customer_id: CUSTOMER_ID,
+      polar_customer_id: CUSTOMER_ID,
     });
     mockFindByUserId.mockResolvedValue(null);
   });
 
-  // ── handleCheckoutCompleted ────────────────────────────────────────────────
+  // ── handleSubscriptionCreated ──────────────────────────────────────────────
 
-  describe("handleCheckoutCompleted", () => {
+  describe("handleSubscriptionCreated", () => {
     it("upgrades user to pro and fires upgraded_to_pro event", async () => {
-      await handleCheckoutCompleted(makeCheckoutEvent());
+      await handleSubscriptionCreated(makeCreatedEvent() as never);
       expect(mockUpsertSubscription).toHaveBeenCalledWith(
         expect.objectContaining({ plan: "pro", status: "active", user_id: USER_ID }),
       );
@@ -133,25 +127,13 @@ describe("billing-service", () => {
 
     it("is idempotent — skips when event already processed", async () => {
       mockIsEventProcessed.mockResolvedValueOnce(true);
-      await handleCheckoutCompleted(makeCheckoutEvent());
+      await handleSubscriptionCreated(makeCreatedEvent() as never);
       expect(mockUpsertSubscription).not.toHaveBeenCalled();
       expect(mockSyncUserPlan).not.toHaveBeenCalled();
     });
 
     it("skips when supabase_user_id metadata is missing", async () => {
-      const event = {
-        id: "evt_no_meta",
-        type: "checkout.session.completed",
-        data: {
-          object: {
-            id: "cs_123",
-            customer: CUSTOMER_ID,
-            subscription: SUB_ID,
-            metadata: {},
-          },
-        },
-      } as never;
-      await handleCheckoutCompleted(event);
+      await handleSubscriptionCreated(makeCreatedEvent({ metadata: {} }) as never);
       expect(mockSyncUserPlan).not.toHaveBeenCalled();
     });
   });
@@ -160,36 +142,36 @@ describe("billing-service", () => {
 
   describe("handleSubscriptionUpdated", () => {
     it("keeps plan as pro when subscription is active", async () => {
-      await handleSubscriptionUpdated(makeSubEvent("customer.subscription.updated"));
+      await handleSubscriptionUpdated(makeUpdatedEvent() as never);
       expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "pro");
     });
 
     it("downgrades to free when subscription is past_due", async () => {
       await handleSubscriptionUpdated(
-        makeSubEvent("customer.subscription.updated", CUSTOMER_ID, SUB_ID, "past_due"),
+        makeUpdatedEvent({ status: "past_due" }) as never,
       );
       expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "free");
     });
 
     it("is idempotent", async () => {
       mockIsEventProcessed.mockResolvedValueOnce(true);
-      await handleSubscriptionUpdated(makeSubEvent("customer.subscription.updated"));
+      await handleSubscriptionUpdated(makeUpdatedEvent() as never);
       expect(mockSyncUserPlan).not.toHaveBeenCalled();
     });
   });
 
-  // ── handleSubscriptionDeleted ──────────────────────────────────────────────
+  // ── handleSubscriptionRevoked ──────────────────────────────────────────────
 
-  describe("handleSubscriptionDeleted", () => {
+  describe("handleSubscriptionRevoked", () => {
     it("downgrades to free and fires plan_cancelled event", async () => {
-      await handleSubscriptionDeleted(makeSubEvent("customer.subscription.deleted"));
+      await handleSubscriptionRevoked(makeRevokedEvent() as never);
       expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "free");
       expect(mockTrackEvent).toHaveBeenCalledWith(USER_ID, "plan_cancelled");
     });
 
     it("is idempotent", async () => {
       mockIsEventProcessed.mockResolvedValueOnce(true);
-      await handleSubscriptionDeleted(makeSubEvent("customer.subscription.deleted"));
+      await handleSubscriptionRevoked(makeRevokedEvent() as never);
       expect(mockSyncUserPlan).not.toHaveBeenCalled();
     });
   });

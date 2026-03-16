@@ -1,24 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStripe, getWebhookSecret } from "@/lib/stripe";
+import { validateEvent, WebhookVerificationError } from "@polar-sh/sdk/webhooks";
+import { getWebhookSecret } from "@/lib/polar";
 import {
-  handleCheckoutCompleted,
+  handleSubscriptionCreated,
   handleSubscriptionUpdated,
-  handleSubscriptionDeleted,
+  handleSubscriptionRevoked,
 } from "@/services/billing-service";
 import { logInfo, logError } from "@/lib/logger";
 import { captureException } from "@/lib/sentry";
 
 export const dynamic = "force-dynamic";
 
-// Stripe sends raw body — disable body parsing.
-export const config = { api: { bodyParser: false } };
-
 export async function POST(req: NextRequest) {
-  const sig = req.headers.get("stripe-signature");
-  if (!sig) {
-    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
-  }
-
   let rawBody: string;
   try {
     rawBody = await req.text();
@@ -26,44 +19,49 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to read request body" }, { status: 400 });
   }
 
+  // Convert NextRequest headers to a plain Record<string, string>
+  const headers: Record<string, string> = {};
+  req.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+
   let event;
   try {
-    const stripe = getStripe();
-    const webhookSecret = getWebhookSecret();
-    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+    event = validateEvent(rawBody, headers, getWebhookSecret());
   } catch (err) {
-    logError("webhook signature verification failed", {
+    if (err instanceof WebhookVerificationError) {
+      logError("webhook signature verification failed", { error: err.message });
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
+    logError("webhook validation error", {
       error: err instanceof Error ? err.message : "unknown",
     });
     captureException(err, { route: "billing/webhook", stage: "signature_verification" });
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  logInfo("webhook event received", { type: event.type, id: event.id });
+  logInfo("webhook event received", { type: event.type });
 
   try {
     switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(event);
+      case "subscription.created":
+        await handleSubscriptionCreated(event);
         break;
-      case "customer.subscription.updated":
+      case "subscription.updated":
         await handleSubscriptionUpdated(event);
         break;
-      case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event);
+      case "subscription.revoked":
+        await handleSubscriptionRevoked(event);
         break;
       default:
-        // Unhandled event types are acknowledged without processing.
         logInfo("webhook event type not handled", { type: event.type });
     }
   } catch (err) {
     logError("webhook handler failed", {
       type: event.type,
-      id: event.id,
       error: err instanceof Error ? err.message : "unknown",
     });
-    captureException(err, { route: "billing/webhook", eventType: event.type, eventId: event.id });
-    // Return 500 so Stripe retries the event.
+    captureException(err, { route: "billing/webhook", eventType: event.type });
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }
 

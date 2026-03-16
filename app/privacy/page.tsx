@@ -28,7 +28,7 @@ export default function PrivacyPage() {
 
         <h2 className="mb-2 mt-6 text-base font-semibold text-neutral-900">3. 제3자 공유</h2>
         <p className="mb-4">
-          법적 의무 이행, 결제 처리(Stripe), 분석(PostHog), 오류 모니터링(Sentry) 목적 외에는
+          법적 의무 이행, 결제 처리(Polar), 분석(PostHog), 오류 모니터링(Sentry) 목적 외에는
           개인정보를 제3자와 공유하지 않습니다.
         </p>
 

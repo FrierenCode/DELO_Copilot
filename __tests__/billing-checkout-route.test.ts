@@ -16,7 +16,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const mockCreateCheckoutSession = vi.fn(async () => ({
-  url: "https://checkout.stripe.com/pay/cs_test_123",
+  url: "https://checkout.polar.sh/checkout/cs_test_123",
 }));
 
 vi.mock("@/services/billing-service", () => ({
@@ -50,11 +50,11 @@ function makeRequest(body: unknown = {}) {
 
 describe("POST /api/billing/checkout", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     mockUser = { id: "user-1", email: "test@example.com" };
     mockCreateCheckoutSession.mockResolvedValue({
-      url: "https://checkout.stripe.com/pay/cs_test_123",
+      url: "https://checkout.polar.sh/checkout/cs_test_123",
     });
-    vi.clearAllMocks();
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -68,13 +68,13 @@ describe("POST /api/billing/checkout", () => {
 
   it("creates checkout session and returns URL for authenticated user", async () => {
     mockCreateCheckoutSession.mockResolvedValueOnce({
-      url: "https://checkout.stripe.com/pay/cs_test_123",
+      url: "https://checkout.polar.sh/checkout/cs_test_123",
     });
     const res = await POST(makeRequest({ cancel_path: "/settings" }) as never);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(json.data.url).toContain("checkout.stripe.com");
+    expect(json.data.url).toContain("checkout.polar.sh");
     expect(mockCreateCheckoutSession).toHaveBeenCalledWith(
       "user-1",
       "test@example.com",
@@ -84,7 +84,7 @@ describe("POST /api/billing/checkout", () => {
   });
 
   it("uses default cancel_path /settings when none provided", async () => {
-    mockCreateCheckoutSession.mockResolvedValueOnce({ url: "https://checkout.stripe.com/x" });
+    mockCreateCheckoutSession.mockResolvedValueOnce({ url: "https://checkout.polar.sh/checkout/x" });
     await POST(makeRequest({}) as never);
     expect(mockCreateCheckoutSession).toHaveBeenCalledWith(
       "user-1",

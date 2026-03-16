@@ -1,6 +1,5 @@
 import "server-only";
-import type Stripe from "stripe";
-import { getStripe, getPriceId } from "@/lib/stripe";
+import { getPolar, getProductId } from "@/lib/polar";
 import {
   upsertSubscription,
   findSubscriptionByCustomerId,
@@ -13,171 +12,153 @@ import { trackEvent } from "@/lib/analytics";
 export type CheckoutResult = { url: string };
 
 /**
- * Creates (or retrieves) a Stripe customer for the user and initiates a
- * hosted checkout session for the Pro subscription.
+ * Creates a Polar hosted checkout session for the Pro subscription.
  */
 export async function createCheckoutSession(
   userId: string,
   userEmail: string,
-  cancelPath: string,
+  _cancelPath: string,
   successUrl: string,
 ): Promise<CheckoutResult> {
-  const stripe = getStripe();
-  const priceId = getPriceId();
+  const polar = getPolar();
+  const productId = getProductId();
 
-  // Re-use existing customer if one was previously created.
-  const existing = await findSubscriptionByCustomerIdOrUserId(userId);
-  let customerId = existing?.stripe_customer_id;
-
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: userEmail,
-      metadata: { supabase_user_id: userId },
-    });
-    customerId = customer.id;
-    // Pre-register the customer row so webhook can look it up.
-    await upsertSubscription({
-      user_id: userId,
-      stripe_customer_id: customerId,
-      status: "inactive",
-      plan: "free",
-    });
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: successUrl,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}${cancelPath}`,
-    allow_promotion_codes: true,
+  const checkout = await polar.checkouts.create({
+    products: [productId],
+    successUrl,
+    customerEmail: userEmail,
     metadata: { supabase_user_id: userId },
   });
 
-  if (!session.url) throw new Error("Stripe did not return a session URL");
-  logInfo("checkout session created", { userId, sessionId: session.id });
-  return { url: session.url };
+  logInfo("checkout created", { userId });
+  return { url: checkout.url };
 }
 
+type PolarSubscriptionEvent = {
+  type: string;
+  timestamp: Date;
+  data: {
+    id: string;
+    customerId: string;
+    status: string;
+    currentPeriodEnd: Date;
+    modifiedAt: Date | null;
+    metadata: Record<string, unknown>;
+  };
+};
+
 /**
- * Handles `checkout.session.completed` webhook.
- * Idempotent — safe to call multiple times for the same Stripe event.
+ * Handles `subscription.created` webhook.
+ * The subscription.id is used as the idempotency key.
  */
-export async function handleCheckoutCompleted(
-  event: Stripe.Event,
+export async function handleSubscriptionCreated(
+  event: PolarSubscriptionEvent,
 ): Promise<void> {
-  if (await isEventProcessed(event.id)) {
-    logInfo("webhook already processed (idempotent)", { eventId: event.id });
+  const sub = event.data;
+  if (await isEventProcessed(sub.id + "_created")) {
+    logInfo("webhook already processed (idempotent)", { subId: sub.id });
     return;
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const userId = session.metadata?.supabase_user_id;
+  const userId = (sub.metadata as Record<string, unknown> | undefined)?.supabase_user_id as string | undefined;
   if (!userId) {
-    logError("checkout.session.completed missing supabase_user_id", {
-      sessionId: session.id,
-    });
+    logError("subscription.created missing supabase_user_id in metadata", { subId: sub.id });
     return;
   }
 
-  const customerId =
-    typeof session.customer === "string" ? session.customer : session.customer?.id ?? "";
-  const subId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription?.id ?? null;
-
-  let periodEnd: string | null = null;
-  if (subId) {
-    try {
-      const stripe = getStripe();
-      const sub = await stripe.subscriptions.retrieve(subId);
-      periodEnd = new Date(sub.current_period_end * 1000).toISOString();
-    } catch {
-      // Non-critical — we still upgrade the plan
-    }
-  }
+  const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toISOString() : null;
 
   await upsertSubscription({
     user_id: userId,
-    stripe_customer_id: customerId,
-    stripe_sub_id: subId,
-    status: "active",
+    polar_customer_id: sub.customerId,
+    polar_subscription_id: sub.id,
+    status: sub.status,
     plan: "pro",
     current_period_end: periodEnd,
-    stripe_event_id: event.id,
+    polar_event_id: sub.id + "_created",
   });
   await syncUserPlan(userId, "pro");
-  trackEvent(userId, "upgraded_to_pro", { stripe_sub_id: subId ?? undefined });
-  logInfo("user upgraded to pro", { userId, subId });
+  trackEvent(userId, "upgraded_to_pro", { polar_subscription_id: sub.id });
+  logInfo("user upgraded to pro via subscription.created", { userId, subId: sub.id });
 }
 
 /**
- * Handles `customer.subscription.updated` webhook.
+ * Handles `subscription.updated` webhook.
  */
 export async function handleSubscriptionUpdated(
-  event: Stripe.Event,
+  event: PolarSubscriptionEvent,
 ): Promise<void> {
-  if (await isEventProcessed(event.id)) return;
-
-  const sub = event.data.object as Stripe.Subscription;
-  const row = await findSubscriptionByCustomerId(
-    typeof sub.customer === "string" ? sub.customer : sub.customer.id,
-  );
-  if (!row) {
-    logError("subscription.updated: customer not found", { customerId: sub.customer });
-    return;
-  }
+  const sub = event.data;
+  const eventId = sub.id + "_updated_" + (sub.modifiedAt ? new Date(sub.modifiedAt).toISOString() : "");
+  if (await isEventProcessed(eventId)) return;
 
   const isActive = sub.status === "active" || sub.status === "trialing";
   const plan: "free" | "pro" = isActive ? "pro" : "free";
+  const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toISOString() : null;
+
+  let row = await findSubscriptionByCustomerId(sub.customerId);
+
+  if (!row) {
+    const userId = (sub.metadata as Record<string, unknown> | undefined)?.supabase_user_id as string | undefined;
+    if (!userId) {
+      logError("subscription.updated: customer not found and no metadata", { customerId: sub.customerId });
+      return;
+    }
+    await upsertSubscription({
+      user_id: userId,
+      polar_customer_id: sub.customerId,
+      polar_subscription_id: sub.id,
+      status: sub.status,
+      plan,
+      current_period_end: periodEnd,
+      polar_event_id: eventId,
+    });
+    await syncUserPlan(userId, plan);
+    logInfo("subscription updated (from metadata)", { userId, status: sub.status, plan });
+    return;
+  }
 
   await upsertSubscription({
     user_id: row.user_id,
-    stripe_customer_id: row.stripe_customer_id,
-    stripe_sub_id: sub.id,
+    polar_customer_id: row.polar_customer_id,
+    polar_subscription_id: sub.id,
     status: sub.status,
     plan,
-    current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-    stripe_event_id: event.id,
+    current_period_end: periodEnd,
+    polar_event_id: eventId,
   });
   await syncUserPlan(row.user_id, plan);
   logInfo("subscription updated", { userId: row.user_id, status: sub.status, plan });
 }
 
 /**
- * Handles `customer.subscription.deleted` webhook.
+ * Handles `subscription.revoked` webhook.
  */
-export async function handleSubscriptionDeleted(
-  event: Stripe.Event,
+export async function handleSubscriptionRevoked(
+  event: PolarSubscriptionEvent,
 ): Promise<void> {
-  if (await isEventProcessed(event.id)) return;
+  const sub = event.data;
+  const eventId = sub.id + "_revoked";
+  if (await isEventProcessed(eventId)) return;
 
-  const sub = event.data.object as Stripe.Subscription;
-  const row = await findSubscriptionByCustomerId(
-    typeof sub.customer === "string" ? sub.customer : sub.customer.id,
-  );
+  const row = await findSubscriptionByCustomerId(sub.customerId);
   if (!row) {
-    logError("subscription.deleted: customer not found", { customerId: sub.customer });
+    logError("subscription.revoked: customer not found", { customerId: sub.customerId });
     return;
   }
 
+  const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toISOString() : null;
+
   await upsertSubscription({
     user_id: row.user_id,
-    stripe_customer_id: row.stripe_customer_id,
-    stripe_sub_id: sub.id,
-    status: "canceled",
+    polar_customer_id: row.polar_customer_id,
+    polar_subscription_id: sub.id,
+    status: "revoked",
     plan: "free",
-    current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-    stripe_event_id: event.id,
+    current_period_end: periodEnd,
+    polar_event_id: eventId,
   });
   await syncUserPlan(row.user_id, "free");
   trackEvent(row.user_id, "plan_cancelled");
-  logInfo("subscription deleted, user downgraded to free", { userId: row.user_id });
-}
-
-// Internal: find by userId (uses repo)
-async function findSubscriptionByCustomerIdOrUserId(userId: string) {
-  const { findSubscriptionByUserId } = await import("@/repositories/subscriptions-repo");
-  return findSubscriptionByUserId(userId);
+  logInfo("subscription revoked, user downgraded to free", { userId: row.user_id });
 }

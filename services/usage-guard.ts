@@ -11,7 +11,7 @@ export type GuardAction = "PARSE" | "SAVE_DEAL" | "VIEW_ALERTS" | "NEGOTIATION_A
 
 /**
  * Canonical billing source of truth for the current repository.
- * billing-service.ts syncs Stripe subscription state → user_plans on each webhook.
+ * billing-service.ts syncs Polar subscription state → user_plans on each webhook.
  * All plan reads go through user_plans only (single source of truth).
  */
 async function getUserPlan(userId: string): Promise<UserPlan> {

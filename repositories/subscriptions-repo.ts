@@ -4,24 +4,24 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type SubscriptionRow = {
   id: string;
   user_id: string;
-  stripe_customer_id: string;
-  stripe_sub_id: string | null;
+  polar_customer_id: string;
+  polar_subscription_id: string | null;
   status: string;
   plan: string;
   current_period_end: string | null;
-  stripe_event_id: string | null;
+  polar_event_id: string | null;
   created_at: string;
   updated_at: string;
 };
 
 export type SubscriptionUpsert = {
   user_id: string;
-  stripe_customer_id: string;
-  stripe_sub_id?: string | null;
+  polar_customer_id: string;
+  polar_subscription_id?: string | null;
   status: string;
   plan: string;
   current_period_end?: string | null;
-  stripe_event_id?: string | null;
+  polar_event_id?: string | null;
 };
 
 export async function upsertSubscription(data: SubscriptionUpsert): Promise<SubscriptionRow> {
@@ -39,13 +39,13 @@ export async function upsertSubscription(data: SubscriptionUpsert): Promise<Subs
 }
 
 export async function findSubscriptionByCustomerId(
-  stripeCustomerId: string,
+  polarCustomerId: string,
 ): Promise<SubscriptionRow | null> {
   const db = createAdminClient();
   const { data, error } = await db
     .from("subscriptions")
     .select()
-    .eq("stripe_customer_id", stripeCustomerId)
+    .eq("polar_customer_id", polarCustomerId)
     .maybeSingle();
   if (error) throw new Error(`subscriptions.findByCustomerId failed: ${error.message}`);
   return data as SubscriptionRow | null;
@@ -64,13 +64,13 @@ export async function findSubscriptionByUserId(
   return data as SubscriptionRow | null;
 }
 
-/** Returns true if this Stripe event has already been processed (idempotency). */
-export async function isEventProcessed(stripeEventId: string): Promise<boolean> {
+/** Returns true if this Polar event has already been processed (idempotency). */
+export async function isEventProcessed(polarEventId: string): Promise<boolean> {
   const db = createAdminClient();
   const { count } = await db
     .from("subscriptions")
     .select("id", { count: "exact", head: true })
-    .eq("stripe_event_id", stripeEventId);
+    .eq("polar_event_id", polarEventId);
   return (count ?? 0) > 0;
 }
 

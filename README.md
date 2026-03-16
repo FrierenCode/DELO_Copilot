@@ -52,7 +52,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - deals 생성, 조회, 수정, 상태 전이, 상태 로그 저장
 - creator profile 저장/조회 API
 - creator profile 온보딩 위저드와 PRD 입력값 매핑 레이어
-- Stripe Checkout, Stripe webhook, subscription 동기화 기반 Billing 흐름
+- Polar Checkout, Polar webhook, subscription 동기화 기반 Billing 흐름
 - Supabase OTP 로그인, `/login` 진입, `/auth/callback` 세션 교환
 - `middleware.ts` 기반 `/dashboard` 보호
 - PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Sentry 연동, 구조화 로그
@@ -74,11 +74,13 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - creator profile API는 `POST`와 `PUT`가 동일 저장 로직을 공유하며, onboarding wizard가 PRD 입력값을 API 스키마로 변환합니다.
 - 테스트 범위에 deals route, deals detail route, alerts route, creator profile route, dashboard helper 회귀 검증이 추가되었습니다.
 - `/settings`가 더 이상 placeholder가 아니라 현재 플랜, 구독 상태, 다음 갱신일, Pro 업그레이드 버튼을 보여주는 billing 화면으로 동작합니다.
-- `POST /api/billing/checkout`, `POST /api/billing/webhook`, `subscriptions` 저장소/서비스가 추가되어 Stripe 구독 상태와 `user_plans` 동기화 흐름이 연결되었습니다.
+- `POST /api/billing/checkout`, `POST /api/billing/webhook`, `subscriptions` 저장소/서비스가 추가되어 Polar 구독 상태와 `user_plans` 동기화 흐름이 연결되었습니다.
 - `/terms`, `/privacy`, `CookieBanner`가 추가되어 결제/분석 도입에 필요한 기본 법적 고지와 쿠키 동의 UI가 포함되었습니다.
 - `POST /api/analytics/event`와 `trackClientEvent`가 추가되어 랜딩 CTA, 체크아웃 시작, 답장 복사 같은 클라이언트 이벤트를 서버 경유로 수집합니다.
 - 랜딩 페이지 `/`가 실제 마케팅 진입점으로 교체되어 Hero, 기능 소개, CTA, 누적 deal count, 법적 링크를 노출합니다.
 - 랜딩 페이지 CTA에 `/parse`로 직접 이동하는 `직접 붙여넣기` 경로가 추가되어 가입 전 체험 진입점이 하나 더 생겼습니다.
+- `supabase/migrations/008_rename_stripe_to_polar.sql`가 추가되어 `subscriptions` 테이블 billing 컬럼이 Polar 명세로 정리되었습니다.
+- `wrangler.jsonc`에 `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`가 반영되어 Cloudflare Workers 배포 설정과 checkout 성공 URL 구성이 현재 앱 동작과 맞춰졌습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -259,19 +261,19 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 현재 구현된 Billing 흐름은 아래와 같습니다.
 
 - `/settings`에서 현재 plan, subscription status, 갱신 예정일 확인
-- Free 사용자는 `POST /api/billing/checkout` 호출로 Stripe Checkout Session 생성
-- `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` webhook 처리
-- `subscriptions` 테이블에 Stripe customer/subscription 상태 저장
+- Free 사용자는 `POST /api/billing/checkout` 호출로 Polar hosted checkout session 생성
+- `subscription.created`, `subscription.updated`, `subscription.revoked` webhook 처리
+- `subscriptions` 테이블에 Polar customer/subscription 상태 저장
 - webhook 처리 후 `user_plans`를 `free` 또는 `pro`로 동기화
 - 업그레이드/해지 이벤트를 analytics로 기록
 
 구현 메모:
 
 - `services/billing-service.ts`가 checkout session 생성과 webhook 이벤트별 상태 반영을 담당합니다.
-- webhook 처리는 `stripe_event_id`를 사용해 idempotent 하게 동작합니다.
-- `past_due` 또는 해지 이벤트가 오면 플랜을 다시 `free`로 내립니다.
+- webhook 처리는 `polar_event_id`를 사용해 idempotent 하게 동작합니다.
+- `revoked` 또는 비활성 상태 이벤트가 오면 플랜을 다시 `free`로 내립니다.
 - 현재 플랜 판정의 단일 source of truth는 `subscriptions`가 아니라 `user_plans`이며, webhook이 이를 동기화합니다.
-- 환경 변수로 `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID`가 필요합니다.
+- 환경 변수로 `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID`가 필요합니다.
 
 ### 9. 온보딩과 프로필 설정
 
@@ -338,7 +340,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `GET/PATCH /api/deals/[id]`를 통한 딜 상세 조회 및 수정
 - `GET /api/deals/alerts`를 통한 Pro 전용 alert 조회
 - `GET/POST/PUT /api/creator-profile`을 통한 프로필 관리
-- `POST /api/billing/checkout`을 통한 Stripe Checkout 진입
+- `POST /api/billing/checkout`을 통한 Polar Checkout 진입
 - `POST /api/billing/webhook`을 통한 subscription 상태 반영
 - `POST /api/analytics/event`를 통한 클라이언트 이벤트 수집
 - `GET /api/inquiries`를 통한 inquiry history 조회
@@ -369,7 +371,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - Anthropic SDK
 - Sentry
 - PostHog
-- Stripe
+- Polar
 - Vitest
 - OpenNext
 - Cloudflare Workers
@@ -419,7 +421,7 @@ lib/
   parse-error.ts
   plan-policy.ts
   sentry.ts
-  stripe.ts
+  polar.ts
   supabase/
 repositories/
   subscriptions-repo.ts
@@ -465,10 +467,10 @@ wrangler.jsonc
 - `repositories`: Supabase 접근 계층
 - `usage-guard`: 플랜별 사용량 제한과 기능 gate 처리
 - `alert-engine`: 후속 관리용 alert 계산
-- `billing-service`: Stripe checkout/webhook와 구독 상태 동기화 처리
+- `billing-service`: Polar checkout/webhook와 구독 상태 동기화 처리
 - `middleware.ts`: 세션 refresh 및 `/dashboard` 보호
 - `creator-profile-mapper.ts`: 온보딩 입력값을 기존 creator profile API 스키마로 변환
-- `stripe.ts`: Stripe SDK와 price/webhook secret 로더
+- `polar.ts`: Polar SDK와 product/webhook secret 로더
 - `db/schema.sql`: migration 001~006 기준 최종 스키마 참고본
 
 ## 빠른 시작
@@ -503,9 +505,9 @@ ANTHROPIC_API_KEY=
 Billing:
 
 ```env
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_PRO_PRICE_ID=
+POLAR_ACCESS_TOKEN=
+POLAR_WEBHOOK_SECRET=
+POLAR_PRODUCT_ID=
 ```
 
 관측/분석:
@@ -519,9 +521,9 @@ NEXT_PUBLIC_APP_URL=
 보안 및 배포 메모:
 
 - `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `GOOGLE_AI_API_KEY`, `ANTHROPIC_API_KEY`, `POSTHOG_API_KEY`, `SENTRY_DSN`은 서버 전용 값으로 취급해야 합니다.
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRO_PRICE_ID` 역시 서버 전용 값으로 관리해야 합니다.
+- `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID` 역시 서버 전용 값으로 관리해야 합니다.
 - Cloudflare Workers 배포 시 비밀 값은 Dashboard의 `Settings > Variables and Secrets` 또는 Wrangler secret으로 관리해야 합니다.
-- 현재 `wrangler.jsonc`에는 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`가 `vars`로 정의되어 있습니다.
+- 현재 `wrangler.jsonc`에는 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`가 `vars`로 정의되어 있습니다.
 
 ## API
 
@@ -686,7 +688,7 @@ Pro 전용 협상 답장 생성 API입니다.
 
 ### `POST /api/billing/checkout`
 
-인증 사용자를 Stripe Checkout으로 보내기 위한 session URL을 생성합니다.
+인증 사용자를 Polar hosted checkout으로 보내기 위한 session URL을 생성합니다.
 
 요청 예시:
 
@@ -704,18 +706,18 @@ Pro 전용 협상 답장 생성 API입니다.
 
 ### `POST /api/billing/webhook`
 
-Stripe webhook 엔드포인트입니다.
+Polar webhook 엔드포인트입니다.
 
 처리 이벤트:
 
-- `checkout.session.completed`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
+- `subscription.created`
+- `subscription.updated`
+- `subscription.revoked`
 
 특징:
 
-- raw body와 `stripe-signature` 검증이 필요합니다.
-- 처리 실패 시 500을 반환해 Stripe 재시도를 유도합니다.
+- raw body와 Polar 서명 검증이 필요합니다.
+- 처리 실패 시 500을 반환해 Polar 재시도를 유도합니다.
 - `subscriptions` 테이블과 `user_plans`를 함께 동기화합니다.
 
 ### `POST /api/analytics/event`
@@ -756,7 +758,7 @@ npm run deploy
 
 ## 데이터베이스
 
-권위 있는 변경 이력은 `supabase/migrations/`이고, `db/schema.sql`은 001~006 마이그레이션을 합친 참조 스냅샷입니다.
+권위 있는 변경 이력은 `supabase/migrations/`이고, `db/schema.sql`은 001~006 마이그레이션을 합친 참조 스냅샷입니다. billing 관련 최신 변경은 `007_add_subscriptions_table.sql`, `008_rename_stripe_to_polar.sql`을 함께 봐야 합니다.
 
 현재 마이그레이션 파일:
 
@@ -767,6 +769,7 @@ npm run deploy
 - `005_inquiries_uniqueness_idempotent.sql`
 - `006_add_reply_drafts_to_inquiries.sql`
 - `007_add_subscriptions_table.sql`
+- `008_rename_stripe_to_polar.sql`
 
 주요 테이블:
 
@@ -788,7 +791,7 @@ npm run deploy
 - authenticated dedup은 `(user_id, input_hash)` partial unique index 기반입니다.
 - `reply_drafts_json` 컬럼으로 inquiry 단위 수정 초안을 저장합니다.
 - `user_plans`가 현재 플랜 정책의 source of truth입니다.
-- `subscriptions`는 Stripe customer/subscription 상태와 마지막 처리 이벤트 id를 저장합니다.
+- `subscriptions`는 Polar customer/subscription 상태와 마지막 처리 이벤트 id를 저장합니다.
 
 ## 테스트
 
@@ -816,7 +819,7 @@ npm run test
 - `__tests__/creator-profile-route.test.ts`: expanded profile field 저장과 `PUT` alias 검증
 - `__tests__/dashboard-helpers.test.ts`: 탭 필터, summary 계산, 날짜/통화 포맷 helper 검증
 - `__tests__/billing-checkout-route.test.ts`: checkout session URL 반환과 인증/에러 처리 검증
-- `__tests__/billing-webhook-route.test.ts`: Stripe 이벤트 라우팅과 재시도용 500 응답 검증
+- `__tests__/billing-webhook-route.test.ts`: Polar 이벤트 라우팅과 재시도용 500 응답 검증
 - `__tests__/billing-service.test.ts`: subscription 업그레이드/해지/idempotency 검증
 - `__tests__/plan-gating-integration.test.ts`: Free/Pro 플랜 limit와 기능 gate 통합 검증
 - `__tests__/analytics-contract.test.ts`: 허용된 analytics event name 목록 회귀 검증
@@ -826,14 +829,14 @@ npm run test
 현재 구현 기준으로 남아 있는 큰 작업은 아래와 같습니다.
 
 1. Dashboard와 `/dashboard/intake`의 역할 분리를 더 선명하게 다듬기
-2. Stripe Customer Portal 또는 해지/플랜 변경 self-service 기능 보강
+2. Polar 고객 포털 또는 해지/플랜 변경 self-service 기능 보강
 3. E2E 테스트 강화
 4. 실데이터 운영 기준의 세부 UX polish와 알림/후속 액션 흐름 보강
 5. billing/analytics 운영 모니터링 고도화
 
 ## 현재 상태 요약
 
-현재 저장소는 "문의 파싱 + inquiry 저장 + 딜 저장 API + 운영 대시보드 + 플랜 gate + Stripe Billing + 인증 흐름 + 배포 설정"까지 연결된 MVP입니다.
+현재 저장소는 "문의 파싱 + inquiry 저장 + 딜 저장 API + 운영 대시보드 + 플랜 gate + Polar Billing + 인증 흐름 + 배포 설정"까지 연결된 MVP입니다.
 
 이미 반영된 요소:
 
@@ -844,7 +847,7 @@ npm run test
 - deal 저장, 상태 관리, alert 계산
 - dashboard 목록/상세 조회와 상태 로그 기록
 - creator profile 온보딩과 intake 진입 흐름
-- Stripe checkout, webhook, subscription 동기화
+- Polar checkout, webhook, subscription 동기화
 - 랜딩 페이지, 약관/개인정보 페이지, 쿠키 동의 배너
 - Free/Pro 사용량 제한과 기능 gate
 - PostHog, 클라이언트 이벤트 수집 API, Sentry, 구조화 로그 기반 관측
