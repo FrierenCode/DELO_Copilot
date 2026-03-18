@@ -34,3 +34,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+.landing-page {
+  --landing-bg: #0a0a0f;
+  --landing-nav-bg: rgba(10, 10, 15, 0.8);
+  --landing-surface: #13131a;
+  --landing-text: #f8fafc;
+  --landing-muted: #94a3b8;
+  --landing-border: #1e1e2e;
+  --landing-icon-bg: rgba(255, 255, 255, 0.05);
+  --landing-footer: rgba(148, 163, 184, 0.4);
+  --landing-accent: #6366f1;
+  --landing-accent-soft: rgba(99, 102, 241, 0.2);
+}
+
+html[data-landing-theme="light"] .landing-page {
+  --landing-bg: #f8fafc;
+  --landing-nav-bg: rgba(248, 250, 252, 0.8);
+  --landing-surface: #ffffff;
+  --landing-text: #0f172a;
+  --landing-muted: #475569;
+  --landing-border: #dbe3ef;
+  --landing-icon-bg: rgba(15, 23, 42, 0.05);
+  --landing-footer: rgba(71, 85, 105, 0.7);
+  --landing-accent: #4f46e5;
+  --landing-accent-soft: rgba(79, 70, 229, 0.12);
+}

@@ -1,16 +1,18 @@
 import { Fragment } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { LandingCtaButton } from "@/components/landing/LandingCtaButton";
+import { LandingThemeToggle } from "@/components/landing/LandingThemeToggle";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
-  title: "DELO — 당신만의 에이전시",
+  title: "DELO | Creator Deal Copilot",
   description:
-    "브랜드 협찬 문의를 붙여넣으면 5분 만에 견적·체크리스트·답장 초안을 자동으로 만들어드립니다. 크리에이터를 위한 딜 관리 도구.",
+    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 딜 운영 도구입니다.",
   openGraph: {
-    title: "DELO — 당신만의 에이전시",
-    description: "협찬 문의 붙여넣기. 5분 만에 견적·답장·저장 완료.",
+    title: "DELO | Creator Deal Copilot",
+    description:
+      "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 딜 운영 도구입니다.",
     type: "website",
   },
 };
@@ -29,88 +31,82 @@ async function getDealsCount(): Promise<number | null> {
 
 const PROBLEM_CARDS = [
   {
-    icon: "💸",
-    title: "견적을 감으로 부른다",
-    desc: "비슷한 문의도 매번 다른 금액. 너무 적게 불렀다는 걸 나중에야 알게 됩니다.",
+    icon: "01",
+    title: "견적이 매번 감으로 정해집니다",
+    desc: "비슷한 문의여도 금액 기준이 흔들리면 협상에서 계속 불리해집니다.",
   },
   {
-    icon: "📋",
-    title: "계약 조건을 놓친다",
-    desc: "사용권, 독점권, 수정 횟수, 지급 조건. 빠진 항목 하나가 나중에 분쟁이 됩니다.",
+    icon: "02",
+    title: "계약 조건을 자주 놓칩니다",
+    desc: "사용권, 수정 횟수, 지급 일정 같은 핵심 항목 하나가 수익을 크게 바꿉니다.",
   },
   {
-    icon: "📭",
-    title: "후속 관리가 끊긴다",
-    desc: "답장 이후 진행 상황이 DM, 메모, 캘린더에 흩어져 중요한 시점을 놓칩니다.",
+    icon: "03",
+    title: "후속 관리가 흩어집니다",
+    desc: "답변 이후 진행 상황이 DM, 메모, 캘린더로 분산되면 중요한 타이밍을 놓칩니다.",
   },
-];
+] as const;
 
 const HOW_IT_WORKS = [
   {
     step: "Step 01",
-    title: "문의 붙여넣기",
-    desc: "이메일, DM, 카카오 —\n형식 상관없이 원문 그대로",
+    title: "문의 내용을 붙여넣습니다",
+    desc: "이메일, DM, 카카오톡 등 형식과 상관없이 원문 그대로 넣으면 됩니다.",
   },
   {
     step: "Step 02",
-    title: "AI가 분석합니다",
-    desc: "조건 구조화, 누락 항목 체크,\n적정 견적 자동 계산",
+    title: "AI가 구조화해서 분석합니다",
+    desc: "조건을 정리하고 빠진 항목을 체크한 뒤, 적정 견적 범위를 계산합니다.",
   },
   {
     step: "Step 03",
-    title: "바로 답장 발송",
-    desc: "3가지 톤의 협상 초안 중\n골라 복사하면 끝",
+    title: "바로 응답을 준비합니다",
+    desc: "상황별 초안과 체크리스트를 기반으로 바로 회신하거나 내부 검토를 진행할 수 있습니다.",
   },
-];
+] as const;
 
 const COMPARISON_ROWS = [
   {
-    icon: "🔍",
+    icon: "A",
     feature: "브랜드 문의 분석",
-    agency: "에이전시는 수십 건의 정리...",
-    delo: "DELO는 30초 안에 구조화",
+    agency: "문의 내용을 사람이 직접 분류하고 정리",
+    delo: "DELO가 핵심 조건과 리스크를 즉시 구조화",
   },
   {
-    icon: "📊",
-    feature: "적정 견적 산출",
-    agency: "에이전시는 경험...",
-    delo: "DELO는 데이터 기반 계산",
+    icon: "B",
+    feature: "적정 견적 산정",
+    agency: "과거 경험과 감각에 의존",
+    delo: "데이터와 입력값을 바탕으로 범위 제안",
   },
   {
-    icon: "💬",
-    feature: "협상 커뮤니케이션",
-    agency: "에이전시는 직접 협상...",
-    delo: "DELO는 협상 답장 초안 생성",
+    icon: "C",
+    feature: "응답 초안 작성",
+    agency: "매번 새로 문구를 작성",
+    delo: "상황별 톤의 초안을 바로 생성",
   },
   {
-    icon: "🚀",
+    icon: "D",
     feature: "계약 진행 관리",
-    agency: "에이전시는 일정 추적...",
-    delo: "DELO는 파이프라인 관리",
+    agency: "노션, 메신저, 캘린더를 따로 확인",
+    delo: "히스토리와 상태를 한 화면에서 관리",
   },
-];
+] as const;
 
 export default async function LandingPage() {
   const dealsCount = await getDealsCount();
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F] text-[#F8FAFC] antialiased">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-[#1E1E2E] bg-[#0A0A0F]/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight">DELO</span>
+    <div className="landing-page min-h-screen bg-[var(--landing-bg)] text-[var(--landing-text)] antialiased transition-colors">
+      <nav className="fixed top-0 z-50 w-full border-b border-[var(--landing-border)] bg-[color:var(--landing-nav-bg)] backdrop-blur-md transition-colors">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+          <Link href="/" className="text-xl font-bold tracking-tight">
+            DELO
+          </Link>
           <div className="flex items-center gap-6">
-            <button
-              type="button"
-              className="hidden items-center gap-2 rounded-full border border-[#1E1E2E] bg-[#13131A] px-3 py-1.5 text-xs font-medium text-[#94A3B8] transition-colors hover:text-[#F8FAFC] md:flex"
-            >
-              <span>Light</span>
-              <span className="text-[#1E1E2E]">|</span>
-              <span className="text-[#F8FAFC]">Dark</span>
-            </button>
+            <LandingThemeToggle />
             <Link
               href="/login"
-              className="text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
+              className="text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-text)]"
             >
               로그인
             </Link>
@@ -126,26 +122,24 @@ export default async function LandingPage() {
       </nav>
 
       <main>
-        {/* Hero */}
-        <section className="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-16">
-          <div className="max-w-4xl mx-auto">
+        <section className="flex min-h-screen flex-col items-center justify-center px-6 pt-16 text-center">
+          <div className="mx-auto max-w-4xl">
             {dealsCount !== null && dealsCount > 0 && (
-              <p className="inline-block mb-8 rounded-full bg-[#6366F1]/20 px-4 py-1.5 text-xs font-medium text-[#6366F1]">
-                지금까지 {dealsCount.toLocaleString("ko-KR")}건의 딜이
-                관리됐어요
+              <p className="mb-8 inline-block rounded-full bg-[var(--landing-accent-soft)] px-4 py-1.5 text-xs font-medium text-[var(--landing-accent)]">
+                지금까지 {dealsCount.toLocaleString("ko-KR")}건의 딜을 관리했어요
               </p>
             )}
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight mb-8">
-              당신만의 에이전시,
+            <h1 className="mb-8 text-5xl font-bold leading-tight tracking-tight md:text-7xl">
+              크리에이터 딜 운영,
               <br />
-              DELO가 대신합니다
+              DELO가 정리합니다
             </h1>
-            <p className="text-lg md:text-xl text-[#94A3B8] leading-relaxed mb-12">
-              브랜드 문의 분석부터 견적, 협상, 계약 관리까지.
+            <p className="mb-12 text-lg leading-relaxed text-[var(--landing-muted)] transition-colors md:text-xl">
+              브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지.
               <br />
-              에이전시가 하던 일을 이제 혼자서도 할 수 있습니다.
+              에이전시 없이도 운영 흐름을 빠르게 정리할 수 있습니다.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <LandingCtaButton
                 href="/login"
                 variant="primary"
@@ -164,47 +158,49 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Problem Section */}
-        <section className="py-[120px] bg-[#0A0A0F] px-6 border-t border-[#1E1E2E]">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-              에이전시 없이 혼자 운영하면
+        <section className="border-t border-[var(--landing-border)] bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-16 text-center text-3xl font-bold md:text-4xl">
+              혼자 운영하면 자주 생기는 문제
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {PROBLEM_CARDS.map(({ icon, title, desc }) => (
                 <div
                   key={title}
-                  className="p-8 rounded-2xl border border-[#1E1E2E] bg-[#13131A] hover:border-[#6366F1]/50 transition-all"
+                  className="rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-8 transition-all hover:border-[var(--landing-accent)]/50"
                 >
-                  <div className="mb-6 text-2xl">{icon}</div>
-                  <h3 className="text-xl font-bold mb-4">{title}</h3>
-                  <p className="text-[#94A3B8] leading-relaxed">{desc}</p>
+                  <div className="mb-6 text-sm font-semibold text-[var(--landing-accent)]">
+                    {icon}
+                  </div>
+                  <h3 className="mb-4 text-xl font-bold">{title}</h3>
+                  <p className="leading-relaxed text-[var(--landing-muted)] transition-colors">
+                    {desc}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-[120px] px-6 bg-[#0A0A0F]">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-20">
+        <section className="bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-20 text-center text-3xl font-bold md:text-4xl">
               DELO는 이렇게 작동합니다
             </h2>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-12">
-              {HOW_IT_WORKS.map(({ step, title, desc }, i) => (
+            <div className="flex flex-col items-start justify-between gap-12 md:flex-row md:items-center">
+              {HOW_IT_WORKS.map(({ step, title, desc }, index) => (
                 <Fragment key={step}>
                   <div className="flex-1">
-                    <div className="inline-block px-3 py-1 rounded-full bg-[#6366F1]/20 text-[#6366F1] text-xs font-bold mb-6">
+                    <div className="mb-6 inline-block rounded-full bg-[var(--landing-accent-soft)] px-3 py-1 text-xs font-bold text-[var(--landing-accent)]">
                       {step}
                     </div>
-                    <h3 className="text-2xl font-bold mb-4">{title}</h3>
-                    <p className="text-[#94A3B8] leading-relaxed whitespace-pre-line">
+                    <h3 className="mb-4 text-2xl font-bold">{title}</h3>
+                    <p className="whitespace-pre-line leading-relaxed text-[var(--landing-muted)] transition-colors">
                       {desc}
                     </p>
                   </div>
-                  {i < HOW_IT_WORKS.length - 1 && (
-                    <div className="hidden md:flex items-center text-[#1E1E2E]">
+                  {index < HOW_IT_WORKS.length - 1 && (
+                    <div className="hidden items-center text-[var(--landing-border)] transition-colors md:flex">
                       <svg
                         width="24"
                         height="24"
@@ -224,28 +220,27 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Comparison Section */}
-        <section className="py-[120px] px-6 border-y border-[#1E1E2E]">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-20">
-              에이전시가 하는 일, DELO도 합니다
+        <section className="border-y border-[var(--landing-border)] px-6 py-[120px] transition-colors">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="mb-20 text-center text-3xl font-bold md:text-4xl">
+              수작업 대신 DELO가 맡는 일
             </h2>
             <div className="space-y-4">
               {COMPARISON_ROWS.map(({ icon, feature, agency, delo }) => (
                 <div
                   key={feature}
-                  className="grid grid-cols-12 items-center p-6 rounded-2xl border border-[#1E1E2E] bg-[#13131A]"
+                  className="grid grid-cols-12 items-center rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-colors"
                 >
-                  <div className="col-span-12 md:col-span-4 flex items-center gap-4 mb-4 md:mb-0">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-xl">
+                  <div className="col-span-12 mb-4 flex items-center gap-4 md:col-span-4 md:mb-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--landing-icon-bg)] text-sm font-semibold transition-colors">
                       {icon}
                     </div>
                     <span className="font-bold">{feature}</span>
                   </div>
-                  <div className="col-span-6 md:col-span-4 text-sm text-[#94A3B8] border-r border-[#1E1E2E] pr-4">
+                  <div className="col-span-6 border-r border-[var(--landing-border)] pr-4 text-sm text-[var(--landing-muted)] transition-colors md:col-span-4">
                     {agency}
                   </div>
-                  <div className="col-span-6 md:col-span-4 text-sm font-medium text-[#6366F1] pl-4">
+                  <div className="col-span-6 pl-4 text-sm font-medium text-[var(--landing-accent)] md:col-span-4">
                     {delo}
                   </div>
                 </div>
@@ -254,19 +249,18 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section className="py-[120px] px-6 bg-[#13131A] text-center">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              지금 첫 번째 문의를 분석해보세요
+        <section className="bg-[var(--landing-surface)] px-6 py-[120px] text-center transition-colors">
+          <div className="mx-auto max-w-4xl">
+            <h2 className="mb-6 text-3xl font-bold md:text-5xl">
+              첫 번째 브랜드 문의부터 정리해보세요
             </h2>
-            <p className="text-[#94A3B8] text-lg mb-10">
-              회원가입 후 무료로 시작할 수 있습니다.
+            <p className="mb-10 text-lg text-[var(--landing-muted)] transition-colors">
+              회원가입 없이 바로 흐름을 확인할 수 있습니다.
             </p>
             <LandingCtaButton
               href="/login"
               variant="primary"
-              label="무료로 시작하기 →"
+              label="무료로 시작하기"
               event="landing_cta_clicked"
               eventProps={{ cta: "signup_closing" }}
             />
@@ -274,32 +268,32 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[#1E1E2E] py-12 px-6 bg-[#0A0A0F]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+      <footer className="border-t border-[var(--landing-border)] bg-[var(--landing-bg)] px-6 py-12 transition-colors">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
-            <span className="text-xl font-bold block mb-2">DELO</span>
-            <p className="text-sm text-[#94A3B8]">크리에이터의 비즈니스 파트너.</p>
+            <Link href="/" className="mb-2 block text-xl font-bold">
+              DELO
+            </Link>
+            <p className="text-sm text-[var(--landing-muted)] transition-colors">
+              크리에이터 딜 운영을 위한 비즈니스 코파일럿
+            </p>
           </div>
-          <div className="flex flex-col md:flex-row gap-6 md:gap-12 items-start md:items-center">
-            <div className="flex gap-6 text-sm text-[#94A3B8] font-medium">
-              <Link
-                href="/terms"
-                className="hover:text-[#F8FAFC] transition-colors"
-              >
+          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-12">
+            <div className="flex gap-6 text-sm font-medium text-[var(--landing-muted)] transition-colors">
+              <Link href="/terms" className="transition-colors hover:text-[var(--landing-text)]">
                 이용약관
               </Link>
-              <Link
-                href="/privacy"
-                className="hover:text-[#F8FAFC] transition-colors"
-              >
+              <Link href="/privacy" className="transition-colors hover:text-[var(--landing-text)]">
                 개인정보처리방침
               </Link>
             </div>
-            <div className="text-sm text-[#94A3B8]/40">Copyright 2025.</div>
+            <div className="text-sm text-[var(--landing-footer)] transition-colors">
+              Copyright 2025.
+            </div>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }

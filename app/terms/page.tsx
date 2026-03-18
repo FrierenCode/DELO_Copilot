@@ -20,7 +20,9 @@ export default function TermsPage() {
       {/* Fixed top nav */}
       <header className="fixed top-0 w-full z-50 bg-[#0A0A0F]/80 backdrop-blur-md border-b border-[#1E1E2E]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-tight text-white">DELO</span>
+          <Link href="/" className="text-xl font-bold tracking-tight text-white">
+            DELO
+          </Link>
           <Link
             href="/"
             className="text-sm font-medium text-slate-400 hover:text-indigo-400 transition-colors"

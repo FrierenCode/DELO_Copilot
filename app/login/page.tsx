@@ -59,21 +59,21 @@ export default function LoginPage() {
       }}
     >
       <header className="fixed top-0 left-0 w-full p-8 z-10">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex w-fit items-center gap-2">
           <div className="text-[#6366F1]">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" />
             </svg>
           </div>
           <span className="text-xl font-bold tracking-tight">DELO</span>
-        </div>
+        </Link>
       </header>
 
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="grid w-full max-w-6xl items-center gap-12 lg:grid-cols-2">
           <div className="w-full max-w-[420px] mx-auto">
             {status === "sent" ? (
-              <div className="bg-[#13131A] border border-slate-800 rounded-2xl p-8 shadow-2xl">
+              <div className="bg-[#13131A] border border-slate-800 rounded-2xl p-8 shadow-2xl motion-safe:animate-[loginSuccessCard_360ms_ease-out]">
                 <div className="flex flex-col items-center text-center py-6">
                   <div className="w-16 h-16 bg-[#6366F1]/20 rounded-full flex items-center justify-center mb-6 text-[#6366F1]">
                     <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@ export default function LoginPage() {
           </div>
 
           <div className="hidden lg:block">
-            <div className="w-full max-w-[420px] mx-auto bg-[#13131A]/50 border border-slate-800/50 rounded-2xl p-8 backdrop-blur-sm">
+            <div className="w-full max-w-[420px] mx-auto bg-[#13131A]/50 border border-slate-800/50 rounded-2xl p-8 backdrop-blur-sm motion-safe:animate-[loginPreviewCard_500ms_ease-out]">
               <div className="flex flex-col items-center text-center py-10">
                 <div className="w-16 h-16 bg-[#6366F1]/20 rounded-full flex items-center justify-center mb-6 text-[#6366F1]">
                   <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -211,6 +211,30 @@ export default function LoginPage() {
       <footer className="p-8 text-center">
         <p className="text-slate-600 text-xs">© 2025 DELO Copilot. All rights reserved.</p>
       </footer>
+
+      <style jsx>{`
+        @keyframes loginSuccessCard {
+          from {
+            opacity: 0;
+            transform: translateY(16px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes loginPreviewCard {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
