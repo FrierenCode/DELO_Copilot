@@ -60,3 +60,41 @@ html[data-landing-theme="light"] .landing-page {
   --landing-accent: #4f46e5;
   --landing-accent-soft: rgba(79, 70, 229, 0.12);
 }
+
+.login-page {
+  --login-background: radial-gradient(circle at center, #1e1b4b 0%, #0a0a0f 100%);
+  --login-surface: #13131a;
+  --login-panel: rgba(0, 0, 0, 0.2);
+  --login-preview-bg: rgba(19, 19, 26, 0.55);
+  --login-preview-border: rgba(255, 255, 255, 0.1);
+  --login-text: #f8fafc;
+  --login-heading: #f8fafc;
+  --login-muted: #94a3b8;
+  --login-border: #1e293b;
+  --login-input-border: #1e293b;
+  --login-input-bg: rgba(15, 23, 42, 0.5);
+  --login-placeholder: #475569;
+  --login-hover: rgba(30, 41, 59, 0.5);
+  --login-accent: #6366f1;
+  --login-accent-soft: rgba(99, 102, 241, 0.16);
+  --login-footer: #475569;
+}
+
+html[data-landing-theme="light"] .login-page {
+  --login-background: radial-gradient(circle at center, #dbeafe 0%, #f8fafc 100%);
+  --login-surface: rgba(255, 255, 255, 0.92);
+  --login-panel: rgba(255, 255, 255, 0.78);
+  --login-preview-bg: rgba(255, 255, 255, 0.7);
+  --login-preview-border: rgba(15, 23, 42, 0.1);
+  --login-text: #0f172a;
+  --login-heading: #0f172a;
+  --login-muted: #475569;
+  --login-border: #dbe3ef;
+  --login-input-border: #dbe3ef;
+  --login-input-bg: rgba(248, 250, 252, 0.95);
+  --login-placeholder: #94a3b8;
+  --login-hover: rgba(226, 232, 240, 0.7);
+  --login-accent: #4f46e5;
+  --login-accent-soft: rgba(79, 70, 229, 0.12);
+  --login-footer: #64748b;
+}

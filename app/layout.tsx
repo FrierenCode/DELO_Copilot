@@ -24,7 +24,14 @@ export default function RootLayout({
       <body className="min-h-screen bg-neutral-50 text-neutral-900 antialiased">
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__PUBLIC_ENV__ = ${JSON.stringify(publicEnv)};`,
+            __html: `window.__PUBLIC_ENV__ = ${JSON.stringify(publicEnv)};
+try {
+  var savedTheme = window.localStorage.getItem("landing-theme");
+  document.documentElement.dataset.landingTheme =
+    savedTheme === "light" ? "light" : "dark";
+} catch (e) {
+  document.documentElement.dataset.landingTheme = "dark";
+}`,
           }}
         />
         {/*
