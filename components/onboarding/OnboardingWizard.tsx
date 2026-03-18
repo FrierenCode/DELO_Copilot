@@ -110,6 +110,25 @@ const EMPTY_DATA: WizardData = {
   floor_rate: "",
 };
 
+function previewValue(step: number, data: WizardData): string | null {
+  switch (step) {
+    case 1:
+      return PLATFORM_OPTIONS.find((opt) => opt.value === data.primary_platform)?.label ?? null;
+    case 2:
+      return NICHE_OPTIONS.find((opt) => opt.value === data.niche)?.label ?? null;
+    case 3:
+      return AUDIENCE_OPTIONS.find((opt) => opt.value === data.audience_band)?.label ?? null;
+    case 4:
+      return AVG_VIEWS_OPTIONS.find((opt) => opt.value === data.avg_views_band)?.label ?? null;
+    case 5:
+      return GEO_OPTIONS.find((opt) => opt.value === data.geo_region)?.label ?? null;
+    case 6:
+      return data.floor_rate ? `₩${Number(data.floor_rate).toLocaleString("ko-KR")}` : null;
+    default:
+      return null;
+  }
+}
+
 // ─── Step copy ────────────────────────────────────────────────────────────────
 
 function stepHeading(step: number): string {
@@ -452,6 +471,36 @@ export function OnboardingWizard() {
 
           {/* Step content */}
           <div className="w-full">{renderStepContent()}</div>
+
+          <section className="w-full mt-12 grid grid-cols-1 md:grid-cols-2 gap-3 opacity-70">
+            {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((previewStep) => {
+              const value = previewValue(previewStep, data);
+              const isCurrent = previewStep === step;
+              const isCompleted = previewStep < step && value;
+
+              return (
+                <div
+                  key={previewStep}
+                  className={[
+                    "flex items-center justify-between rounded-xl border p-4 transition-colors",
+                    isCurrent
+                      ? "border-[#6366F1]/20 bg-[#13131A]/70"
+                      : "border-[#27272A]/60 bg-[#13131A]/30",
+                  ].join(" ")}
+                >
+                  <div>
+                    <span className="block text-xs text-[#94A3B8]">Step {previewStep}</span>
+                    <span className="text-sm font-semibold">{stepHeading(previewStep)}</span>
+                  </div>
+                  {isCompleted && (
+                    <span className="rounded bg-[#6366F1]/20 px-2 py-1 text-xs font-bold text-[#6366F1]">
+                      {value}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </section>
 
           {/* Submit error */}
           {submitError && (

@@ -100,6 +100,14 @@ export default async function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <span className="text-xl font-bold tracking-tight">DELO</span>
           <div className="flex items-center gap-6">
+            <button
+              type="button"
+              className="hidden items-center gap-2 rounded-full border border-[#1E1E2E] bg-[#13131A] px-3 py-1.5 text-xs font-medium text-[#94A3B8] transition-colors hover:text-[#F8FAFC] md:flex"
+            >
+              <span>Light</span>
+              <span className="text-[#1E1E2E]">|</span>
+              <span className="text-[#F8FAFC]">Dark</span>
+            </button>
             <Link
               href="/login"
               className="text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
@@ -148,7 +156,7 @@ export default async function LandingPage() {
               <LandingCtaButton
                 href="/parse"
                 variant="secondary"
-                label="샘플로 바로 체험"
+                label="어떻게 작동하나요?"
                 event="landing_cta_clicked"
                 eventProps={{ cta: "demo" }}
               />

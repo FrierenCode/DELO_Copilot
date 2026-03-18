@@ -19,8 +19,8 @@ export function LandingCtaButton({ href, label, variant, event, eventProps }: Pr
       onClick={() => trackClientEvent(event, eventProps)}
       className={
         variant === "primary"
-          ? "rounded-lg bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
-          : "rounded-lg border border-neutral-200 bg-white px-6 py-2.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
+          ? "inline-flex items-center justify-center rounded-full bg-[#6366F1] px-8 py-4 text-base font-bold text-white transition-all hover:scale-[1.02] hover:bg-indigo-500 active:scale-[0.98]"
+          : "inline-flex items-center justify-center rounded-full border border-[#1E1E2E] bg-[#13131A]/50 px-8 py-4 text-base font-bold text-[#F8FAFC] transition-all hover:bg-[#13131A]"
       }
     >
       {label}
