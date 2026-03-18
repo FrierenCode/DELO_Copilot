@@ -24,31 +24,35 @@ export function IntakeBrief({ data, missingFields }: Props) {
   const missingSet = new Set(missingFields);
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">
-        구조화된 브리프
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-[#6366F1] inline-block" />
+        파싱 결과
       </h2>
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {FIELD_LABELS.map(([label, key]) => {
           const isMissing = missingSet.has(key);
           return (
-            <div key={key} className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
-              <span className="w-28 shrink-0 text-xs font-medium text-neutral-500">
+            <div
+              key={key}
+              className="p-4 bg-[#13131A] border border-[#1E1E2E] rounded-xl"
+            >
+              <p className="text-[10px] text-[#64748B] font-bold mb-1 uppercase tracking-tight">
                 {label}
-              </span>
+              </p>
               {isMissing ? (
-                <span className="inline-flex w-fit items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                <span className="inline-flex items-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-500">
                   미확인
                 </span>
               ) : (
-                <span className="text-sm text-neutral-800">{data[key]}</span>
+                <p className="font-semibold text-sm text-[#F8FAFC]">{data[key]}</p>
               )}
             </div>
           );
         })}
       </div>
       {missingFields.length > 0 && (
-        <p className="mt-4 text-xs text-amber-600">
+        <p className="text-xs text-amber-500/70">
           {missingFields.length}개 항목이 명시되지 않았습니다.
         </p>
       )}

@@ -13,8 +13,15 @@ const NAV_LINKS = [
 export function RootNav() {
   const pathname = usePathname();
 
-  // Dashboard pages have their own sidebar — hide the root nav there.
-  if (pathname.startsWith("/dashboard")) return null;
+  // These pages manage their own nav/layout.
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/onboarding" ||
+    pathname === "/terms" ||
+    pathname === "/privacy"
+  ) return null;
 
   return (
     <header className="border-b border-neutral-200 bg-white">

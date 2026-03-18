@@ -18,15 +18,15 @@ export default async function SettingsPage() {
   const subscription = await findSubscriptionByUserId(user.id).catch(() => null);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Settings</h1>
-        <p className="mt-1 text-sm text-neutral-500">Account and billing.</p>
-      </div>
+    <div className="flex flex-col gap-8">
+      <header>
+        <h1 className="text-3xl font-bold text-white tracking-tight">설정</h1>
+      </header>
 
       <SettingsBillingPanel
         plan={plan}
         email={user.email ?? ""}
+        createdAt={user.created_at ?? null}
         subscriptionStatus={subscription?.status ?? null}
         currentPeriodEnd={subscription?.current_period_end ?? null}
       />

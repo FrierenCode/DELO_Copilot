@@ -53,4 +53,8 @@ export type ParseApiResult = {
   reply_meta: {
     negotiation_ai_available: boolean;
   };
+  /** ISO date string from the inquiries table */
+  created_at?: string | null;
+  /** First 200 chars of raw input text */
+  raw_text_preview?: string | null;
 };

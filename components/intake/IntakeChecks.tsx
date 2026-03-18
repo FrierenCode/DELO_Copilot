@@ -1,37 +1,40 @@
-import { cn } from "@/lib/utils";
 import type { CheckItem } from "@/types/parse-api";
 
 type Props = {
   checks: CheckItem[];
 };
 
-// Maps backend priority values to Korean labels and Tailwind colour classes
-const PRIORITY_CONFIG: Record<
-  CheckItem["priority"],
-  { label: string; className: string }
-> = {
-  HIGH: {
-    label: "긴급",
-    className: "border-red-200 bg-red-50 text-red-700",
-  },
-  MEDIUM: {
-    label: "권장",
-    className: "border-amber-200 bg-amber-50 text-amber-700",
-  },
-  LOW: {
-    label: "참고",
-    className: "border-neutral-200 bg-neutral-100 text-neutral-600",
-  },
+type BadgeVariant = "confirmed" | "needs_check" | "missing" | "unanalyzed";
+
+function getBadge(item: CheckItem): { variant: BadgeVariant; label: string } {
+  if (item.resolved) return { variant: "confirmed", label: "확인됨" };
+  if (item.priority === "HIGH") return { variant: "missing", label: "누락" };
+  if (item.priority === "MEDIUM") return { variant: "needs_check", label: "확인필요" };
+  return { variant: "unanalyzed", label: "미분석" };
+}
+
+const BADGE_STYLES: Record<BadgeVariant, string> = {
+  confirmed: "bg-green-500/10 text-green-500",
+  needs_check: "bg-yellow-500/10 text-yellow-500",
+  missing: "bg-red-500/10 text-red-500",
+  unanalyzed: "bg-[#1E1E2E] text-[#64748B]",
+};
+
+const BADGE_DOTS: Record<BadgeVariant, string> = {
+  confirmed: "🟢",
+  needs_check: "🟡",
+  missing: "🔴",
+  unanalyzed: "⚪",
 };
 
 export function IntakeChecks({ checks }: Props) {
   if (checks.length === 0) {
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          확인 필요 항목
-        </h2>
-        <p className="text-sm text-neutral-500">확인 필요 항목이 없습니다.</p>
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-[#F8FAFC]">계약 체크리스트</h2>
+        <div className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-5">
+          <p className="text-sm text-[#64748B]">확인 필요 항목이 없습니다.</p>
+        </div>
       </div>
     );
   }
@@ -42,28 +45,35 @@ export function IntakeChecks({ checks }: Props) {
   });
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">
-        확인 필요 항목
-      </h2>
-      <div className="flex flex-col gap-2">
-        {sorted.map((check) => {
-          const { label, className } = PRIORITY_CONFIG[check.priority];
-          return (
-            <div
-              key={check.check_code}
-              className={cn(
-                "flex items-start gap-3 rounded-lg border px-3 py-2.5",
-                className,
-              )}
-            >
-              <span className="mt-0.5 shrink-0 rounded text-xs font-bold">{label}</span>
-              <p className="text-sm leading-snug">{check.message}</p>
-            </div>
-          );
-        })}
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-[#F8FAFC]">계약 체크리스트</h2>
+      <div className="bg-[#13131A] border border-[#1E1E2E] rounded-xl overflow-hidden">
+        <div className="divide-y divide-[#1E1E2E]">
+          {sorted.map((check) => {
+            const { variant, label } = getBadge(check);
+            return (
+              <div
+                key={check.check_code}
+                className="p-4 px-6 flex items-center justify-between"
+              >
+                <span className={[
+                  "text-sm font-medium",
+                  variant === "unanalyzed" ? "text-[#64748B]" : "text-[#F8FAFC]",
+                ].join(" ")}>
+                  {check.message}
+                </span>
+                <span className={[
+                  "px-2 py-1 text-[10px] font-bold rounded flex items-center gap-1 uppercase shrink-0 ml-4",
+                  BADGE_STYLES[variant],
+                ].join(" ")}>
+                  {BADGE_DOTS[variant]} {label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <p className="mt-3 text-xs text-neutral-400">
+      <p className="text-xs text-[#334155]">
         이 확인 항목은 운영 참고용이며, 법률 자문이 아닙니다.
       </p>
     </div>

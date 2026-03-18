@@ -24,7 +24,16 @@
       "Bash(ls:*)",
       "Bash(tree:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:polar.sh)",
+      "WebFetch(domain:app.unpkg.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:hookdeck.com)",
+      "Bash(cat:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [
       "MCPSearch"

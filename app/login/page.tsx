@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "loading" | "sent" | "error";
 
@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (status !== "idle") return;
+    if (status !== "idle" && status !== "error") return;
     setStatus("loading");
     setErrorMessage("");
 
@@ -46,60 +46,135 @@ export default function LoginPage() {
     }
   }
 
+  function handleReset() {
+    setEmail("");
+    setStatus("idle");
+    setErrorMessage("");
+  }
+
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight text-neutral-900">
-            Sign in to Deal Copilot
-          </h1>
-          <p className="text-sm text-neutral-500">
-            Enter your email to receive a magic link.
-          </p>
-        </div>
-
-        {status === "sent" ? (
-          <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            Magic link sent — check your inbox and click the link to continue.
+    <div
+      className="min-h-screen flex flex-col text-[#F8FAFC]"
+      style={{
+        background: "radial-gradient(circle at center, #1e1b4b 0%, #0A0A0F 100%)",
+      }}
+    >
+      {/* Header */}
+      <header className="fixed top-0 left-0 w-full p-8 z-10">
+        <div className="flex items-center gap-2">
+          <div className="text-[#6366F1]">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" />
+            </svg>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-neutral-700"
-              >
-                Email address
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1 disabled:opacity-50"
-                disabled={status === "loading"}
-              />
+          <span className="text-xl font-bold tracking-tight">DELO</span>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-[420px] mx-auto">
+          {status === "sent" ? (
+            /* Success State */
+            <div className="bg-[#13131A] border border-slate-800 rounded-2xl p-8 shadow-2xl">
+              <div className="flex flex-col items-center text-center py-6">
+                <div className="w-16 h-16 bg-[#6366F1]/20 rounded-full flex items-center justify-center mb-6 text-[#6366F1]">
+                  <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-100 mb-3">
+                  이메일을 확인해 주세요
+                </h2>
+                <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                  <span className="text-[#6366F1] font-medium italic">{email}</span>{" "}
+                  으로
+                  <br />
+                  로그인 링크를 보냈습니다.
+                </p>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-2 text-slate-400 hover:text-[#6366F1] transition-colors text-sm font-medium"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M19 12H5m7-7-7 7 7 7" />
+                  </svg>
+                  다른 이메일로 시도하기
+                </button>
+              </div>
             </div>
+          ) : (
+            /* Login Form */
+            <div className="bg-[#13131A] border border-slate-800 rounded-2xl p-8 shadow-2xl">
+              {/* Card Header */}
+              <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-12 h-12 bg-[#6366F1]/10 rounded-xl flex items-center justify-center mb-4 text-[#6366F1]">
+                  <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13 2L4.09 12.26c-.4.48-.6.72-.6.99 0 .22.08.43.24.58.16.15.37.17.6.17H12l-1 8.74 8.91-10.26c.4-.48.6-.72.6-.99 0-.22-.08-.43-.24-.58-.16-.15-.37-.17-.6-.17H12l1-8.74z" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-slate-100 mb-2">로그인</h1>
+                <p className="text-slate-400 text-sm">이메일로 로그인 링크를 받으세요</p>
+              </div>
 
-            {status === "error" && (
-              <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                {errorMessage || "Something went wrong. Please try again."}
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="email"
+                    className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1"
+                  >
+                    이메일 주소
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    disabled={status === "loading"}
+                    className="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1] transition-all disabled:opacity-50"
+                  />
+                </div>
+
+                {status === "error" && (
+                  <p className="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+                    {errorMessage || "오류가 발생했습니다. 다시 시도해 주세요."}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="w-full bg-[#6366F1] hover:bg-[#6366F1]/90 text-white font-bold py-3.5 rounded-full transition-all shadow-lg shadow-[#6366F1]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {status === "loading" ? "전송 중…" : "로그인 링크 받기"}
+                </button>
+              </form>
+
+              {/* Terms */}
+              <p className="mt-8 text-center text-[11px] leading-relaxed text-slate-500">
+                계속 진행하면{" "}
+                <Link href="/terms" className="underline hover:text-slate-400 transition-colors">
+                  이용약관
+                </Link>{" "}
+                및{" "}
+                <Link href="/privacy" className="underline hover:text-slate-400 transition-colors">
+                  개인정보처리방침
+                </Link>
+                에 동의하는 것으로 간주됩니다.
               </p>
-            )}
+            </div>
+          )}
+        </div>
+      </main>
 
-            <Button
-              type="submit"
-              disabled={status === "loading"}
-              className="w-full"
-            >
-              {status === "loading" ? "Sending…" : "Send magic link"}
-            </Button>
-          </form>
-        )}
-      </div>
+      {/* Footer */}
+      <footer className="p-8 text-center">
+        <p className="text-slate-600 text-xs">© 2025 DELO Copilot. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

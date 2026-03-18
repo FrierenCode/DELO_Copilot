@@ -69,6 +69,8 @@ export async function GET(
         missing_fields: inquiry.missing_fields,
         reply_drafts,
         reply_meta: { negotiation_ai_available: plan === "pro" },
+        created_at: inquiry.created_at,
+        raw_text_preview: inquiry.raw_text_preview,
       }),
     );
   } catch (err) {

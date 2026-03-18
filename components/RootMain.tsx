@@ -5,8 +5,15 @@ import { usePathname } from "next/navigation";
 export function RootMain({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Dashboard pages manage their own layout (sidebar + content area).
-  if (pathname.startsWith("/dashboard")) {
+  // These pages manage their own layout.
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/onboarding" ||
+    pathname === "/terms" ||
+    pathname === "/privacy"
+  ) {
     return <div className="min-h-screen">{children}</div>;
   }
 

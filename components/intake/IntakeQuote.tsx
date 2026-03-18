@@ -5,48 +5,68 @@ type Props = {
 };
 
 function formatKRW(amount: number) {
-  return amount.toLocaleString("ko-KR") + " ₩";
+  return "₩" + amount.toLocaleString("ko-KR");
 }
 
 export function IntakeQuote({ data }: Props) {
-  // Only render line items that the backend actually returned (hide absent add-ons)
-  const lineItems: { label: string; value: number }[] = [];
-  if (data.base_fee !== undefined) lineItems.push({ label: "기본 제작비", value: data.base_fee });
-  if (data.floor !== undefined) lineItems.push({ label: "Floor 단가", value: data.floor });
-  if (data.premium !== undefined) lineItems.push({ label: "Premium 단가", value: data.premium });
+  const hasFloor = data.floor !== undefined;
+  const hasPremium = data.premium !== undefined;
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">
-        견적 구조
-      </h2>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-[#F8FAFC]">예상 견적</h2>
 
-      {/* Primary target price */}
-      <div className="mb-4 flex items-baseline gap-2">
-        <span className="text-3xl font-bold text-neutral-900">
-          {formatKRW(data.target)}
-        </span>
-        <span className="text-xs text-neutral-500">권장 단가</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Floor */}
+        {hasFloor && (
+          <div className="p-5 rounded-xl bg-[#13131A] border border-[#1E1E2E] flex flex-col justify-between hover:border-[#27272A] transition-colors">
+            <div>
+              <span className="px-2 py-0.5 bg-[#1E1E2E] text-[10px] rounded-full text-[#94A3B8] mb-4 inline-block font-bold">
+                FLOOR
+              </span>
+              <p className="text-2xl font-bold text-[#F8FAFC]">{formatKRW(data.floor!)}</p>
+            </div>
+            <p className="text-[11px] text-[#64748B] mt-3">최소 수락 가능 금액</p>
+          </div>
+        )}
+
+        {/* Target (featured) */}
+        <div className={[
+          "p-5 rounded-xl flex flex-col justify-between relative",
+          "bg-[#6366F1]/5 border-2 border-[#6366F1]",
+          !hasFloor && !hasPremium ? "md:col-span-3" : "",
+        ].join(" ")}>
+          <div className="absolute top-0 right-0 bg-[#6366F1] text-[8px] font-bold text-white uppercase px-2 py-1 rounded-bl-lg">
+            RECOMMENDED
+          </div>
+          <div>
+            <span className="px-2 py-0.5 bg-[#6366F1]/20 text-[10px] rounded-full text-[#6366F1] mb-4 inline-block font-bold">
+              TARGET
+            </span>
+            <p className="text-2xl font-bold text-[#F8FAFC]">{formatKRW(data.target)}</p>
+          </div>
+          <p className="text-[11px] text-[#94A3B8] mt-3 font-medium">시장 평균 및 가치 고려</p>
+        </div>
+
+        {/* Premium */}
+        {hasPremium && (
+          <div className="p-5 rounded-xl bg-[#13131A] border border-[#1E1E2E] flex flex-col justify-between hover:border-[#27272A] transition-colors">
+            <div>
+              <span className="px-2 py-0.5 bg-yellow-500/10 text-[10px] rounded-full text-yellow-500 mb-4 inline-block font-bold">
+                PREMIUM
+              </span>
+              <p className="text-2xl font-bold text-[#F8FAFC]">{formatKRW(data.premium!)}</p>
+            </div>
+            <p className="text-[11px] text-[#64748B] mt-3">독점권/원본 포함 시</p>
+          </div>
+        )}
       </div>
 
-      {/* Itemised breakdown — only shown when backend provides add-on fields */}
-      {lineItems.length > 0 && (
-        <div className="mb-4 flex flex-col gap-2 rounded-lg bg-neutral-50 p-3">
-          {lineItems.map(({ label, value }) => (
-            <div key={label} className="flex justify-between text-sm">
-              <span className="text-neutral-600">{label}</span>
-              <span className="font-medium text-neutral-800">{formatKRW(value)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Explanation text from backend */}
       {data.explanation && (
-        <p className="text-sm leading-relaxed text-neutral-600">{data.explanation}</p>
+        <p className="text-sm leading-relaxed text-[#94A3B8]">{data.explanation}</p>
       )}
 
-      <p className="mt-3 text-xs text-neutral-400">
+      <p className="text-xs text-[#334155]">
         이 견적은 운영 참고용 가이드이며, 법률·세무·회계 자문이 아닙니다.
       </p>
     </div>
