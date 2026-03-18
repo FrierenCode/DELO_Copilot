@@ -87,6 +87,11 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `Dashboard` 헤더와 Pro 잠금 문구가 실제 운영 보드 맥락에 맞는 한국어 카피로 정리되었습니다.
 - `Dashboard Deal Detail` 편집 폼의 저장/오류 문구와 라벨이 한국어 기준으로 다듬어져 실제 사용 흐름 설명과 일치합니다.
 - 저장된 딜이 없을 때 `EmptyDealsState`가 `/parse`로 바로 이동하는 CTA를 제공해 첫 분석 진입점을 명확히 보여줍니다.
+- `/history`가 단순 테이블에서 카드형 히스토리 화면으로 바뀌어 브랜드 검색, 소스별 필터 칩, 빈 상태 CTA를 제공합니다.
+- `/deal/[id]` inquiry 상세가 2컬럼 분석 화면으로 확장되어 파싱 결과, 견적, 체크리스트, 답장 초안 편집, 원문 미리보기를 한 화면에서 처리합니다.
+- inquiry detail 응답 타입에 `created_at`, `raw_text_preview`가 추가되어 상세 화면에서 수신일과 원문 일부를 함께 노출할 수 있습니다.
+- `/settings` billing 패널이 현재 플랜 요약 외에 Free/Pro 비교 카드, 가입일, 지원 메일, 약관/개인정보 링크 섹션까지 포함하는 계정 화면으로 확장되었습니다.
+- `/login`, `/terms`, `/privacy`, `/` 랜딩 페이지가 동일한 다크 톤 브랜딩에 맞춰 재디자인되어 제품 진입부터 법적 고지까지 시각 톤을 통일했습니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -300,7 +305,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Home`: 마케팅 랜딩 페이지와 CTA 진입점
 - `Parse`: parse pipeline을 직접 테스트하는 별도 화면
 - `History`: 최근 inquiry 목록 조회
-- `Deal Detail`: inquiry 상세 결과, quote, checks, reply draft 편집
+- `Deal Detail`: inquiry 상세 결과, quote, checks, reply draft 편집, raw text preview 확인
 - `Settings`: 플랜/결제 관리 화면
 - `Login`: OTP 로그인 화면
 - `Dashboard`: 저장된 deals를 요약 카드, 탭 필터, alert panel과 함께 보여주는 운영 보드
@@ -330,6 +335,9 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `CookieBanner`가 로컬 스토리지 기반 쿠키 동의 상태를 관리합니다.
 - 설정 화면에서는 checkout 시작 전 `checkout_started` 클라이언트 이벤트를 전송합니다.
 - Intake 체크 항목 카드에는 "운영 참고용이며 법률 자문이 아니다"라는 고지가 함께 노출됩니다.
+- `History` 화면은 브랜드 검색어와 소스 칩 필터를 조합해 조회할 수 있고, 결과가 없을 때 재분석 CTA를 보여줍니다.
+- `Deal Detail` 화면은 답장 tone 탭, 수정 저장, 클립보드 복사, 원문 펼치기 토글을 포함합니다.
+- `Settings` 화면은 현재 플랜, 가입일, 지원 메일, 약관 링크를 한 화면에서 제공하는 계정 허브 역할을 합니다.
 
 ### 11. 딜 저장과 운영 데이터
 
@@ -579,6 +587,7 @@ NEXT_PUBLIC_APP_URL=
 
 - 저장된 inquiry 기준으로 quote/checks/reply draft를 다시 구성합니다.
 - 저장된 `reply_drafts_json` 수정본이 있으면 생성 초안 위에 merge합니다.
+- 응답에는 `created_at`, `raw_text_preview`가 포함되어 상세 화면용 메타데이터를 함께 제공합니다.
 
 ### `PATCH /api/inquiries/[id]`
 
