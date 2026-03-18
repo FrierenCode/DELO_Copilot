@@ -40,8 +40,14 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect /dashboard and all sub-paths.
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
+  // Protect authenticated app routes in middleware so client-side navigations
+  // don't need to rely on server-component redirect errors.
+  if (
+    (request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/settings") ||
+      request.nextUrl.pathname.startsWith("/onboarding")) &&
+    !user
+  ) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.delete("code"); // avoid leaking auth params

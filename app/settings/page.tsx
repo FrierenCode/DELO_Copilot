@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserPlanForUser } from "@/services/usage-guard";
 import { findSubscriptionByUserId } from "@/repositories/subscriptions-repo";
@@ -12,7 +11,7 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) return null;
 
   const plan = await getUserPlanForUser(user.id);
   const subscription = await findSubscriptionByUserId(user.id).catch(() => null);

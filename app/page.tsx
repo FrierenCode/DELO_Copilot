@@ -146,7 +146,7 @@ export default async function LandingPage() {
                 eventProps={{ cta: "signup" }}
               />
               <LandingCtaButton
-                href="/dashboard/intake?demo=true"
+                href="/parse"
                 variant="secondary"
                 label="샘플로 바로 체험"
                 event="landing_cta_clicked"

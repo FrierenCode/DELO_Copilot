@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) return null;
 
   // Profile check — skip onboarding if already completed.
   const profile = await findProfileByUserId(user.id);
