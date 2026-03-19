@@ -17,9 +17,10 @@ export default async function SettingsPage() {
   const subscription = await findSubscriptionByUserId(user.id).catch(() => null);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 min-h-screen bg-[#0A0A0F] px-4 py-6 sm:px-6 text-slate-100">
       <header>
-        <h1 className="text-3xl font-bold text-white tracking-tight">설정</h1>
+        <h1 className="text-2xl font-bold text-white">설정</h1>
+        <p className="mt-1 text-sm text-slate-400">계정 및 구독을 관리합니다.</p>
       </header>
 
       <SettingsBillingPanel

@@ -48,7 +48,7 @@
   --landing-accent-soft: rgba(99, 102, 241, 0.2);
 }
 
-html[data-landing-theme="light"] .landing-page {
+html.landing-light .landing-page {
   --landing-bg: #f8fafc;
   --landing-nav-bg: rgba(248, 250, 252, 0.8);
   --landing-surface: #ffffff;
@@ -80,7 +80,7 @@ html[data-landing-theme="light"] .landing-page {
   --login-footer: #475569;
 }
 
-html[data-landing-theme="light"] .login-page {
+html.landing-light .login-page {
   --login-background: radial-gradient(circle at center, #dbeafe 0%, #f8fafc 100%);
   --login-surface: rgba(255, 255, 255, 0.92);
   --login-panel: rgba(255, 255, 255, 0.78);
