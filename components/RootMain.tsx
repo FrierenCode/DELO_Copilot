@@ -10,6 +10,8 @@ export function RootMain({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/dashboard") ||
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/settings" ||
     pathname === "/onboarding" ||
     pathname === "/terms" ||
     pathname === "/privacy"

@@ -1,52 +1,117 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type Status = "idle" | "loading" | "error";
+type Status = "idle" | "loading" | "success" | "error";
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace("/dashboard");
-      }
-    });
-  }, [router]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (status === "loading") return;
 
+    if (password.length < 8) {
+      setErrorMessage("비밀번호는 최소 8자 이상이어야 합니다");
+      setStatus("error");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("비밀번호가 일치하지 않습니다");
+      setStatus("error");
+      return;
+    }
+
     setStatus("loading");
     setErrorMessage("");
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      },
+    });
 
     if (error) {
-      if (error.message === "Invalid login credentials") {
-        setErrorMessage("이메일 또는 비밀번호가 올바르지 않습니다");
-      } else if (error.message.includes("Email not confirmed")) {
-        setErrorMessage("이메일 인증이 필요합니다. 받은 편지함을 확인해주세요");
+      if (error.message.includes("User already registered")) {
+        setErrorMessage("이미 가입된 이메일입니다. 로그인해주세요");
       } else {
-        setErrorMessage("로그인 중 오류가 발생했습니다");
+        setErrorMessage("회원가입 중 오류가 발생했습니다");
       }
       setStatus("error");
       return;
     }
 
-    router.push("/dashboard");
+    setStatus("success");
+  }
+
+  async function handleResend() {
+    const supabase = createClient();
+    await supabase.auth.resend({ type: "signup", email });
+  }
+
+  if (status === "success") {
+    return (
+      <div className="login-page min-h-screen text-[var(--login-text)] transition-colors">
+        <header className="fixed left-0 top-0 z-10 w-full p-8">
+          <Link href="/" className="flex w-fit items-center gap-2">
+            <div className="text-[var(--login-accent)]">
+              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold tracking-tight">DELO</span>
+          </Link>
+        </header>
+
+        <main className="flex min-h-screen items-center justify-center bg-[var(--login-background)] p-6">
+          <div className="mx-auto w-full max-w-[420px]">
+            <div className="rounded-2xl border border-[var(--login-border)] bg-[var(--login-surface)] p-8 shadow-2xl text-center">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--login-accent-soft)] text-[var(--login-accent)] mx-auto">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </div>
+              <h1 className="mb-3 text-2xl font-bold text-[var(--login-heading)]">
+                이메일을 확인해 주세요
+              </h1>
+              <p className="mb-2 text-sm leading-relaxed text-[var(--login-muted)]">
+                가입을 완료하려면 이메일을 확인해주세요.
+              </p>
+              <p className="mb-8 text-sm leading-relaxed text-[var(--login-muted)]">
+                <span className="font-medium italic text-[var(--login-accent)]">{email}</span>
+                <br />
+                로 인증 링크를 보냈습니다.
+              </p>
+              <button
+                type="button"
+                onClick={handleResend}
+                className="text-sm font-medium text-[var(--login-muted)] transition-colors hover:text-[var(--login-accent)]"
+              >
+                인증 메일 다시 보내기
+              </button>
+              <p className="mt-6 text-sm text-[var(--login-muted)]">
+                이미 계정이 있으신가요?{" "}
+                <Link href="/login" className="font-medium text-[var(--login-accent)] transition-colors hover:brightness-110">
+                  로그인
+                </Link>
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -54,12 +119,7 @@ export default function LoginPage() {
       <header className="fixed left-0 top-0 z-10 w-full p-8">
         <Link href="/" className="flex w-fit items-center gap-2">
           <div className="text-[var(--login-accent)]">
-            <svg
-              className="h-6 w-6"
-              fill="currentColor"
-              viewBox="0 0 48 48"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" />
             </svg>
           </div>
@@ -77,9 +137,9 @@ export default function LoginPage() {
                     <path d="M13 2L4.09 12.26c-.4.48-.6.72-.6.99 0 .22.08.43.24.58.16.15.37.17.6.17H12l-1 8.74 8.91-10.26c.4-.48.6-.72.6-.99 0-.22-.08-.43-.24-.58-.16-.15-.37-.17-.6-.17H12l1-8.74z" />
                   </svg>
                 </div>
-                <h1 className="mb-2 text-2xl font-bold text-[var(--login-heading)]">로그인</h1>
+                <h1 className="mb-2 text-2xl font-bold text-[var(--login-heading)]">회원가입</h1>
                 <p className="text-sm text-[var(--login-muted)]">
-                  이메일과 비밀번호로 로그인하세요
+                  DELO 계정을 만드세요
                 </p>
               </div>
 
@@ -97,7 +157,7 @@ export default function LoginPage() {
                     required
                     autoComplete="email"
                     value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     disabled={status === "loading"}
                     className="w-full rounded-xl border border-[var(--login-input-border)] bg-[var(--login-input-bg)] px-4 py-3.5 text-[var(--login-heading)] placeholder:text-[var(--login-placeholder)] transition-all focus:border-[var(--login-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--login-accent)]/30 disabled:opacity-50"
@@ -109,16 +169,16 @@ export default function LoginPage() {
                     htmlFor="password"
                     className="ml-1 text-xs font-semibold uppercase tracking-wider text-[var(--login-muted)]"
                   >
-                    비밀번호
+                    비밀번호 (최소 8자)
                   </label>
                   <div className="relative">
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       required
-                      autoComplete="current-password"
+                      autoComplete="new-password"
                       value={password}
-                      onChange={(event) => setPassword(event.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       disabled={status === "loading"}
                       className="w-full rounded-xl border border-[var(--login-input-border)] bg-[var(--login-input-bg)] px-4 py-3.5 pr-12 text-[var(--login-heading)] placeholder:text-[var(--login-placeholder)] transition-all focus:border-[var(--login-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--login-accent)]/30 disabled:opacity-50"
@@ -130,6 +190,47 @@ export default function LoginPage() {
                       tabIndex={-1}
                     >
                       {showPassword ? (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="ml-1 text-xs font-semibold uppercase tracking-wider text-[var(--login-muted)]"
+                  >
+                    비밀번호 확인
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      disabled={status === "loading"}
+                      className="w-full rounded-xl border border-[var(--login-input-border)] bg-[var(--login-input-bg)] px-4 py-3.5 pr-12 text-[var(--login-heading)] placeholder:text-[var(--login-placeholder)] transition-all focus:border-[var(--login-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--login-accent)]/30 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--login-muted)] transition-colors hover:text-[var(--login-heading)]"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? (
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
                           <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
@@ -162,37 +263,18 @@ export default function LoginPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      로그인 중...
+                      가입 중...
                     </span>
                   ) : (
-                    "로그인"
+                    "회원가입"
                   )}
                 </button>
               </form>
 
-              <div className="relative my-8 text-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[var(--login-border)]" />
-                </div>
-                <span className="relative bg-[var(--login-surface)] px-4 text-xs font-medium text-[var(--login-muted)] transition-colors">
-                  또는
-                </span>
-              </div>
-
-              <button
-                type="button"
-                className="flex w-full items-center justify-center gap-3 rounded-full border border-[var(--login-border)] bg-transparent py-3.5 text-[var(--login-heading)] transition-all hover:bg-[var(--login-hover)]"
-              >
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-black text-[10px] font-bold text-white">
-                  G
-                </span>
-                <span className="font-medium">Google로 계속하기</span>
-              </button>
-
               <p className="mt-6 text-center text-sm text-[var(--login-muted)]">
-                계정이 없으신가요?{" "}
-                <Link href="/signup" className="font-medium text-[var(--login-accent)] transition-colors hover:brightness-110">
-                  회원가입
+                이미 계정이 있으신가요?{" "}
+                <Link href="/login" className="font-medium text-[var(--login-accent)] transition-colors hover:brightness-110">
+                  로그인
                 </Link>
               </p>
 
@@ -216,16 +298,16 @@ export default function LoginPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--login-accent)]">
                   Deal Workflow
                 </p>
-                <h2 className="mt-4 text-4xl font-bold leading-tight text-[var(--login-heading)]">
-                  문의를
+                <h2 className="mt-4 text-2xl font-bold leading-tight text-[var(--login-heading)] overflow-hidden">
+                  크리에이터를 위한
                   <br />
-                  답변 가능한 상태까지
+                  딜 협상
                   <br />
-                  바로 정리합니다
+                  어시스턴트
                 </h2>
                 <p className="mt-6 max-w-md text-sm leading-relaxed text-[var(--login-muted)]">
-                  로그인 후에는 문의 분석, 적정 견적, 응답 초안, 진행 히스토리를 한 흐름으로
-                  이어서 관리할 수 있습니다.
+                  가입 후 브랜드 문의를 붙여넣으면 AI가 조건을 분석하고, 견적을 계산하고,
+                  회신 초안까지 바로 만들어 드립니다.
                 </p>
 
                 <div className="mt-10 space-y-4">

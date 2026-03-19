@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader } from "@/components/ui/Loader";
 import type { InquirySummary } from "@/types/parse-api";
 
 /* ─── helpers ─── */
@@ -36,13 +35,13 @@ const SOURCE_CHIPS: { id: SourceType; match?: string[] }[] = [
   { id: "카카오", match: ["카카오", "kakao"] },
 ];
 
-const SOURCE_STYLE: Record<string, { chip: string; mono: string }> = {
-  "이메일":   { chip: "bg-blue-500/10 text-blue-500 border-blue-500/20",  mono: "bg-blue-500/10 text-blue-500" },
-  "인스타 DM":{ chip: "bg-pink-500/10 text-pink-500 border-pink-500/20",  mono: "bg-pink-500/10 text-pink-500" },
-  "유튜브":   { chip: "bg-red-500/10 text-red-500 border-red-500/20",     mono: "bg-red-500/10 text-red-500" },
-  "카카오":   { chip: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20", mono: "bg-yellow-500/10 text-yellow-500" },
+const SOURCE_TAG: Record<string, string> = {
+  "이메일":    "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  "인스타 DM": "bg-pink-500/10 text-pink-400 border border-pink-500/20",
+  "유튜브":    "bg-red-500/10 text-red-400 border border-red-500/20",
+  "카카오":    "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
 };
-const DEFAULT_STYLE = { chip: "bg-slate-500/10 text-slate-400 border-slate-500/20", mono: "bg-slate-500/10 text-slate-400" };
+const DEFAULT_TAG = "bg-slate-500/10 text-slate-400 border border-slate-500/20";
 
 function classifySource(platform: string): string {
   const p = platform.toLowerCase();
@@ -55,8 +54,28 @@ function classifySource(platform: string): string {
 
 function matchesFilter(platform: string, filter: SourceType): boolean {
   if (filter === "전체") return true;
-  const source = classifySource(platform);
-  return source === filter;
+  return classifySource(platform) === filter;
+}
+
+/* ─── skeleton ─── */
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse rounded-xl border border-[#1E1E2E] bg-[#13131A] p-6 flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-slate-800" />
+          <div className="h-4 w-28 rounded bg-slate-800" />
+        </div>
+        <div className="h-3 w-16 rounded bg-slate-800" />
+      </div>
+      <div className="flex gap-2">
+        <div className="h-5 w-20 rounded-full bg-slate-800" />
+        <div className="h-5 w-24 rounded bg-slate-800" />
+      </div>
+      <div className="h-3 w-40 rounded bg-slate-800" />
+      <div className="h-6 w-28 rounded bg-slate-800" />
+    </div>
+  );
 }
 
 /* ─── page ─── */
@@ -90,17 +109,16 @@ export default function HistoryPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <header>
-        <h1 className="text-3xl font-bold text-white tracking-tight">문의 히스토리</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-white">문의 히스토리</h1>
         <p className="mt-1 text-sm text-slate-400">분석했던 브랜드 문의 목록입니다.</p>
-      </header>
+      </div>
 
-      {/* Search & Filter */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Search */}
-        <div className="flex-1 max-w-xl relative">
+      {/* Search + Filter */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+        <div className="relative flex-1">
           <svg
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
@@ -117,22 +135,21 @@ export default function HistoryPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="브랜드명 또는 플랫폼 검색..."
-            className="w-full bg-[#13131A] border border-[#1E1E2E] rounded-xl pl-12 pr-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full rounded-xl border border-[#1E1E2E] bg-[#13131A] py-3 pl-11 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
-        {/* Source filter chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 lg:pb-0">
           {SOURCE_CHIPS.map(({ id }) => (
             <button
               key={id}
               type="button"
               onClick={() => setSourceFilter(id)}
               className={[
-                "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                "whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors",
                 sourceFilter === id
                   ? "bg-indigo-500 text-white"
-                  : "bg-[#13131A] text-slate-400 border border-[#1E1E2E] hover:border-slate-600",
+                  : "border border-[#1E1E2E] text-slate-400 hover:text-white",
               ].join(" ")}
             >
               {id}
@@ -141,9 +158,6 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {/* Loading */}
-      {loading && <Loader label="히스토리 불러오는 중…" />}
-
       {/* Error */}
       {error && (
         <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -151,16 +165,37 @@ export default function HistoryPage() {
         </div>
       )}
 
-      {/* Empty state (no data at all) */}
+      {/* Loading: skeleton grid */}
+      {loading && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
       {!loading && !error && rows.length === 0 && (
-        <div className="mt-8 flex flex-col items-center justify-center p-12 bg-[#13131A]/40 rounded-3xl border-2 border-dashed border-[#1E1E2E]">
-          <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mb-4">
-            <span className="text-4xl">📭</span>
+        <div className="mt-8 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#1E1E2E] bg-[#13131A]/40 p-16">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800/60">
+            <svg
+              className="h-7 w-7 text-slate-500"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
           </div>
-          <p className="text-slate-400 font-medium">아직 분석한 문의가 없습니다.</p>
+          <p className="font-medium text-slate-400">아직 분석한 문의가 없습니다.</p>
           <Link
             href="/dashboard/intake"
-            className="mt-4 text-indigo-400 font-bold text-sm hover:underline underline-offset-4"
+            className="mt-4 text-sm font-bold text-indigo-400 underline-offset-4 hover:underline"
           >
             첫 문의 분석하기 →
           </Link>
@@ -169,97 +204,77 @@ export default function HistoryPage() {
 
       {/* No results after filter */}
       {!loading && !error && rows.length > 0 && filtered.length === 0 && (
-        <p className="py-8 text-center text-sm text-slate-500">
+        <p className="py-12 text-center text-sm text-slate-500">
           검색 조건에 맞는 문의가 없습니다.
         </p>
       )}
 
       {/* Card grid */}
-      {filtered.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {!loading && filtered.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {filtered.map((row) => {
             const source = classifySource(row.platform);
-            const style = SOURCE_STYLE[source] ?? DEFAULT_STYLE;
+            const tagCls = SOURCE_TAG[source] ?? DEFAULT_TAG;
             const initials = monogram(row.brand);
             return (
               <div
                 key={row.id}
-                className="bg-[#13131A] border border-[#1E1E2E] p-4 rounded-xl flex flex-col gap-4 hover:border-indigo-500/50 transition-all group"
+                className="flex flex-col gap-4 rounded-xl border border-[#1E1E2E] bg-[#13131A] p-6 transition-colors hover:border-slate-700"
               >
                 {/* Top row */}
-                <div className="flex justify-between items-start">
-                  <div className="flex gap-4">
-                    {/* Monogram */}
-                    <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0 ${style.mono}`}
-                    >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-bold text-indigo-400">
                       {initials}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-slate-100 group-hover:text-indigo-400 transition-colors">
-                        {row.brand}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span
-                          className={`text-[11px] px-2 py-0.5 rounded border font-medium ${style.chip}`}
-                        >
-                          {source}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {formatDate(row.created_at)}
-                        </span>
-                      </div>
-                    </div>
+                    <span className="font-bold text-slate-100">{row.brand}</span>
                   </div>
                   <Link
                     href={`/deal/${row.id}`}
-                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors whitespace-nowrap"
+                    className="shrink-0 text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
                   >
                     상세 보기 →
                   </Link>
                 </div>
 
-                {/* Bottom row */}
-                <div className="flex justify-between items-end border-t border-[#1E1E2E] pt-3">
-                  <div className="text-xs text-slate-400 truncate max-w-[55%]">
-                    {row.deliverables || "—"}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-slate-500">제안가</div>
-                    <div className="font-bold text-slate-100">
-                      {formatKRW(row.suggested_price)}
-                    </div>
-                  </div>
+                {/* Platform tag + date */}
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tagCls}`}>
+                    {source}
+                  </span>
+                  <span className="text-xs text-slate-500">{formatDate(row.created_at)}</span>
                 </div>
+
+                {/* Deliverables */}
+                <p className="truncate text-sm text-slate-400">
+                  {row.deliverables || "—"}
+                </p>
+
+                {/* Suggested price */}
+                <p className="text-xl font-bold text-white">{formatKRW(row.suggested_price)}</p>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Static pagination (display only) */}
+      {/* Pagination */}
       {!loading && !error && rows.length > 0 && (
-        <div className="flex items-center justify-center gap-6 mt-6 py-6 border-t border-[#1E1E2E]">
+        <div className="mt-2 flex items-center justify-center gap-4">
           <button
             type="button"
             disabled
-            className="flex items-center px-4 py-2 rounded-full border border-[#1E1E2E] text-slate-500 hover:text-white hover:bg-[#13131A] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-lg border border-[#1E1E2E] px-4 py-2 text-sm text-slate-500 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="15,18 9,12 15,6" />
-            </svg>
-            <span className="text-sm font-medium">이전</span>
+            ← 이전
           </button>
           <span className="text-sm font-medium text-slate-400">1 / 1 페이지</span>
           <button
             type="button"
             disabled
-            className="flex items-center px-4 py-2 rounded-full border border-[#1E1E2E] text-slate-500 hover:text-white hover:bg-[#13131A] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="rounded-lg border border-[#1E1E2E] px-4 py-2 text-sm text-slate-500 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <span className="text-sm font-medium">다음</span>
-            <svg className="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="9,18 15,12 9,6" />
-            </svg>
+            다음 →
           </button>
         </div>
       )}

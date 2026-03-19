@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LandingCtaButton } from "@/components/landing/LandingCtaButton";
 import { LandingThemeToggle } from "@/components/landing/LandingThemeToggle";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "DELO | Creator Deal Copilot",
@@ -93,6 +94,8 @@ const COMPARISON_ROWS = [
 ] as const;
 
 export default async function LandingPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   const dealsCount = await getDealsCount();
 
   return (
@@ -104,19 +107,38 @@ export default async function LandingPage() {
           </Link>
           <div className="flex items-center gap-6">
             <LandingThemeToggle />
-            <Link
-              href="/login"
-              className="text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-text)]"
-            >
-              로그인
-            </Link>
-            <LandingCtaButton
-              href="/login"
-              variant="primary"
-              label="무료로 시작하기"
-              event="landing_cta_clicked"
-              eventProps={{ cta: "signup_nav" }}
-            />
+            {user ? (
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-bold text-indigo-400">
+                  {(user.email ?? "??").slice(0, 2).toUpperCase()}
+                </div>
+                <span className="text-sm text-slate-300">{user.email}</span>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-text)]"
+              >
+                로그인
+              </Link>
+            )}
+            {user ? (
+              <LandingCtaButton
+                href="/dashboard"
+                variant="primary"
+                label="대시보드"
+                event="landing_cta_clicked"
+                eventProps={{ cta: "dashboard_nav" }}
+              />
+            ) : (
+              <LandingCtaButton
+                href="/login"
+                variant="primary"
+                label="무료로 시작하기"
+                event="landing_cta_clicked"
+                eventProps={{ cta: "signup_nav" }}
+              />
+            )}
           </div>
         </div>
       </nav>

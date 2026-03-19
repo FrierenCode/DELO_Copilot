@@ -33,7 +33,7 @@ export default async function DashboardPage() {
       {/* Page header */}
       <div className="h-16 border-b border-[#1E1E2E] flex items-center justify-between -mx-4 sm:-mx-6 px-8 mb-8 -mt-6">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-slate-100">Deal Pipeline</h2>
+          <h1 className="text-2xl font-bold text-white">Deal Pipeline</h1>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-400">
             {deals.length}
           </span>

@@ -53,8 +53,8 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - creator profile 저장/조회 API
 - creator profile 온보딩 위저드와 PRD 입력값 매핑 레이어
 - Polar Checkout, Polar webhook, subscription 동기화 기반 Billing 흐름
-- Supabase OTP 로그인, `/login` 진입, `/auth/callback` 세션 교환
-- `middleware.ts` 기반 `/dashboard` 보호
+- Supabase 이메일/비밀번호 로그인, `/signup` 회원가입, `/auth/callback` 이메일 확인 콜백
+- `middleware.ts` 기반 `/dashboard`, `/settings`, `/onboarding` 보호
 - PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Sentry 연동, 구조화 로그
 - Next.js App Router 기반 UI
 - OpenNext + Cloudflare Workers 배포
@@ -92,7 +92,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - inquiry detail 응답 타입에 `created_at`, `raw_text_preview`가 추가되어 상세 화면에서 수신일과 원문 일부를 함께 노출할 수 있습니다.
 - `/settings` billing 패널이 현재 플랜 요약 외에 Free/Pro 비교 카드, 가입일, 지원 메일, 약관/개인정보 링크 섹션까지 포함하는 계정 화면으로 확장되었습니다.
 - `/login`, `/terms`, `/privacy`, `/` 랜딩 페이지가 동일한 다크 톤 브랜딩에 맞춰 재디자인되어 제품 진입부터 법적 고지까지 시각 톤을 통일했습니다.
-- `/login`은 초기에는 로그인 폼만 보이고, magic link 전송 성공 후에만 "이메일을 확인해 주세요" 상태 카드가 애니메이션과 함께 전환되도록 정리되었습니다.
+- `/login`은 이메일/비밀번호 로그인 화면으로 동작하고, `/signup`은 비밀번호 확인과 이메일 인증 재전송이 포함된 회원가입 화면으로 추가되었습니다.
 - 랜딩의 Light/Dark 토글은 더 이상 장식 요소가 아니라 실제 테마 전환을 수행하며, 선택한 테마가 로그인 화면까지 유지됩니다.
 - 랜딩, 로그인, 약관, 개인정보, 대시보드 사이드바의 `DELO` 로고가 모두 홈(`/`)으로 돌아가는 공통 네비게이션 동작을 가집니다.
 
@@ -124,6 +124,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/deal/[id]`
 - `/settings`
 - `/login`
+- `/signup`
 - `/dashboard`
 - `/onboarding`
 - `/dashboard/intake`
@@ -256,11 +257,12 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 현재 구현된 인증 흐름은 아래와 같습니다.
 
-- Supabase OTP 기반 magic link 로그인
-- `/login`에서 이메일 제출
-- `/auth/callback`에서 `exchangeCodeForSession`
+- Supabase 이메일/비밀번호 기반 로그인
+- `/signup`에서 이메일/비밀번호 회원가입 후 이메일 확인
+- `/login`에서 `signInWithPassword`
+- `/auth/callback`에서 `exchangeCodeForSession`으로 확인 링크 세션 교환
 - `middleware.ts`에서 세션 refresh
-- `/dashboard` 및 하위 경로 보호
+- `/dashboard`, `/settings`, `/onboarding` 및 하위 경로 보호
 
 현재 `Dashboard`는 저장된 딜 목록을 상태 탭으로 분류해 보여주고, 요약 카드와 Pro 전용 alert panel을 함께 노출하는 운영 보드입니다.
 
@@ -310,7 +312,8 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `History`: 최근 inquiry 목록 조회
 - `Deal Detail`: inquiry 상세 결과, quote, checks, reply draft 편집, raw text preview 확인
 - `Settings`: 플랜/결제 관리 화면
-- `Login`: OTP 로그인 화면
+- `Login`: 이메일/비밀번호 로그인 화면
+- `Signup`: 이메일/비밀번호 회원가입과 이메일 인증 재전송 화면
 - `Dashboard`: 저장된 deals를 요약 카드, 탭 필터, alert panel과 함께 보여주는 운영 보드
 - `Dashboard Deal Detail`: 상태 전이, 일정, 결제일, 메모, 상태 로그를 수정/확인하는 상세 화면
 - `Onboarding`: creator profile 초기 입력 위저드
@@ -342,7 +345,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `History` 화면은 브랜드 검색어와 소스 칩 필터를 조합해 조회할 수 있고, 결과가 없을 때 재분석 CTA를 보여줍니다.
 - `Deal Detail` 화면은 답장 tone 탭, 수정 저장, 클립보드 복사, 원문 펼치기 토글을 포함합니다.
 - `Settings` 화면은 현재 플랜, 가입일, 지원 메일, 약관 링크를 한 화면에서 제공하는 계정 허브 역할을 합니다.
-- 로그인 화면은 magic link 전송 전/후 상태가 같은 카드 영역에서 전환되며, 성공 시 확인 카드가 애니메이션으로 등장합니다.
+- 로그인 화면은 이메일/비밀번호 입력과 비밀번호 표시 토글을 제공하고, 회원가입 화면은 성공 후 이메일 확인 카드와 재전송 액션을 같은 브랜딩 안에서 제공합니다.
 - 주요 공개 화면과 대시보드 사이드바의 `DELO` 로고는 공통적으로 홈 링크 역할을 합니다.
 
 ### 11. 딜 저장과 운영 데이터
@@ -867,7 +870,7 @@ npm run test
 - Free/Pro 사용량 제한과 기능 gate
 - PostHog, 클라이언트 이벤트 수집 API, Sentry, 구조화 로그 기반 관측
 - Cloudflare Workers 배포 설정
-- OTP 로그인과 보호된 `/dashboard`
+- 이메일/비밀번호 인증과 보호된 `/dashboard`, `/settings`, `/onboarding`
 
 아직 완성되지 않은 영역:
 

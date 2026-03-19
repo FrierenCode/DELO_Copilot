@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "대시보드", Icon: LayoutDashboard },
   { href: "/dashboard/intake", label: "문의 분석", Icon: ScanSearch },
-  { href: "/dashboard/history", label: "히스토리", Icon: History },
+  { href: "/history", label: "히스토리", Icon: History },
   { href: "/settings", label: "설정", Icon: Settings },
 ] as const;
 
