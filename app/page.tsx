@@ -50,17 +50,17 @@ const PROBLEM_CARDS = [
 
 const HOW_IT_WORKS = [
   {
-    step: "Step 01",
+    step: "01",
     title: "문의 내용을 붙여넣습니다",
     desc: "이메일, DM, 카카오톡 등 형식과 상관없이 원문 그대로 넣으면 됩니다.",
   },
   {
-    step: "Step 02",
+    step: "02",
     title: "AI가 구조화해서 분석합니다",
     desc: "조건을 정리하고 빠진 항목을 체크한 뒤, 적정 견적 범위를 계산합니다.",
   },
   {
-    step: "Step 03",
+    step: "03",
     title: "바로 응답을 준비합니다",
     desc: "상황별 초안과 체크리스트를 기반으로 바로 회신하거나 내부 검토를 진행할 수 있습니다.",
   },
@@ -100,24 +100,27 @@ export default async function LandingPage() {
 
   return (
     <div className="landing-page min-h-screen bg-[var(--landing-bg)] text-[var(--landing-text)] antialiased transition-colors">
+
+      {/* Nav — theme-aware backdrop */}
       <nav className="fixed top-0 z-50 w-full border-b border-[var(--landing-border)] bg-[color:var(--landing-nav-bg)] backdrop-blur-md transition-colors">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            DELO
+          <Link href="/" className="flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-[var(--landing-accent)]" />
+            <span className="text-xl font-black tracking-tight">DELO</span>
           </Link>
           <div className="flex items-center gap-6">
             <LandingThemeToggle />
             {user ? (
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/20 text-sm font-bold text-indigo-400">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--landing-accent-soft)] text-sm font-bold text-[var(--landing-accent)]">
                   {(user.email ?? "??").slice(0, 2).toUpperCase()}
                 </div>
-                <span className="text-sm text-slate-300">{user.email}</span>
+                <span className="text-sm text-[var(--landing-muted)]">{user.email}</span>
               </div>
             ) : (
               <Link
                 href="/login"
-                className="text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-text)]"
+                className="text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-accent)]"
               >
                 로그인
               </Link>
@@ -144,17 +147,36 @@ export default async function LandingPage() {
       </nav>
 
       <main>
-        <section className="flex min-h-screen flex-col items-center justify-center px-6 pt-16 text-center">
+        {/* ── Hero ── */}
+        <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16 text-center">
+          {/* Ambient glow — dark mode only */}
+          <div className="dark-only-glow absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute left-1/2 top-1/2 h-[700px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6366F1]/10 blur-[140px] animate-float" />
+            <div className="absolute right-1/3 top-1/4 h-[500px] w-[500px] rounded-full bg-purple-600/6 blur-[100px]" />
+            <div className="absolute bottom-1/4 left-1/3 h-[400px] w-[400px] rounded-full bg-indigo-800/6 blur-[80px]" />
+          </div>
+          {/* Light mode subtle tint */}
+          <div className="light-only-glow absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute left-1/2 top-1/2 h-[700px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-100/60 blur-[140px]" />
+          </div>
+
           <div className="mx-auto max-w-4xl">
             {dealsCount !== null && dealsCount > 0 && (
               <p className="mb-8 inline-block rounded-full bg-[var(--landing-accent-soft)] px-4 py-1.5 text-xs font-medium text-[var(--landing-accent)]">
                 지금까지 {dealsCount.toLocaleString("ko-KR")}건의 딜을 관리했어요
               </p>
             )}
+
+            {/* Trust badge */}
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--landing-accent)]/25 bg-[var(--landing-accent-soft)] px-4 py-2 text-xs font-semibold tracking-wide text-[var(--landing-accent)]">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--landing-accent)]" />
+              크리에이터를 위한 AI 딜 관리 플랫폼
+            </div>
+
             <h1 className="mb-8 text-5xl font-bold leading-tight tracking-tight md:text-7xl">
               크리에이터 딜 운영,
               <br />
-              DELO가 정리합니다
+              <span className="text-gradient">DELO가</span> 정리합니다
             </h1>
             <p className="mb-12 text-lg leading-relaxed text-[var(--landing-muted)] transition-colors md:text-xl">
               브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지.
@@ -177,9 +199,25 @@ export default async function LandingPage() {
                 eventProps={{ cta: "demo" }}
               />
             </div>
+
+            {/* Social proof */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-[var(--landing-muted)]">
+              <span className="flex items-center gap-1.5">
+                <span className="text-[var(--landing-accent)]">✓</span> 무료로 시작
+              </span>
+              <span className="h-4 w-px bg-[var(--landing-border)]" />
+              <span className="flex items-center gap-1.5">
+                <span className="text-[var(--landing-accent)]">✓</span> 신용카드 불필요
+              </span>
+              <span className="h-4 w-px bg-[var(--landing-border)]" />
+              <span className="flex items-center gap-1.5">
+                <span className="text-[var(--landing-accent)]">✓</span> 30초 내 분석 완료
+              </span>
+            </div>
           </div>
         </section>
 
+        {/* ── Problem cards ── */}
         <section className="border-t border-[var(--landing-border)] bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-7xl">
             <h2 className="mb-16 text-center text-3xl font-bold md:text-4xl">
@@ -189,9 +227,10 @@ export default async function LandingPage() {
               {PROBLEM_CARDS.map(({ icon, title, desc }) => (
                 <div
                   key={title}
-                  className="rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-8 transition-all hover:border-[var(--landing-accent)]/50"
+                  className="card-hover rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-8 transition-colors"
                 >
-                  <div className="mb-6 text-sm font-semibold text-[var(--landing-accent)]">
+                  <div className="mb-6 h-px rounded-full bg-gradient-to-r from-[var(--landing-accent)]/60 via-[var(--landing-accent)]/20 to-transparent" />
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--landing-accent)]/20 bg-[var(--landing-accent-soft)] text-xl font-black text-[var(--landing-accent)]">
                     {icon}
                   </div>
                   <h3 className="mb-4 text-xl font-bold">{title}</h3>
@@ -204,6 +243,7 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* ── How it works ── */}
         <section className="bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-7xl">
             <h2 className="mb-20 text-center text-3xl font-bold md:text-4xl">
@@ -212,8 +252,8 @@ export default async function LandingPage() {
             <div className="flex flex-col items-start justify-between gap-12 md:flex-row md:items-center">
               {HOW_IT_WORKS.map(({ step, title, desc }, index) => (
                 <Fragment key={step}>
-                  <div className="flex-1">
-                    <div className="mb-6 inline-block rounded-full bg-[var(--landing-accent-soft)] px-3 py-1 text-xs font-bold text-[var(--landing-accent)]">
+                  <div className="flex-1 rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-colors">
+                    <div className="mb-6 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[var(--landing-accent)] to-indigo-500 text-sm font-bold text-white shadow-lg shadow-[var(--landing-accent)]/30">
                       {step}
                     </div>
                     <h3 className="mb-4 text-2xl font-bold">{title}</h3>
@@ -222,19 +262,7 @@ export default async function LandingPage() {
                     </p>
                   </div>
                   {index < HOW_IT_WORKS.length - 1 && (
-                    <div className="hidden items-center text-[var(--landing-border)] transition-colors md:flex">
-                      <svg
-                        width="24"
-                        height="24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M5 12h14m-7-7 7 7-7 7" />
-                      </svg>
-                    </div>
+                    <div className="hidden h-px flex-1 border-t-2 border-dashed border-[var(--landing-accent)]/25 md:block" />
                   )}
                 </Fragment>
               ))}
@@ -242,6 +270,7 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* ── Comparison ── */}
         <section className="border-y border-[var(--landing-border)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-5xl">
             <h2 className="mb-20 text-center text-3xl font-bold md:text-4xl">
@@ -251,7 +280,7 @@ export default async function LandingPage() {
               {COMPARISON_ROWS.map(({ icon, feature, agency, delo }) => (
                 <div
                   key={feature}
-                  className="grid grid-cols-12 items-center rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-colors"
+                  className="grid grid-cols-12 items-center rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-colors hover:border-[var(--landing-accent)]/30 hover:brightness-95"
                 >
                   <div className="col-span-12 mb-4 flex items-center gap-4 md:col-span-4 md:mb-0">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--landing-icon-bg)] text-sm font-semibold transition-colors">
@@ -262,7 +291,7 @@ export default async function LandingPage() {
                   <div className="col-span-6 border-r border-[var(--landing-border)] pr-4 text-sm text-[var(--landing-muted)] transition-colors md:col-span-4">
                     {agency}
                   </div>
-                  <div className="col-span-6 pl-4 text-sm font-medium text-[var(--landing-accent)] md:col-span-4">
+                  <div className="col-span-6 pl-4 text-sm font-semibold text-[var(--landing-accent)] md:col-span-4">
                     {delo}
                   </div>
                 </div>
@@ -271,8 +300,10 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* ── Closing CTA ── */}
         <section className="bg-[var(--landing-surface)] px-6 py-[120px] text-center transition-colors">
           <div className="mx-auto max-w-4xl">
+            <div className="mb-16 h-px bg-gradient-to-r from-transparent via-[var(--landing-accent)]/30 to-transparent" />
             <h2 className="mb-6 text-3xl font-bold md:text-5xl">
               첫 번째 브랜드 문의부터 정리해보세요
             </h2>
@@ -290,15 +321,14 @@ export default async function LandingPage() {
         </section>
       </main>
 
+      {/* ── Footer ── */}
       <footer className="border-t border-[var(--landing-border)] bg-[var(--landing-bg)] px-6 py-12 transition-colors">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
-            <Link href="/" className="mb-2 block text-xl font-bold">
+            <Link href="/" className="mb-1 block text-xl font-bold">
               DELO
             </Link>
-            <p className="text-sm text-[var(--landing-muted)] transition-colors">
-              크리에이터 딜 운영을 위한 비즈니스 코파일럿
-            </p>
+            <p className="text-xs text-[var(--landing-muted)]">크리에이터 딜 운영을 위한 비즈니스 코파일럿</p>
           </div>
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-12">
             <div className="flex gap-6 text-sm font-medium text-[var(--landing-muted)] transition-colors">

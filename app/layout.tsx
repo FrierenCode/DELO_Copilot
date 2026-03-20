@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { RootNav } from "@/components/RootNav";
 import { RootMain } from "@/components/RootMain";
@@ -32,6 +33,18 @@ export default function RootLayout({
          * RootMain removes the max-w-3xl constraint on /dashboard/** routes so the
          * dashboard layout can use the full viewport width.
          */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-KG22W3GSS1"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-KG22W3GSS1');
+          `}
+        </Script>
         <RootNav />
         <RootMain>{children}</RootMain>
         <CookieBanner />

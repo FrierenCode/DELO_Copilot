@@ -50,7 +50,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page min-h-screen text-[var(--login-text)] transition-colors">
+    <div className="login-page min-h-screen bg-[var(--login-bg-solid)] text-[var(--login-text)] transition-colors">
       <header className="fixed left-0 top-0 z-10 w-full p-8">
         <Link href="/" className="flex w-fit items-center gap-2">
           <div className="text-[var(--login-accent)]">
@@ -67,10 +67,17 @@ export default function LoginPage() {
         </Link>
       </header>
 
-      <main className="flex min-h-screen items-center justify-center bg-[var(--login-background)] p-6 pt-28 transition-colors">
-        <div className="grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[420px_minmax(0,1fr)]">
-          <div className="mx-auto w-full max-w-[420px]">
-            <div className="rounded-2xl border border-[var(--login-border)] bg-[var(--login-surface)] p-8 shadow-2xl transition-colors">
+      <main className="relative flex min-h-screen items-center justify-center bg-[var(--login-background)] p-6 pt-28 transition-colors">
+        {/* Ambient glow — dark mode only */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden dark-only-glow">
+          <div className="absolute left-1/4 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-[#6366F1]/6 blur-[100px]" />
+          <div className="absolute right-1/4 bottom-1/3 h-[300px] w-[300px] rounded-full bg-indigo-900/8 blur-[80px]" />
+        </div>
+        <div className="relative w-full max-w-[420px]">
+          <div className="w-full">
+            <div className="glow-sm overflow-hidden rounded-2xl border border-[var(--login-border)] bg-[var(--login-surface)] shadow-2xl transition-colors">
+              <div className="h-px bg-gradient-to-r from-transparent via-[#6366F1]/60 to-transparent" />
+              <div className="p-8">
               <div className="mb-8 flex flex-col items-center text-center">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--login-accent-soft)] text-[var(--login-accent)]">
                   <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
@@ -154,7 +161,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="w-full rounded-full bg-[var(--login-accent)] py-3.5 font-bold text-white shadow-lg shadow-[var(--login-accent)]/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-gradient w-full rounded-full py-3.5 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === "loading" ? (
                     <span className="flex items-center justify-center gap-2">
@@ -181,7 +188,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-3 rounded-full border border-[var(--login-border)] bg-transparent py-3.5 text-[var(--login-heading)] transition-all hover:bg-[var(--login-hover)]"
+                className="flex w-full items-center justify-center gap-3 rounded-full border border-[var(--login-border)] bg-transparent py-3.5 text-[var(--login-heading)] transition-all hover:border-[var(--login-accent)]/30 hover:bg-[var(--login-accent)]/5"
               >
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-black text-[10px] font-bold text-white">
                   G
@@ -208,48 +215,7 @@ export default function LoginPage() {
                 에 동의하는 것으로 간주됩니다.
               </p>
             </div>
-          </div>
-
-          <div className="hidden lg:block">
-            <div className="mx-auto max-w-[520px]">
-              <div className="rounded-[28px] border border-[var(--login-preview-border)] bg-[var(--login-preview-bg)] p-8 backdrop-blur-sm transition-colors">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--login-accent)]">
-                  Deal Workflow
-                </p>
-                <h2 className="mt-4 text-4xl font-bold leading-tight text-[var(--login-heading)]">
-                  문의를
-                  <br />
-                  답변 가능한 상태까지
-                  <br />
-                  바로 정리합니다
-                </h2>
-                <p className="mt-6 max-w-md text-sm leading-relaxed text-[var(--login-muted)]">
-                  로그인 후에는 문의 분석, 적정 견적, 응답 초안, 진행 히스토리를 한 흐름으로
-                  이어서 관리할 수 있습니다.
-                </p>
-
-                <div className="mt-10 space-y-4">
-                  <div className="rounded-2xl border border-[var(--login-border)] bg-[var(--login-panel)] p-5 transition-colors">
-                    <p className="text-sm font-medium text-[var(--login-heading)]">1. 문의 분석</p>
-                    <p className="mt-2 text-sm text-[var(--login-muted)]">
-                      브랜드 요청의 핵심 조건과 빠진 항목을 자동으로 정리합니다.
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-[var(--login-border)] bg-[var(--login-panel)] p-5 transition-colors">
-                    <p className="text-sm font-medium text-[var(--login-heading)]">2. 견적과 리스크 확인</p>
-                    <p className="mt-2 text-sm text-[var(--login-muted)]">
-                      비용 범위와 계약상 주의 포인트를 한 번에 확인할 수 있습니다.
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-[var(--login-border)] bg-[var(--login-panel)] p-5 transition-colors">
-                    <p className="text-sm font-medium text-[var(--login-heading)]">3. 응답 초안 작성</p>
-                    <p className="mt-2 text-sm text-[var(--login-muted)]">
-                      상황에 맞는 회신 문구를 바로 생성해서 협상 속도를 높입니다.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </div>{/* closes glow-sm wrapper */}
           </div>
         </div>
       </main>

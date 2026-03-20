@@ -149,7 +149,7 @@ export default function DealDetailPage() {
     <div className="flex flex-col">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-slate-500 mb-6">
-        <Link href="/history" className="hover:text-slate-300 transition-colors">
+        <Link href="/dashboard/history" className="hover:text-slate-300 transition-colors">
           히스토리
         </Link>
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -299,7 +299,7 @@ export default function DealDetailPage() {
             {!isPro && sortedChecks.length > FREE_VISIBLE && (
               <div className="mt-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 text-sm text-indigo-300 flex items-center justify-between gap-4">
                 <span>나머지 {sortedChecks.length - FREE_VISIBLE}개 항목은 Pro에서 확인할 수 있습니다.</span>
-                <Link href="/settings" className="shrink-0 text-xs font-bold text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+                <Link href="/dashboard/settings" className="shrink-0 text-xs font-bold text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
                   업그레이드 →
                 </Link>
               </div>
@@ -370,7 +370,7 @@ export default function DealDetailPage() {
               {!isPro && activeTab !== "polite" ? (
                 <div className="h-40 flex flex-col items-center justify-center gap-2 text-center">
                   <p className="text-sm text-slate-500">이 초안은 Pro 전용입니다.</p>
-                  <Link href="/settings" className="text-xs text-indigo-400 font-bold hover:underline underline-offset-4">
+                  <Link href="/dashboard/settings" className="text-xs text-indigo-400 font-bold hover:underline underline-offset-4">
                     Pro로 업그레이드 →
                   </Link>
                 </div>
@@ -460,7 +460,7 @@ export default function DealDetailPage() {
                     더 상세한 계약 조항 분석과 3가지 스타일의 AI 초안을 무제한으로 사용해보세요.
                   </p>
                   <Link
-                    href="/settings"
+                    href="/dashboard/settings"
                     className="block w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-[12px] font-bold rounded-lg transition-all text-center"
                   >
                     혜택 더보기
