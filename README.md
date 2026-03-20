@@ -55,7 +55,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - Polar Checkout, Polar webhook, subscription 동기화 기반 Billing 흐름
 - Supabase 이메일/비밀번호 로그인, `/signup` 회원가입, `/auth/callback` 이메일 확인 콜백
 - `middleware.ts` 기반 `/dashboard`, `/settings`, `/onboarding` 보호
-- PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Sentry 연동, 구조화 로그
+- PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Google Analytics 스니펫, Sentry 연동, 구조화 로그
 - Next.js App Router 기반 UI
 - OpenNext + Cloudflare Workers 배포
 - Vitest 기반 테스트 스위트
@@ -91,10 +91,12 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/deal/[id]` inquiry 상세가 2컬럼 분석 화면으로 확장되어 파싱 결과, 견적, 체크리스트, 답장 초안 편집, 원문 미리보기를 한 화면에서 처리합니다.
 - inquiry detail 응답 타입에 `created_at`, `raw_text_preview`가 추가되어 상세 화면에서 수신일과 원문 일부를 함께 노출할 수 있습니다.
 - `/settings` billing 패널이 현재 플랜 요약 외에 Free/Pro 비교 카드, 가입일, 지원 메일, 약관/개인정보 링크 섹션까지 포함하는 계정 화면으로 확장되었습니다.
+- `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 대시보드 하위 정보 구조를 재사용합니다.
 - `/login`, `/terms`, `/privacy`, `/` 랜딩 페이지가 동일한 다크 톤 브랜딩에 맞춰 재디자인되어 제품 진입부터 법적 고지까지 시각 톤을 통일했습니다.
 - `/login`은 이메일/비밀번호 로그인 화면으로 동작하고, `/signup`은 비밀번호 확인과 이메일 인증 재전송이 포함된 회원가입 화면으로 추가되었습니다.
 - 랜딩의 Light/Dark 토글은 더 이상 장식 요소가 아니라 실제 테마 전환을 수행하며, 선택한 테마가 로그인 화면까지 유지됩니다.
 - 랜딩, 로그인, 약관, 개인정보, 대시보드 사이드바의 `DELO` 로고가 모두 홈(`/`)으로 돌아가는 공통 네비게이션 동작을 가집니다.
+- 루트 레이아웃에는 `CookieBanner`와 Google Analytics 스니펫이 포함되어 공개 페이지와 앱 공통 레벨의 기본 추적/고지가 동작합니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -126,11 +128,18 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/login`
 - `/signup`
 - `/dashboard`
+- `/dashboard/history`
+- `/dashboard/settings`
 - `/onboarding`
 - `/dashboard/intake`
 - `/dashboard/deals/[id]`
 - `/terms`
 - `/privacy`
+
+라우트 메모:
+
+- `/history`는 `/dashboard/history`로 redirect됩니다.
+- `/settings`는 `/dashboard/settings`로 redirect됩니다.
 
 입력 예시:
 
@@ -263,6 +272,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `/auth/callback`에서 `exchangeCodeForSession`으로 확인 링크 세션 교환
 - `middleware.ts`에서 세션 refresh
 - `/dashboard`, `/settings`, `/onboarding` 및 하위 경로 보호
+- `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 동일한 보호 레이아웃 안에서 동작
 
 현재 `Dashboard`는 저장된 딜 목록을 상태 탭으로 분류해 보여주고, 요약 카드와 Pro 전용 alert panel을 함께 노출하는 운영 보드입니다.
 
@@ -270,7 +280,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 현재 구현된 Billing 흐름은 아래와 같습니다.
 
-- `/settings`에서 현재 plan, subscription status, 갱신 예정일 확인
+- `/dashboard/settings`에서 현재 plan, subscription status, 갱신 예정일 확인
 - Free 사용자는 `POST /api/billing/checkout` 호출로 Polar hosted checkout session 생성
 - `subscription.created`, `subscription.updated`, `subscription.revoked` webhook 처리
 - `subscriptions` 테이블에 Polar customer/subscription 상태 저장
@@ -309,13 +319,15 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 - `Home`: 마케팅 랜딩 페이지와 CTA 진입점
 - `Parse`: parse pipeline을 직접 테스트하는 별도 화면
-- `History`: 최근 inquiry 목록 조회
+- `History`: `/history` 진입 시 `/dashboard/history`로 이동하는 inquiry 히스토리 화면
 - `Deal Detail`: inquiry 상세 결과, quote, checks, reply draft 편집, raw text preview 확인
-- `Settings`: 플랜/결제 관리 화면
+- `Settings`: `/settings` 진입 시 `/dashboard/settings`로 이동하는 플랜/결제 관리 화면
 - `Login`: 이메일/비밀번호 로그인 화면
 - `Signup`: 이메일/비밀번호 회원가입과 이메일 인증 재전송 화면
 - `Dashboard`: 저장된 deals를 요약 카드, 탭 필터, alert panel과 함께 보여주는 운영 보드
+- `Dashboard History`: 브랜드 검색, source chip 필터, 빈 상태 CTA를 제공하는 카드형 히스토리 화면
 - `Dashboard Deal Detail`: 상태 전이, 일정, 결제일, 메모, 상태 로그를 수정/확인하는 상세 화면
+- `Dashboard Settings`: 현재 플랜, 구독 상태, Free/Pro 비교, 계정/지원 링크를 제공하는 계정 허브
 - `Onboarding`: creator profile 초기 입력 위저드
 - `Dashboard Intake`: 온보딩 완료 후 바로 parse -> save deal로 이어지는 2단 워크스페이스
 - `Terms` / `Privacy`: 결제 및 분석 도입에 필요한 법적 고지 페이지
@@ -340,6 +352,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `/` 랜딩 페이지는 누적 deals 수를 보여주고 `무료로 시작하기`, `어떻게 작동하나요?` CTA를 제공합니다.
 - 랜딩 헤더의 `Light` / `Dark` 토글은 `localStorage` 기반으로 현재 테마를 저장하고, 루트 레이아웃이 이를 읽어 로그인 화면까지 같은 모드를 유지합니다.
 - `CookieBanner`가 로컬 스토리지 기반 쿠키 동의 상태를 관리합니다.
+- 루트 레이아웃이 Google Analytics 스니펫을 포함해 공개 페이지와 앱 전체 공통 페이지뷰 측정을 준비합니다.
 - 설정 화면에서는 checkout 시작 전 `checkout_started` 클라이언트 이벤트를 전송합니다.
 - Intake 체크 항목 카드에는 "운영 참고용이며 법률 자문이 아니다"라는 고지가 함께 노출됩니다.
 - `History` 화면은 브랜드 검색어와 소스 칩 필터를 조합해 조회할 수 있고, 결과가 없을 때 재분석 CTA를 보여줍니다.
@@ -388,6 +401,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - Anthropic SDK
 - Sentry
 - PostHog
+- Google Analytics
 - Polar
 - Vitest
 - OpenNext
@@ -868,9 +882,10 @@ npm run test
 - Polar checkout, webhook, subscription 동기화
 - 랜딩 페이지, 약관/개인정보 페이지, 쿠키 동의 배너
 - Free/Pro 사용량 제한과 기능 gate
-- PostHog, 클라이언트 이벤트 수집 API, Sentry, 구조화 로그 기반 관측
+- PostHog, 클라이언트 이벤트 수집 API, Google Analytics, Sentry, 구조화 로그 기반 관측
 - Cloudflare Workers 배포 설정
 - 이메일/비밀번호 인증과 보호된 `/dashboard`, `/settings`, `/onboarding`
+- `/history`, `/settings` redirect를 통한 대시보드 하위 진입 경로
 
 아직 완성되지 않은 영역:
 
