@@ -53,10 +53,12 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - creator profile 저장/조회 API
 - creator profile 온보딩 위저드와 PRD 입력값 매핑 레이어
 - Polar Checkout, Polar webhook, subscription 동기화 기반 Billing 흐름
-- Supabase 이메일/비밀번호 로그인, `/signup` 회원가입, `/auth/callback` 이메일 확인 콜백
+- Supabase 이메일/비밀번호 로그인, Google/Discord OAuth 로그인, `/signup` 회원가입, `/auth/callback` 인증 콜백
+- `/api/account` 기반 계정 삭제 흐름
 - `middleware.ts` 기반 `/dashboard`, `/settings`, `/onboarding` 보호
 - PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Google Analytics 스니펫, Sentry 연동, 구조화 로그
 - Next.js App Router 기반 UI
+- `fox-icon.svg`, `FoxLogo`, `app/icon.svg` 기반 브랜드 아이콘 자산
 - OpenNext + Cloudflare Workers 배포
 - Vitest 기반 테스트 스위트
 - `db/schema.sql` 기반 최종 스키마 스냅샷 문서
@@ -81,6 +83,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 랜딩 페이지 CTA에 `/parse`로 직접 이동하는 `직접 붙여넣기` 경로가 추가되어 가입 전 체험 진입점이 하나 더 생겼습니다.
 - `supabase/migrations/008_rename_stripe_to_polar.sql`가 추가되어 `subscriptions` 테이블 billing 컬럼이 Polar 명세로 정리되었습니다.
 - `wrangler.jsonc`에 `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`가 반영되어 Cloudflare Workers 배포 설정과 checkout 성공 URL 구성이 현재 앱 동작과 맞춰졌습니다.
+- `DELETE /api/account` 계정 삭제 엔드포인트가 추가되어 인증 사용자 본인 계정과 연관 데이터를 제거하는 흐름이 연결되었습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -93,10 +96,14 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/settings` billing 패널이 현재 플랜 요약 외에 Free/Pro 비교 카드, 가입일, 지원 메일, 약관/개인정보 링크 섹션까지 포함하는 계정 화면으로 확장되었습니다.
 - `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 대시보드 하위 정보 구조를 재사용합니다.
 - `/login`, `/terms`, `/privacy`, `/` 랜딩 페이지가 동일한 다크 톤 브랜딩에 맞춰 재디자인되어 제품 진입부터 법적 고지까지 시각 톤을 통일했습니다.
-- `/login`은 이메일/비밀번호 로그인 화면으로 동작하고, `/signup`은 비밀번호 확인과 이메일 인증 재전송이 포함된 회원가입 화면으로 추가되었습니다.
+- `/login`은 Google, Discord, 이메일/비밀번호 로그인을 함께 제공하고 이메일 폼은 접기/펼치기 방식으로 보조 노출됩니다.
+- `/signup`은 Google, Discord, 이메일 가입을 함께 제공하고 이메일 가입은 비밀번호 확인, 기존 계정 중복 가드, 이메일 인증 재전송을 포함합니다.
+- 이메일 회원가입 비밀번호 정책이 최소 10자 + 대문자/소문자/숫자/특수문자 포함으로 강화되었습니다.
 - 랜딩의 Light/Dark 토글은 더 이상 장식 요소가 아니라 실제 테마 전환을 수행하며, 선택한 테마가 로그인 화면까지 유지됩니다.
-- 랜딩, 로그인, 약관, 개인정보, 대시보드 사이드바의 `DELO` 로고가 모두 홈(`/`)으로 돌아가는 공통 네비게이션 동작을 가집니다.
+- 랜딩, 로그인, 약관, 개인정보, 온보딩, 대시보드 사이드바의 `DELO` 로고가 `fox-icon.svg` 기반으로 통일되었고 모두 홈(`/`)으로 돌아가는 공통 네비게이션 동작을 가집니다.
 - 루트 레이아웃에는 `CookieBanner`와 Google Analytics 스니펫이 포함되어 공개 페이지와 앱 공통 레벨의 기본 추적/고지가 동작합니다.
+- 설정 화면에 계정 삭제 모달이 추가되어 이메일 재입력 확인 후 `DELETE /api/account`를 호출하는 danger zone이 제공됩니다.
+- 앱 메타데이터 아이콘과 정적 자산에 `app/icon.svg`, `public/fox-icon.svg`가 반영되어 브라우저 아이콘과 주요 공개 화면 로고가 같은 브랜드 자산을 사용합니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -117,6 +124,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `POST /api/billing/webhook`
 - `POST /api/analytics/event`
 - `POST /api/replies/negotiation-ai`
+- `DELETE /api/account`
 
 현재 프론트엔드 라우트는 아래와 같습니다.
 
@@ -267,9 +275,9 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 현재 구현된 인증 흐름은 아래와 같습니다.
 
 - Supabase 이메일/비밀번호 기반 로그인
-- `/signup`에서 이메일/비밀번호 회원가입 후 이메일 확인
-- `/login`에서 `signInWithPassword`
-- `/auth/callback`에서 `exchangeCodeForSession`으로 확인 링크 세션 교환
+- `/signup`에서 Google/Discord OAuth 가입 또는 이메일/비밀번호 회원가입 후 이메일 확인
+- `/login`에서 `signInWithPassword`와 Google/Discord `signInWithOAuth`
+- `/auth/callback`에서 OAuth 및 이메일 확인 링크의 `exchangeCodeForSession` 세션 교환
 - `middleware.ts`에서 세션 refresh
 - `/dashboard`, `/settings`, `/onboarding` 및 하위 경로 보호
 - `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 동일한 보호 레이아웃 안에서 동작
@@ -322,8 +330,8 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `History`: `/history` 진입 시 `/dashboard/history`로 이동하는 inquiry 히스토리 화면
 - `Deal Detail`: inquiry 상세 결과, quote, checks, reply draft 편집, raw text preview 확인
 - `Settings`: `/settings` 진입 시 `/dashboard/settings`로 이동하는 플랜/결제 관리 화면
-- `Login`: 이메일/비밀번호 로그인 화면
-- `Signup`: 이메일/비밀번호 회원가입과 이메일 인증 재전송 화면
+- `Login`: Google/Discord OAuth와 이메일/비밀번호 로그인을 함께 제공하는 로그인 화면
+- `Signup`: Google/Discord OAuth, 이메일/비밀번호 가입, 이메일 인증 재전송 화면
 - `Dashboard`: 저장된 deals를 요약 카드, 탭 필터, alert panel과 함께 보여주는 운영 보드
 - `Dashboard History`: 브랜드 검색, source chip 필터, 빈 상태 CTA를 제공하는 카드형 히스토리 화면
 - `Dashboard Deal Detail`: 상태 전이, 일정, 결제일, 메모, 상태 로그를 수정/확인하는 상세 화면
@@ -353,12 +361,14 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - 랜딩 헤더의 `Light` / `Dark` 토글은 `localStorage` 기반으로 현재 테마를 저장하고, 루트 레이아웃이 이를 읽어 로그인 화면까지 같은 모드를 유지합니다.
 - `CookieBanner`가 로컬 스토리지 기반 쿠키 동의 상태를 관리합니다.
 - 루트 레이아웃이 Google Analytics 스니펫을 포함해 공개 페이지와 앱 전체 공통 페이지뷰 측정을 준비합니다.
+- 루트 메타데이터는 `app/icon.svg`를 기본 아이콘으로 사용합니다.
 - 설정 화면에서는 checkout 시작 전 `checkout_started` 클라이언트 이벤트를 전송합니다.
+- 설정 화면은 support/legal 링크 외에 danger zone과 이메일 재입력 기반 계정 삭제 모달을 포함합니다.
 - Intake 체크 항목 카드에는 "운영 참고용이며 법률 자문이 아니다"라는 고지가 함께 노출됩니다.
 - `History` 화면은 브랜드 검색어와 소스 칩 필터를 조합해 조회할 수 있고, 결과가 없을 때 재분석 CTA를 보여줍니다.
 - `Deal Detail` 화면은 답장 tone 탭, 수정 저장, 클립보드 복사, 원문 펼치기 토글을 포함합니다.
 - `Settings` 화면은 현재 플랜, 가입일, 지원 메일, 약관 링크를 한 화면에서 제공하는 계정 허브 역할을 합니다.
-- 로그인 화면은 이메일/비밀번호 입력과 비밀번호 표시 토글을 제공하고, 회원가입 화면은 성공 후 이메일 확인 카드와 재전송 액션을 같은 브랜딩 안에서 제공합니다.
+- 로그인 화면은 Google/Discord 소셜 로그인과 이메일 로그인 폴백을 함께 제공하고, 회원가입 화면은 소셜 가입과 강화된 비밀번호 정책 기반 이메일 가입을 같은 브랜딩 안에서 제공합니다.
 - 주요 공개 화면과 대시보드 사이드바의 `DELO` 로고는 공통적으로 홈 링크 역할을 합니다.
 
 ### 11. 딜 저장과 운영 데이터
@@ -373,6 +383,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `POST /api/billing/checkout`을 통한 Polar Checkout 진입
 - `POST /api/billing/webhook`을 통한 subscription 상태 반영
 - `POST /api/analytics/event`를 통한 클라이언트 이벤트 수집
+- `DELETE /api/account`를 통한 계정 삭제
 - `GET /api/inquiries`를 통한 inquiry history 조회
 - `GET/PATCH /api/inquiries/[id]`를 통한 inquiry detail 조회 및 초안 저장
 - `repositories/` 계층을 통한 DB 접근 분리
@@ -412,6 +423,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 ```text
 app/
   api/
+    account/
     analytics/
     billing/
     creator-profile/
@@ -438,6 +450,8 @@ components/
   results/
   settings/
   ui/
+public/
+  fox-icon.svg
 db/
   schema.sql
 lib/
@@ -886,6 +900,7 @@ npm run test
 - Cloudflare Workers 배포 설정
 - 이메일/비밀번호 인증과 보호된 `/dashboard`, `/settings`, `/onboarding`
 - `/history`, `/settings` redirect를 통한 대시보드 하위 진입 경로
+- Google/Discord OAuth 로그인/가입, 계정 삭제 API, `fox-icon.svg` 기반 브랜딩 자산
 
 아직 완성되지 않은 영역:
 
