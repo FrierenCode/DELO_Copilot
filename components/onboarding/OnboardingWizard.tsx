@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { mapToApiProfile, type PrdOnboardingData } from "@/lib/creator-profile-mapper";
@@ -411,7 +412,10 @@ export function OnboardingWizard() {
     <div className="min-h-screen bg-[#0A0A0F] text-[#F8FAFC] flex flex-col">
       {/* Fixed header */}
       <header className="fixed top-0 left-0 right-0 h-20 px-8 flex items-center justify-between z-50">
-        <div className="text-2xl font-black tracking-tighter text-[#6366F1]">DELO</div>
+        <div className="flex items-center gap-2.5">
+          <Image src="/fox-icon.svg" width={30} height={30} alt="DELO 로고" />
+          <span className="text-2xl font-black tracking-tighter text-[#6366F1]">DELO</span>
+        </div>
         <Link
           href="/dashboard/intake"
           className="text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"

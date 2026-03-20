@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -27,8 +28,9 @@ export function RootNav() {
   return (
     <header className="border-b border-[#1E1E2E]/60 bg-[#0A0A0F]/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-sm font-semibold tracking-tight text-white">
-          DELO
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/fox-icon.svg" width={24} height={24} alt="DELO 로고" priority />
+          <span className="text-sm font-semibold tracking-tight text-white">DELO</span>
         </Link>
         <nav className="flex gap-5">
           {NAV_LINKS.map((link) => (

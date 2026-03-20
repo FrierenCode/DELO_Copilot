@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -143,10 +144,8 @@ export function SidebarNav({ userEmail, userName, isPro }: Props) {
 
   return (
     <aside className="hidden h-screen w-[240px] shrink-0 flex-col border-r border-[var(--d-border)] bg-[var(--d-surface2)] md:flex">
-      <Link href="/" className="flex items-center gap-3 p-6 pb-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#6366F1] to-indigo-500 text-white text-sm font-black shadow-lg shadow-[#6366F1]/30">
-          D
-        </div>
+      <Link href="/" className="flex items-center gap-2.5 p-6 pb-4">
+        <Image src="/fox-icon.svg" width={32} height={32} alt="DELO 로고" priority />
         <h1 className="text-xl font-black tracking-tighter text-[var(--d-h)]">DELO</h1>
       </Link>
       <div className="h-px bg-gradient-to-r from-[#6366F1]/20 to-transparent mx-4 mb-2" />

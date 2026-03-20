@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#312E81"/>
+      <stop offset="55%"  stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#9D174D"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="30%" cy="20%" r="52%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="48" height="48" rx="12" fill="url(#bg)"/>
+  <rect width="48" height="48" rx="12" fill="url(#shine)"/>
+
+  <!-- Fox head + two pointy ears as one shape -->
+  <path
+    d="M 10 5 L 18 21 Q 24 17, 30 21 L 38 5
+       Q 44 14, 43 30 Q 41 44, 24 45
+       Q 7 44, 5 30 Q 4 14, 10 5 Z"
+    fill="white"
+  />
+
+  <!-- Eyes: simple dots -->
+  <circle cx="18.5" cy="30" r="2.5" fill="#1e1b4b"/>
+  <circle cx="29.5" cy="30" r="2.5" fill="#1e1b4b"/>
+
+  <!-- Nose: tiny triangle -->
+  <polygon points="24,36 21.5,39.5 26.5,39.5" fill="#FBBF24"/>
+</svg>

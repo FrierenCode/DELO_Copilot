@@ -6,8 +6,13 @@ import { RootMain } from "@/components/RootMain";
 import { CookieBanner } from "@/components/CookieBanner";
 
 export const metadata: Metadata = {
-  title: "Creator Deal Copilot",
+  title: "DELO Copilot",
   description: "Manage creator-brand deals from inquiry to payout.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

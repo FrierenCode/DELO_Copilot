@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -20,8 +21,9 @@ export default function TermsPage() {
       {/* Fixed top nav */}
       <header className="fixed top-0 w-full z-50 bg-[#0A0A0F]/80 backdrop-blur-md border-b border-[#1E1E2E]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight text-white">
-            DELO
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/fox-icon.svg" width={28} height={28} alt="DELO 로고" />
+            <span className="text-xl font-bold tracking-tight text-white">DELO</span>
           </Link>
           <Link
             href="/"

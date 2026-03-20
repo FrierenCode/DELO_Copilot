@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { LandingCtaButton } from "@/components/landing/LandingCtaButton";
 import { LandingThemeToggle } from "@/components/landing/LandingThemeToggle";
@@ -104,8 +105,8 @@ export default async function LandingPage() {
       {/* Nav — theme-aware backdrop */}
       <nav className="fixed top-0 z-50 w-full border-b border-[var(--landing-border)] bg-[color:var(--landing-nav-bg)] backdrop-blur-md transition-colors">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-[var(--landing-accent)]" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/fox-icon.svg" width={30} height={30} alt="DELO 로고" priority />
             <span className="text-xl font-black tracking-tight">DELO</span>
           </Link>
           <div className="flex items-center gap-6">
@@ -325,8 +326,9 @@ export default async function LandingPage() {
       <footer className="border-t border-[var(--landing-border)] bg-[var(--landing-bg)] px-6 py-12 transition-colors">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
-            <Link href="/" className="mb-1 block text-xl font-bold">
-              DELO
+            <Link href="/" className="mb-1 flex items-center gap-2">
+              <Image src="/fox-icon.svg" width={24} height={24} alt="DELO 로고" />
+              <span className="text-xl font-bold">DELO</span>
             </Link>
             <p className="text-xs text-[var(--landing-muted)]">크리에이터 딜 운영을 위한 비즈니스 코파일럿</p>
           </div>
