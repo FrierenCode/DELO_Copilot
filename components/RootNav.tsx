@@ -25,7 +25,7 @@ export function RootNav() {
   ) return null;
 
   return (
-    <header className="border-b border-[#1E1E2E] bg-[#0D0D14]">
+    <header className="border-b border-[#1E1E2E]/60 bg-[#0A0A0F]/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
         <Link href="/" className="text-sm font-semibold tracking-tight text-white">
           DELO
@@ -35,7 +35,7 @@ export function RootNav() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-slate-400 transition-colors hover:text-white"
+              className="text-sm text-slate-400 transition-colors hover:text-[#6366F1]"
             >
               {link.label}
             </Link>

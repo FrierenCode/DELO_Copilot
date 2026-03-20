@@ -31,10 +31,11 @@ export default async function DashboardPage() {
   return (
     <>
       {/* Page header */}
-      <div className="h-16 border-b border-[#1E1E2E] flex items-center justify-between -mx-4 sm:-mx-6 px-8 mb-8 -mt-6">
+      <div className="relative flex h-16 items-center justify-between -mx-4 sm:-mx-6 px-8 mb-8 -mt-6 border-b border-[var(--d-border)]">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#6366F1]/20 to-transparent" />
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-white">Deal Pipeline</h1>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-400">
+          <h1 className="text-xl font-black tracking-tight text-[var(--d-h)]">Deal Pipeline</h1>
+          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#6366F1]/15 px-1.5 text-[10px] font-black text-[#a78bfa] tabular-nums">
             {deals.length}
           </span>
         </div>
@@ -46,9 +47,20 @@ export default async function DashboardPage() {
         {/* Alerts — Pro only */}
         {alerts && alerts.items.length > 0 && <AlertPanel alerts={alerts} />}
         {!policy.alerts_enabled && (
-          <div className="rounded-xl border border-[#1E1E2E] bg-[#13131A] px-4 py-3 text-sm text-slate-500">
-            <span className="font-medium text-slate-300">운영 알림</span>은 Pro 전용 기능입니다.
-            마감 임박, 미결 항목 등의 알림을 받으려면 Pro로 업그레이드하세요.
+          <div className="relative overflow-hidden rounded-xl border border-[var(--d-border)] bg-[var(--d-surface)] px-5 py-4">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1]/30 to-transparent" />
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#6366F1]/15 text-[#a78bfa]">
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </span>
+              <p className="text-sm text-[var(--d-m)]">
+                <span className="font-bold text-[var(--d-b)]">운영 알림</span>은 Pro 전용 기능입니다. 마감 임박·미결 항목 알림을 받으려면
+                {" "}
+                <Link href="/dashboard/settings" className="font-bold text-[#a78bfa] hover:brightness-110 transition-all">Pro로 업그레이드</Link>하세요.
+              </p>
+            </div>
           </div>
         )}
 
@@ -58,7 +70,7 @@ export default async function DashboardPage() {
       {/* FAB */}
       <Link
         href="/dashboard/intake"
-        className="fixed bottom-10 right-10 flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-4 px-7 rounded-full shadow-2xl shadow-indigo-500/40 transition-all hover:scale-105 active:scale-95 z-50"
+        className="btn-gradient fixed bottom-10 right-10 flex items-center gap-2 text-white font-bold py-4 px-7 rounded-full shadow-xl shadow-[#6366F1]/25 hover:scale-105 active:scale-95 z-50"
       >
         <span className="text-lg leading-none">+</span>
         <span className="text-sm tracking-tight">새 문의 분석하기</span>

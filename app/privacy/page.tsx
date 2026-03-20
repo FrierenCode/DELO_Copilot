@@ -34,7 +34,9 @@ export default function PrivacyPage() {
       {/* Main content */}
       <main className="pt-24 pb-20 px-6">
         <div className="max-w-[720px] mx-auto">
-          <div className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-8">
+          <div className="overflow-hidden rounded-xl border border-[#1E1E2E] bg-[#13131A]">
+            <div className="h-px bg-gradient-to-r from-transparent via-[#6366F1]/60 to-transparent" />
+            <div className="p-8">
             {/* Header */}
             <header className="mb-8">
               <h1 className="text-3xl font-bold mb-2 text-white">개인정보처리방침</h1>
@@ -58,7 +60,10 @@ export default function PrivacyPage() {
             <article className="space-y-10 text-slate-200/90" style={{ lineHeight: 1.8 }}>
 
               <section id="p1">
-                <h2 className="text-lg font-bold mb-3 text-white">1. 수집하는 정보</h2>
+                <h2 className="text-lg font-bold mb-3 text-white flex items-center gap-2">
+                  <span className="inline-block h-5 w-0.5 shrink-0 rounded-full bg-[#6366F1] align-middle" />
+                  1. 수집하는 정보
+                </h2>
                 <p>
                   Creator Deal Copilot은 서비스 제공을 위해 이메일 주소, 크리에이터 프로필
                   정보(팔로워 규모, 주요 플랫폼, 활동 분야 등), 브랜드 문의 내용, 서비스 이용
@@ -69,7 +74,10 @@ export default function PrivacyPage() {
               <hr className="border-[#1E1E2E]" />
 
               <section id="p2">
-                <h2 className="text-lg font-bold mb-3 text-white">2. 정보의 이용 목적</h2>
+                <h2 className="text-lg font-bold mb-3 text-white flex items-center gap-2">
+                  <span className="inline-block h-5 w-0.5 shrink-0 rounded-full bg-[#6366F1] align-middle" />
+                  2. 정보의 이용 목적
+                </h2>
                 <p>
                   수집한 정보는 견적 산출, 계약 체크리스트 생성, 답장 초안 제공 등 핵심 서비스
                   운영에만 사용됩니다. LLM 프로바이더(OpenAI, Google AI)로 처리되는 문의 내용은
@@ -80,7 +88,10 @@ export default function PrivacyPage() {
               <hr className="border-[#1E1E2E]" />
 
               <section id="p3">
-                <h2 className="text-lg font-bold mb-3 text-white">3. 제3자 공유</h2>
+                <h2 className="text-lg font-bold mb-3 text-white flex items-center gap-2">
+                  <span className="inline-block h-5 w-0.5 shrink-0 rounded-full bg-[#6366F1] align-middle" />
+                  3. 제3자 공유
+                </h2>
                 <p>
                   법적 의무 이행, 결제 처리(Polar), 분석(PostHog), 오류 모니터링(Sentry) 목적
                   외에는 개인정보를 제3자와 공유하지 않습니다.
@@ -90,7 +101,10 @@ export default function PrivacyPage() {
               <hr className="border-[#1E1E2E]" />
 
               <section id="p4">
-                <h2 className="text-lg font-bold mb-3 text-white">4. 데이터 보존</h2>
+                <h2 className="text-lg font-bold mb-3 text-white flex items-center gap-2">
+                  <span className="inline-block h-5 w-0.5 shrink-0 rounded-full bg-[#6366F1] align-middle" />
+                  4. 데이터 보존
+                </h2>
                 <p>
                   계정 삭제 요청 시 30일 이내에 개인 데이터를 삭제합니다. 결제 기록은 세무·법적
                   의무에 따라 일정 기간 보존될 수 있습니다.
@@ -100,7 +114,10 @@ export default function PrivacyPage() {
               <hr className="border-[#1E1E2E]" />
 
               <section id="p5">
-                <h2 className="text-lg font-bold mb-3 text-white">5. 문의</h2>
+                <h2 className="text-lg font-bold mb-3 text-white flex items-center gap-2">
+                  <span className="inline-block h-5 w-0.5 shrink-0 rounded-full bg-[#6366F1] align-middle" />
+                  5. 문의
+                </h2>
                 <p>
                   개인정보 관련 문의:{" "}
                   <a
@@ -113,6 +130,7 @@ export default function PrivacyPage() {
               </section>
 
             </article>
+            </div>{/* closes p-8 */}
           </div>
         </div>
       </main>

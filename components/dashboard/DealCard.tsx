@@ -2,20 +2,35 @@ import Link from "next/link";
 import type { Deal, DealStatus } from "@/types/deal";
 
 type StatusVisual = {
-  edgeColor: string;
+  edgeGradient: string;
   badgeBg: string;
   badgeText: string;
+  label: string;
 };
 
 const STATUS_VISUAL: Record<DealStatus, StatusVisual> = {
-  Lead:        { edgeColor: "bg-slate-600",   badgeBg: "bg-slate-800",       badgeText: "text-slate-400" },
-  Replied:     { edgeColor: "bg-blue-500",    badgeBg: "bg-blue-500/10",     badgeText: "text-blue-400" },
-  Negotiating: { edgeColor: "bg-amber-500",   badgeBg: "bg-amber-500/10",    badgeText: "text-amber-500" },
-  Confirmed:   { edgeColor: "bg-green-500",   badgeBg: "bg-emerald-500/10",  badgeText: "text-emerald-500" },
-  Delivered:   { edgeColor: "bg-teal-500",    badgeBg: "bg-teal-500/10",     badgeText: "text-teal-400" },
-  Paid:        { edgeColor: "bg-emerald-500", badgeBg: "bg-emerald-600/10",  badgeText: "text-emerald-600" },
-  ClosedLost:  { edgeColor: "bg-gray-600",    badgeBg: "bg-gray-800",        badgeText: "text-gray-400" },
+  Lead:        { edgeGradient: "from-slate-500 to-slate-600",     badgeBg: "bg-slate-800",        badgeText: "text-slate-400",   label: "Lead" },
+  Replied:     { edgeGradient: "from-blue-500 to-blue-600",       badgeBg: "bg-blue-500/10",      badgeText: "text-blue-400",    label: "Replied" },
+  Negotiating: { edgeGradient: "from-amber-400 to-orange-500",    badgeBg: "bg-amber-500/10",     badgeText: "text-amber-400",   label: "Negotiating" },
+  Confirmed:   { edgeGradient: "from-emerald-400 to-green-500",   badgeBg: "bg-emerald-500/10",   badgeText: "text-emerald-400", label: "Confirmed" },
+  Delivered:   { edgeGradient: "from-teal-400 to-teal-500",       badgeBg: "bg-teal-500/10",      badgeText: "text-teal-400",    label: "Delivered" },
+  Paid:        { edgeGradient: "from-emerald-400 to-emerald-600", badgeBg: "bg-emerald-600/10",   badgeText: "text-emerald-500", label: "Paid" },
+  ClosedLost:  { edgeGradient: "from-gray-500 to-gray-700",       badgeBg: "bg-gray-800",         badgeText: "text-gray-500",    label: "Closed" },
 };
+
+const MONOGRAM_GRADIENTS = [
+  "from-[#6366F1] to-indigo-500",
+  "from-pink-500 to-rose-500",
+  "from-emerald-500 to-teal-500",
+  "from-amber-400 to-orange-500",
+  "from-sky-500 to-blue-500",
+  "from-violet-500 to-purple-600",
+];
+
+function getMonogramGradient(name: string): string {
+  const code = name.charCodeAt(0) || 0;
+  return MONOGRAM_GRADIENTS[code % MONOGRAM_GRADIENTS.length];
+}
 
 function getDeadlineChip(deadline?: string): { label: string; urgent: boolean; past: boolean } | null {
   if (!deadline) return null;
@@ -31,27 +46,33 @@ export function DealCard({ deal }: { deal: Deal }) {
   const visual = STATUS_VISUAL[deal.status] ?? STATUS_VISUAL.Lead;
   const chip = getDeadlineChip(deal.deadline);
   const monogram = deal.brand_name.slice(0, 1).toUpperCase();
+  const monogramGradient = getMonogramGradient(deal.brand_name);
   const formattedAmount =
     deal.quote_target > 0 ? `₩${deal.quote_target.toLocaleString("ko-KR")}` : "—";
 
   return (
     <Link
       href={`/dashboard/deals/${deal.id}`}
-      className="group relative flex items-center bg-[#13131A] border border-[#1E1E2E] rounded-xl overflow-hidden hover:border-slate-700 transition-all"
+      className="group relative flex items-center overflow-hidden rounded-xl border border-[var(--d-border)] bg-[var(--d-surface)] transition-all duration-200 hover:border-[#6366F1]/30 hover:bg-[#15151E] hover:shadow-lg hover:shadow-[#6366F1]/5 hover:-translate-y-0.5"
     >
-      {/* Left color edge bar */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${visual.edgeColor}`} />
+      {/* Left gradient edge bar */}
+      <div className={`absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b ${visual.edgeGradient}`} />
+
+      {/* Hover shimmer */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1]/20 to-transparent" />
+      </div>
 
       <div className="flex-1 grid grid-cols-12 gap-4 items-center p-5 pl-7">
         {/* Brand monogram + name + channel */}
         <div className="col-span-4 flex items-center gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-400 text-sm shrink-0">
+          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${monogramGradient} flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg`}>
             {monogram}
           </div>
           <div className="min-w-0">
-            <h4 className="text-sm font-bold text-slate-100 truncate">{deal.brand_name}</h4>
+            <h4 className="text-sm font-bold text-[var(--d-h)] truncate group-hover:text-[var(--d-h)] transition-colors">{deal.brand_name}</h4>
             {deal.contact_channel && (
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">{deal.contact_channel}</p>
+              <p className="text-[10px] text-[var(--d-f)] mt-0.5 truncate">{deal.contact_channel}</p>
             )}
           </div>
         </div>
@@ -59,36 +80,49 @@ export function DealCard({ deal }: { deal: Deal }) {
         {/* Status badge + amount */}
         <div className="col-span-3 flex flex-col items-center gap-1.5">
           <span
-            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${visual.badgeBg} ${visual.badgeText}`}
+            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${visual.badgeBg} ${visual.badgeText}`}
           >
-            {deal.status}
+            {visual.label}
           </span>
-          <p className="text-xs font-bold text-slate-200">{formattedAmount}</p>
+          <p className="text-xs font-black text-[var(--d-b)] tabular-nums">{formattedAmount}</p>
         </div>
 
         {/* Next action + deadline chip */}
-        <div className="col-span-5 flex items-center justify-end gap-3">
+        <div className="col-span-4 flex items-center justify-end gap-3">
           {deal.next_action && (
             <div className="text-right min-w-0">
-              <p className="text-[11px] font-bold text-slate-300 truncate">{deal.next_action}</p>
-              <p className="text-[10px] text-slate-500">Next Action</p>
+              <p className="text-[11px] font-bold text-[var(--d-b)] truncate">{deal.next_action}</p>
+              <p className="text-[10px] text-[var(--d-f)]">Next Action</p>
             </div>
           )}
           {chip &&
             (chip.urgent ? (
-              <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded text-red-500 shrink-0">
+              <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/25 px-2 py-1 rounded-lg text-red-400 shrink-0">
                 <span className="text-[10px] font-black">{chip.label}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
+                </span>
               </div>
             ) : (
               <span
-                className={`px-2 py-1 rounded text-[10px] font-bold shrink-0 ${
-                  chip.past ? "bg-slate-800 text-slate-500" : "bg-slate-800 text-slate-400"
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 ${
+                  chip.past ? "bg-slate-800/80 text-slate-600" : "bg-[var(--d-border)] text-[var(--d-m)]"
                 }`}
               >
                 {chip.label}
               </span>
             ))}
+        </div>
+
+        {/* Arrow icon */}
+        <div className="col-span-1 flex justify-end">
+          <svg
+            className="w-4 h-4 text-slate-600 group-hover:text-[#6366F1] transition-all duration-200 group-hover:translate-x-0.5"
+            fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+          >
+            <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
       </div>
     </Link>

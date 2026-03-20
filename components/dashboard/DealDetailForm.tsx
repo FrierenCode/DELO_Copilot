@@ -170,14 +170,15 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
       )}
 
       {/* Header card */}
-      <div className="flex items-center justify-between bg-[#13131A] border border-[#1E1E2E] p-6 rounded-xl">
+      <div className="relative overflow-hidden flex items-center justify-between bg-[var(--d-surface)] border border-[var(--d-border)] p-6 rounded-xl">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1]/40 to-transparent" />
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 bg-[#0A0A0F] border border-[#1E1E2E] rounded-full flex items-center justify-center text-2xl font-black text-indigo-400 shrink-0">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#6366F1] to-indigo-500 text-2xl font-black text-white shadow-lg shadow-[#6366F1]/25">
             {monogram}
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-100">{deal.brand_name}</h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <h1 className="text-2xl font-black tracking-tight text-[var(--d-h)]">{deal.brand_name}</h1>
+            <p className="text-sm text-[var(--d-f)] mt-1">
               {deal.contact_channel}
               {deal.platform_requested ? ` · ${deal.platform_requested}` : ""}
             </p>
@@ -187,11 +188,11 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as DealStatus)}
-            className={`appearance-none pl-4 pr-8 py-2 rounded-lg border font-semibold text-xs tracking-wide focus:outline-none cursor-pointer ${STATUS_SELECT_COLOR[status]}`}
+            className={`appearance-none pl-4 pr-8 py-2 rounded-xl border font-semibold text-xs tracking-wide focus:outline-none cursor-pointer transition-all ${STATUS_SELECT_COLOR[status]}`}
             style={{ background: "transparent" }}
           >
             {STATUSES.map((s) => (
-              <option key={s} value={s} className="bg-[#13131A] text-slate-100">
+              <option key={s} value={s} className="bg-[var(--d-surface)] text-[var(--d-h)]">
                 {s}
               </option>
             ))}
@@ -199,9 +200,17 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white px-6 py-2 rounded-lg font-bold text-sm transition-all shadow-lg shadow-indigo-500/20"
+            className="btn-gradient disabled:opacity-50 text-white px-6 py-2 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-[#6366F1]/20"
           >
-            {saving ? "저장 중..." : "저장"}
+            {saving ? (
+              <>
+                <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                저장 중...
+              </>
+            ) : "저장"}
           </button>
         </div>
       </div>
@@ -211,8 +220,9 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
         {/* Left column — 딜 정보 / 체크리스트 / 답장 초안 */}
         <div className="col-span-12 lg:col-span-7 space-y-6">
           {/* 견적 카드 */}
-          <section className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-6">
-            <h2 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest flex items-center gap-2">
+          <section className="relative overflow-hidden bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl p-6">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+            <h2 className="text-xs font-bold text-[var(--d-f)] mb-4 uppercase tracking-widest flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
               </svg>
@@ -220,30 +230,31 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
             </h2>
             <div className="grid grid-cols-3 gap-3">
               {/* Floor */}
-              <div className="bg-[#0A0A0F] border border-[#1E1E2E] p-4 rounded-xl flex flex-col justify-between hover:border-slate-600 transition-colors">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Floor</span>
-                <p className="text-lg font-bold mt-2 text-slate-100">{formatKRW(deal.quote_floor)}</p>
+              <div className="bg-[var(--d-bg)] border border-[var(--d-border)] p-4 rounded-xl flex flex-col justify-between hover:border-slate-600/60 transition-all">
+                <span className="text-[10px] text-[var(--d-f)] font-bold uppercase tracking-wider">Floor</span>
+                <p className="text-lg font-black mt-2 text-[var(--d-b)] tabular-nums">{formatKRW(deal.quote_floor)}</p>
               </div>
               {/* Target — recommended */}
-              <div className="bg-indigo-500/5 border-2 border-indigo-500 p-4 rounded-xl relative flex flex-col justify-between">
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-[10px] text-white font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+              <div className="relative overflow-hidden bg-gradient-to-b from-[#6366F1]/8 to-transparent border-2 border-[#6366F1]/60 p-4 rounded-xl flex flex-col justify-between shadow-lg shadow-[#6366F1]/8">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1] to-transparent" />
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#6366F1] to-indigo-500 text-[10px] text-white font-black px-3 py-0.5 rounded-full whitespace-nowrap shadow-sm shadow-[#6366F1]/30">
                   추천
                 </span>
-                <span className="text-[10px] text-indigo-400 font-bold uppercase">Target</span>
-                <p className="text-lg font-bold mt-2 text-slate-100">{formatKRW(deal.quote_target)}</p>
+                <span className="text-[10px] text-[#a78bfa] font-bold uppercase tracking-wider">Target</span>
+                <p className="text-lg font-black mt-2 text-white tabular-nums">{formatKRW(deal.quote_target)}</p>
               </div>
               {/* Premium */}
-              <div className="bg-[#0A0A0F] border border-[#1E1E2E] p-4 rounded-xl flex flex-col justify-between hover:border-slate-600 transition-colors">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Premium</span>
-                <p className="text-lg font-bold mt-2 text-slate-100">{formatKRW(deal.quote_premium)}</p>
+              <div className="bg-[var(--d-bg)] border border-[var(--d-border)] p-4 rounded-xl flex flex-col justify-between hover:border-slate-600/60 transition-all">
+                <span className="text-[10px] text-[var(--d-f)] font-bold uppercase tracking-wider">Premium</span>
+                <p className="text-lg font-black mt-2 text-[var(--d-b)] tabular-nums">{formatKRW(deal.quote_premium)}</p>
               </div>
             </div>
           </section>
 
           {/* 계약 체크리스트 */}
           {checks.length > 0 && (
-            <section className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-6">
-              <h2 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">
+            <section className="bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl p-6">
+              <h2 className="text-xs font-bold text-[var(--d-f)] mb-4 uppercase tracking-widest">
                 계약 체크리스트
               </h2>
               <div className="space-y-2">
@@ -252,9 +263,9 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                   return (
                     <div
                       key={check.id}
-                      className="flex items-center justify-between p-3 bg-[#0A0A0F] rounded-lg border border-[#1E1E2E]"
+                      className="flex items-center justify-between p-3 bg-[var(--d-bg)] rounded-lg border border-[var(--d-border)]"
                     >
-                      <span className="text-sm font-medium text-slate-300">{check.message}</span>
+                      <span className="text-sm font-medium text-[var(--d-b)]">{check.message}</span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ml-3 ${badge.className}`}>
                         {badge.label}
                       </span>
@@ -267,8 +278,8 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
 
           {/* 답장 초안 탭 */}
           {sortedDrafts.length > 0 && (
-            <section className="bg-[#13131A] border border-[#1E1E2E] rounded-xl overflow-hidden">
-              <div className="bg-[#0A0A0F] border-b border-[#1E1E2E] flex">
+            <section className="bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl overflow-hidden">
+              <div className="bg-[var(--d-bg)] border-b border-[var(--d-border)] flex">
                 {sortedDrafts.map((draft, idx) => (
                   <button
                     key={draft.id}
@@ -278,7 +289,7 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                       "px-5 py-3 text-xs font-bold transition-colors",
                       idx === activeDraftIdx
                         ? "text-indigo-400 border-b-2 border-indigo-500"
-                        : "text-slate-500 hover:text-slate-300 border-b-2 border-transparent",
+                        : "text-[var(--d-f)] hover:text-[var(--d-b)] border-b-2 border-transparent",
                     ].join(" ")}
                   >
                     {TONE_LABEL[draft.tone]}
@@ -290,13 +301,13 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                   readOnly
                   value={activeDraft?.body ?? ""}
                   rows={8}
-                  className="w-full bg-transparent border-none focus:ring-0 text-sm leading-relaxed text-slate-300 resize-none outline-none"
+                  className="w-full bg-transparent border-none focus:ring-0 text-sm leading-relaxed text-[var(--d-b)] resize-none outline-none"
                 />
                 <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={handleCopy}
-                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-[#1E1E2E] text-slate-300"
+                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-[var(--d-border)] text-[var(--d-b)]"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
@@ -312,16 +323,16 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
         {/* Right column — 딜 관리 폼 / 상태 로그 */}
         <div className="col-span-12 lg:col-span-5 space-y-6">
           {/* 딜 관리 */}
-          <section className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-6">
-            <h2 className="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">딜 관리</h2>
+          <section className="bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl p-6">
+            <h2 className="text-xs font-bold text-[var(--d-f)] mb-6 uppercase tracking-widest">딜 관리</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">현재 상태</label>
+                  <label className="text-[10px] font-bold text-[var(--d-f)] uppercase">현재 상태</label>
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as DealStatus)}
-                    className="w-full h-10 rounded-lg px-3 bg-[#13131A] border border-[#1E1E2E] text-slate-100 text-sm focus:border-indigo-500 focus:outline-none"
+                    className="w-full h-10 rounded-lg px-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-sm focus:border-indigo-500 focus:outline-none"
                   >
                     {STATUSES.map((s) => (
                       <option key={s} value={s}>
@@ -331,51 +342,51 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">다음 액션</label>
+                  <label className="text-[10px] font-bold text-[var(--d-f)] uppercase">다음 액션</label>
                   <input
                     type="text"
                     value={nextAction}
                     onChange={(e) => setNextAction(e.target.value)}
                     maxLength={500}
                     placeholder="다음 액션 입력..."
-                    className="w-full h-10 rounded-lg px-3 bg-[#13131A] border border-[#1E1E2E] text-slate-100 text-sm focus:border-indigo-500 focus:outline-none placeholder:text-slate-600"
+                    className="w-full h-10 rounded-lg px-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-sm focus:border-indigo-500 focus:outline-none placeholder:text-[var(--d-f)]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">액션 마감일</label>
+                  <label className="text-[10px] font-bold text-[var(--d-f)] uppercase">액션 마감일</label>
                   <input
                     type="datetime-local"
                     value={nextActionDueAt}
                     onChange={(e) => setNextActionDueAt(e.target.value)}
-                    className="w-full h-10 rounded-lg px-3 bg-[#13131A] border border-[#1E1E2E] text-slate-100 text-sm focus:border-indigo-500 focus:outline-none"
+                    className="w-full h-10 rounded-lg px-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-sm focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">콘텐츠 마감일</label>
+                  <label className="text-[10px] font-bold text-[var(--d-f)] uppercase">콘텐츠 마감일</label>
                   <input
                     type="datetime-local"
                     value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}
-                    className="w-full h-10 rounded-lg px-3 bg-[#13131A] border border-[#1E1E2E] text-slate-100 text-sm focus:border-indigo-500 focus:outline-none"
+                    className="w-full h-10 rounded-lg px-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-sm focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">정산 마감일</label>
+                <label className="text-[10px] font-bold text-[var(--d-f)] uppercase">정산 마감일</label>
                 <input
                   type="datetime-local"
                   value={paymentDueDate}
                   onChange={(e) => setPaymentDueDate(e.target.value)}
-                  className="w-full h-10 rounded-lg px-3 bg-[#13131A] border border-[#1E1E2E] text-slate-100 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="w-full h-10 rounded-lg px-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-sm focus:border-indigo-500 focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center justify-between py-3 border-t border-[#1E1E2E]">
-                <span className="text-xs font-bold text-slate-400">후속 알림 (Follow-up)</span>
+              <div className="flex items-center justify-between py-3 border-t border-[var(--d-border)]">
+                <span className="text-xs font-bold text-[var(--d-m)]">후속 알림 (Follow-up)</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -388,14 +399,14 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">노트</label>
+                <label className="text-[10px] font-bold text-[var(--d-f)] uppercase">노트</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={4}
                   maxLength={2000}
                   placeholder="중요한 특이사항을 기록하세요."
-                  className="w-full rounded-lg p-3 bg-[#13131A] border border-[#1E1E2E] text-slate-100 text-xs leading-relaxed focus:border-indigo-500 focus:outline-none placeholder:text-slate-600 resize-none"
+                  className="w-full rounded-lg p-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-xs leading-relaxed focus:border-indigo-500 focus:outline-none placeholder:text-[var(--d-f)] resize-none"
                 />
               </div>
             </div>
@@ -403,20 +414,20 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
 
           {/* 상태 로그 타임라인 */}
           {statusLogs.length > 0 && (
-            <section className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-6">
-              <h2 className="text-xs font-bold text-slate-500 mb-6 uppercase tracking-widest">상태 로그</h2>
-              <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[7px] before:w-[1px] before:bg-[#1E1E2E]">
+            <section className="bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl p-6">
+              <h2 className="text-xs font-bold text-[var(--d-f)] mb-6 uppercase tracking-widest">상태 로그</h2>
+              <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[7px] before:w-[1px] before:bg-[var(--d-border)]">
                 {statusLogs.map((log) => (
                   <div key={log.id} className="relative pl-7">
                     <div
-                      className={`absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-[#13131A] ${STATUS_DOT_COLOR[log.to_status] ?? "bg-slate-600"}`}
+                      className={`absolute left-0 top-1.5 w-4 h-4 rounded-full border-2 border-[var(--d-surface)] ${STATUS_DOT_COLOR[log.to_status] ?? "bg-slate-600"}`}
                     />
                     <div>
-                      <p className="text-xs font-bold text-slate-100">
+                      <p className="text-xs font-bold text-[var(--d-h)]">
                         {log.to_status}
-                        <span className="text-slate-500 font-normal ml-2">{formatDate(log.created_at)}</span>
+                        <span className="text-[var(--d-f)] font-normal ml-2">{formatDate(log.created_at)}</span>
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-[var(--d-f)] mt-0.5">
                         {log.from_status} → {log.to_status}
                       </p>
                     </div>
@@ -429,7 +440,7 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
       </div>
 
       <div>
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+        <Link href="/dashboard" className="text-sm text-[var(--d-f)] hover:text-[var(--d-b)] transition-colors">
           ← 대시보드로 돌아가기
         </Link>
       </div>

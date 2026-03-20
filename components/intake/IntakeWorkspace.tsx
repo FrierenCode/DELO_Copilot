@@ -148,13 +148,20 @@ export function IntakeWorkspace() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#0A0A0F]">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--d-bg)]">
       {/* ── Left panel (40%) ── */}
-      <section className="w-full lg:w-[40%] border-r border-[#1E1E2E] p-8 overflow-y-auto bg-[#13131A]/20">
+      <section className="w-full lg:w-[40%] border-r border-[var(--d-border)] p-8 overflow-y-auto bg-[var(--d-surface)]/20">
         <div className="max-w-xl mx-auto space-y-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#F8FAFC] mb-2">새로운 브랜드 제안 분석</h1>
-            <p className="text-[#94A3B8] text-sm">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#6366F1]/25 bg-[#6366F1]/10 px-3 py-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-[#6366F1] opacity-75 animate-ping" style={{ animationDuration: "2s" }} />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#6366F1]" />
+              </span>
+              <span className="text-[11px] font-bold tracking-wide text-[#a78bfa]">AI 분석 준비 완료</span>
+            </div>
+            <h1 className="text-2xl font-black tracking-tight text-[var(--d-h)] mb-2">새로운 브랜드 제안 분석</h1>
+            <p className="text-[var(--d-m)] text-sm leading-relaxed">
               브랜드로부터 받은 문의 내용을 그대로 붙여넣어 주세요. AI가 핵심 정보를 추출합니다.
             </p>
           </div>
@@ -162,7 +169,7 @@ export function IntakeWorkspace() {
           <div className="space-y-6">
             {/* Textarea */}
             <div className="flex flex-col space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--d-f)]">
                 브랜드 문의 내용 입력
               </label>
               <textarea
@@ -171,13 +178,13 @@ export function IntakeWorkspace() {
                 onPaste={() => trackClientEvent("inquiry_pasted", { source_type: sourceType })}
                 disabled={panelState === "loading"}
                 placeholder="브랜드로부터 받은 이메일, DM, 카카오톡 내용을 그대로 붙여넣으세요."
-                className="w-full h-[320px] bg-[#13131A] border border-[#1E1E2E] rounded-xl text-sm text-[#F8FAFC] p-4 placeholder:text-[#334155] focus:ring-1 focus:ring-[#6366F1] focus:border-[#6366F1] resize-none transition-all outline-none disabled:opacity-60"
+                className="w-full h-[320px] bg-[var(--d-surface2)] border border-[var(--d-border)] rounded-xl text-sm text-[var(--d-h)] p-4 placeholder:text-[var(--d-f)] focus:ring-2 focus:ring-[#6366F1]/40 focus:border-[#6366F1]/60 resize-none transition-all outline-none disabled:opacity-60"
               />
             </div>
 
             {/* Source type toggle */}
             <div className="space-y-3">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--d-f)]">
                 문의 경로 (Source)
               </label>
               <div className="flex flex-wrap gap-2">
@@ -190,10 +197,10 @@ export function IntakeWorkspace() {
                       onClick={() => setSourceType(value)}
                       disabled={panelState === "loading"}
                       className={[
-                        "flex-1 py-2.5 px-2 rounded-xl border text-[13px] font-medium transition-colors disabled:opacity-50",
+                        "flex-1 py-2.5 px-2 rounded-xl border text-[13px] font-medium transition-all duration-200 disabled:opacity-50",
                         isActive
-                          ? "border-[#6366F1] bg-[#6366F1] text-white font-bold"
-                          : "border-[#1E1E2E] bg-[#13131A] text-[#94A3B8] hover:bg-[#6366F1]/5",
+                          ? "border-[#6366F1]/60 bg-gradient-to-b from-[#6366F1] to-indigo-600 text-white font-bold shadow-md shadow-[#6366F1]/20"
+                          : "border-[var(--d-border)] bg-[var(--d-surface)] text-[var(--d-m)] hover:border-[#6366F1]/20 hover:bg-[#6366F1]/5 hover:text-[var(--d-b)]",
                       ].join(" ")}
                     >
                       {label}
@@ -209,15 +216,30 @@ export function IntakeWorkspace() {
                 type="button"
                 onClick={handleParse}
                 disabled={!canParse}
-                className="w-full py-4 bg-[#6366F1] hover:bg-indigo-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-[#6366F1]/10 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-gradient w-full rounded-xl py-4 font-bold text-white shadow-lg shadow-[#6366F1]/20 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {panelState === "loading" ? "분석 중..." : "분석하기"}
+                {panelState === "loading" ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    분석 중...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    분석하기
+                  </>
+                )}
               </button>
               <button
                 type="button"
                 onClick={handleSampleFill}
                 disabled={panelState === "loading"}
-                className="w-full py-3 bg-transparent text-[#64748B] hover:text-[#94A3B8] rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                className="w-full py-3 rounded-xl border border-dashed border-[var(--d-border)] bg-transparent text-[var(--d-f)] hover:text-[var(--d-m)] hover:border-[#6366F1]/20 text-sm font-medium transition-all disabled:opacity-50"
               >
                 샘플 문의 불러오기
               </button>
@@ -227,7 +249,7 @@ export function IntakeWorkspace() {
       </section>
 
       {/* ── Right panel (60%) ── */}
-      <section className="w-full lg:w-[60%] p-8 overflow-y-auto bg-[#0A0A0F] pb-24">
+      <section className="w-full lg:w-[60%] p-8 overflow-y-auto bg-[var(--d-bg)] pb-24">
         <div className="max-w-4xl mx-auto space-y-10">
           {panelState === "empty" && <EmptyState />}
           {panelState === "loading" && <LoadingState step={progressStep} />}
@@ -258,20 +280,20 @@ export function IntakeWorkspace() {
 
       {/* ── Sticky action bar — only visible after a successful parse ── */}
       {parseResult && (
-        <footer className="fixed bottom-0 left-0 right-0 h-20 bg-[#13131A] border-t border-[#1E1E2E] flex items-center px-8 z-[60]">
+        <footer className="fixed bottom-0 left-0 right-0 h-20 bg-[var(--d-surface)]/95 backdrop-blur-md border-t border-[var(--d-border)] flex items-center px-8 z-[60] before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#6366F1]/30 before:to-transparent">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="relative">
                 <select
                   value={dealStatus}
                   onChange={(e) => setDealStatus(e.target.value as DealStatus)}
-                  className="bg-[#0A0A0F] border border-[#1E1E2E] text-[#F8FAFC] text-xs font-semibold rounded-xl py-2.5 px-4 pr-10 focus:ring-1 focus:ring-[#6366F1] outline-none appearance-none min-w-[140px]"
+                  className="bg-[var(--d-bg)] border border-[var(--d-border)] text-[var(--d-h)] text-xs font-semibold rounded-xl py-2.5 px-4 pr-10 focus:ring-1 focus:ring-[#6366F1] outline-none appearance-none min-w-[140px]"
                 >
                   <option value="Lead">검토 중</option>
                   <option value="Replied">답장 완료</option>
                   <option value="Negotiating">협의 진행 중</option>
                 </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#64748B]">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--d-f)]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
                   </svg>
@@ -280,7 +302,7 @@ export function IntakeWorkspace() {
               {saveError ? (
                 <p className="text-xs text-red-400 hidden md:block">{saveError}</p>
               ) : (
-                <p className="text-xs text-[#64748B] hidden md:block">
+                <p className="text-xs text-[var(--d-f)] hidden md:block">
                   이 딜을 저장하면 파이프라인 대시보드에서 관리할 수 있습니다.
                 </p>
               )}
@@ -289,7 +311,7 @@ export function IntakeWorkspace() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="px-6 py-2.5 bg-transparent border border-[#1E1E2E] rounded-xl text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-white/5 transition-colors"
+                className="px-6 py-2.5 bg-transparent border border-[var(--d-border)] rounded-xl text-sm font-medium text-[var(--d-m)] hover:text-[var(--d-h)] hover:bg-white/5 transition-colors"
               >
                 취소
               </button>
@@ -297,9 +319,17 @@ export function IntakeWorkspace() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="px-10 py-2.5 bg-[#6366F1] rounded-xl text-sm font-bold text-white shadow-lg shadow-[#6366F1]/20 hover:bg-indigo-600 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="btn-gradient px-10 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-[#6366F1]/25 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {saving ? "저장 중..." : "Deal로 저장"}
+                {saving ? (
+                  <>
+                    <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    저장 중...
+                  </>
+                ) : "Deal로 저장"}
               </button>
             </div>
           </div>
@@ -313,16 +343,15 @@ export function IntakeWorkspace() {
 
 function EmptyState() {
   return (
-    <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-xl border border-dashed border-[#1E1E2E] bg-[#13131A]/30 px-8 py-16 text-center">
-      <div className="w-12 h-12 rounded-xl bg-[#6366F1]/10 flex items-center justify-center mb-4 text-[#6366F1]">
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
+    <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-xl border border-dashed border-[var(--d-border)] bg-[var(--d-surface2)] px-8 py-16 text-center">
+      <div className="animate-float mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#6366F1]/20 bg-gradient-to-br from-[#6366F1]/15 to-indigo-500/5 text-[#6366F1] shadow-lg shadow-[#6366F1]/10">
+        <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
       </div>
-      <p className="text-base font-medium text-[#94A3B8]">분석 결과가 여기에 표시됩니다</p>
-      <p className="mt-2 text-sm text-[#64748B]">
-        왼쪽에 브랜드 이메일이나 DM을 붙여넣고 분석하기를 눌러보세요.
+      <p className="text-base font-bold text-[var(--d-m)]">분석 결과가 여기에 표시됩니다</p>
+      <p className="mt-2 text-sm text-[var(--d-f)] leading-relaxed">
+        왼쪽에 브랜드 이메일이나 DM을 붙여넣고<br />분석하기를 눌러보세요.
       </p>
     </div>
   );
@@ -330,19 +359,33 @@ function EmptyState() {
 
 function LoadingState({ step }: { step: number }) {
   return (
-    <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-xl border border-[#1E1E2E] bg-[#13131A] px-8 py-16 text-center">
-      <div className="mb-6 flex gap-2">
+    <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-xl border border-[#6366F1]/20 bg-gradient-to-b from-[#6366F1]/5 to-transparent px-8 py-16 text-center">
+      {/* Spinning icon */}
+      <div className="mb-8 relative">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#6366F1]/30 bg-[#6366F1]/10 text-[#6366F1]">
+          <svg className="h-7 w-7 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+            <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        </div>
+        <div className="absolute inset-0 rounded-2xl bg-[#6366F1]/10 blur-xl animate-pulse" />
+      </div>
+      {/* Step dots */}
+      <div className="mb-5 flex gap-2">
         {PARSE_PROGRESS.map((_, i) => (
           <div
             key={i}
             className={[
-              "h-1.5 w-10 rounded-full transition-all duration-500",
-              i <= step ? "bg-[#6366F1]" : "bg-[#1E1E2E]",
+              "rounded-full transition-all duration-500",
+              i < step ? "h-1.5 w-6 bg-[#6366F1]" :
+              i === step ? "h-1.5 w-10 bg-gradient-to-r from-[#6366F1] to-[#a78bfa] shadow-sm shadow-[#6366F1]/40" :
+              "h-1.5 w-6 bg-[var(--d-border)]",
             ].join(" ")}
           />
         ))}
       </div>
-      <p className="text-sm font-medium text-[#94A3B8]">{PARSE_PROGRESS[step]}</p>
+      <p className="text-sm font-bold text-[#a78bfa]">{PARSE_PROGRESS[step]}</p>
+      <p className="mt-1.5 text-xs text-[var(--d-f)]">잠시만 기다려주세요</p>
     </div>
   );
 }
