@@ -84,6 +84,9 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `supabase/migrations/008_rename_stripe_to_polar.sql`가 추가되어 `subscriptions` 테이블 billing 컬럼이 Polar 명세로 정리되었습니다.
 - `wrangler.jsonc`에 `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`가 반영되어 Cloudflare Workers 배포 설정과 checkout 성공 URL 구성이 현재 앱 동작과 맞춰졌습니다.
 - `DELETE /api/account` 계정 삭제 엔드포인트가 추가되어 인증 사용자 본인 계정과 연관 데이터를 제거하는 흐름이 연결되었습니다.
+- 루트 메타데이터에 `metadataBase`, canonical, Open Graph, Twitter 카드, 검색엔진 verification 설정이 추가되어 공개 페이지 SEO 구성이 강화되었습니다.
+- `app/robots.ts`, `app/sitemap.ts`, `app/opengraph-image.tsx`가 추가되어 색인 정책, 사이트맵, 기본 OG 이미지가 코드 기반으로 관리됩니다.
+- `public/naver0c28e8b13a7232c770a84e86a1c9df66.html`가 추가되어 Naver Search Advisor 소유권 확인 파일이 함께 배포됩니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -370,6 +373,8 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Settings` 화면은 현재 플랜, 가입일, 지원 메일, 약관 링크를 한 화면에서 제공하는 계정 허브 역할을 합니다.
 - 로그인 화면은 Google/Discord 소셜 로그인과 이메일 로그인 폴백을 함께 제공하고, 회원가입 화면은 소셜 가입과 강화된 비밀번호 정책 기반 이메일 가입을 같은 브랜딩 안에서 제공합니다.
 - 주요 공개 화면과 대시보드 사이드바의 `DELO` 로고는 공통적으로 홈 링크 역할을 합니다.
+- 루트 레이아웃 메타데이터가 `NEXT_PUBLIC_APP_URL` 기준 canonical URL과 verification meta tag를 생성하도록 정리되었습니다.
+- 랜딩 페이지는 `SoftwareApplication` JSON-LD를 포함하고, `/terms`, `/privacy`는 canonical 및 robots 메타데이터를 개별 설정합니다.
 
 ### 11. 딜 저장과 운영 데이터
 
@@ -561,12 +566,15 @@ POLAR_PRODUCT_ID=
 SENTRY_DSN=
 POSTHOG_API_KEY=
 NEXT_PUBLIC_APP_URL=
+GOOGLE_SITE_VERIFICATION=
+NAVER_SITE_VERIFICATION=
 ```
 
 보안 및 배포 메모:
 
 - `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `GOOGLE_AI_API_KEY`, `ANTHROPIC_API_KEY`, `POSTHOG_API_KEY`, `SENTRY_DSN`은 서버 전용 값으로 취급해야 합니다.
 - `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID` 역시 서버 전용 값으로 관리해야 합니다.
+- `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION`은 공개 메타 태그 생성을 위한 선택 값입니다.
 - Cloudflare Workers 배포 시 비밀 값은 Dashboard의 `Settings > Variables and Secrets` 또는 Wrangler secret으로 관리해야 합니다.
 - 현재 `wrangler.jsonc`에는 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`가 `vars`로 정의되어 있습니다.
 
@@ -792,6 +800,9 @@ npm run deploy
 - `open-next.config.ts`
 - `wrangler.jsonc`
 - `scripts/patch-opennext-helper.mjs`
+- `app/robots.ts`
+- `app/sitemap.ts`
+- `app/opengraph-image.tsx`
 
 배포 메모:
 
@@ -801,6 +812,7 @@ npm run deploy
 - 정적 자산은 `.open-next/assets`를 `ASSETS` binding으로 연결합니다.
 - Worker 자기 참조는 `WORKER_SELF_REFERENCE` service binding을 사용합니다.
 - `vercel.json`도 포함되어 있어 Next.js 빌드 환경변수 매핑용 보조 설정을 제공합니다.
+- 공개 색인 엔드포인트는 `robots.txt`, `sitemap.xml`, Open Graph 이미지 응답으로 Next.js metadata route를 통해 생성됩니다.
 
 ## 데이터베이스
 
