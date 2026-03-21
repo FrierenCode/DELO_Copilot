@@ -112,12 +112,12 @@ describe("billing-service", () => {
   // ── handleSubscriptionCreated ──────────────────────────────────────────────
 
   describe("handleSubscriptionCreated", () => {
-    it("upgrades user to pro and fires upgraded_to_pro event", async () => {
+    it("upgrades user to standard and fires upgraded_to_pro event", async () => {
       await handleSubscriptionCreated(makeCreatedEvent() as never);
       expect(mockUpsertSubscription).toHaveBeenCalledWith(
-        expect.objectContaining({ plan: "pro", status: "active", user_id: USER_ID }),
+        expect.objectContaining({ plan: "standard", status: "active", user_id: USER_ID }),
       );
-      expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "pro");
+      expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "standard");
       expect(mockTrackEvent).toHaveBeenCalledWith(
         USER_ID,
         "upgraded_to_pro",
@@ -141,9 +141,9 @@ describe("billing-service", () => {
   // ── handleSubscriptionUpdated ──────────────────────────────────────────────
 
   describe("handleSubscriptionUpdated", () => {
-    it("keeps plan as pro when subscription is active", async () => {
+    it("keeps plan as standard when subscription is active", async () => {
       await handleSubscriptionUpdated(makeUpdatedEvent() as never);
-      expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "pro");
+      expect(mockSyncUserPlan).toHaveBeenCalledWith(USER_ID, "standard");
     });
 
     it("downgrades to free when subscription is past_due", async () => {

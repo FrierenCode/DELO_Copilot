@@ -72,11 +72,11 @@ export function IntakeReply({ drafts, selectedTone, onToneChange }: Props) {
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-xs font-medium text-[#64748B]">{label}</span>
                     <span className="rounded-md bg-[#6366F1]/10 px-2 py-0.5 text-xs text-[#6366F1] font-bold">
-                      Pro
+                      Standard
                     </span>
                   </div>
                   <p className="text-sm text-[#64748B]">
-                    이 답장 유형은 Pro 플랜에서 이용 가능합니다.
+                    이 답장 유형은 Standard 플랜에서 이용 가능합니다.
                   </p>
                 </div>
               </div>

@@ -24,8 +24,8 @@ describe("plan-policy", () => {
     });
   });
 
-  describe("PRO policy", () => {
-    const policy = getPlanPolicy("pro");
+  describe("STANDARD policy", () => {
+    const policy = getPlanPolicy("standard");
 
     it("has unlimited parse volume", () => {
       expect(policy.parse_per_month).toBeNull();
@@ -50,6 +50,6 @@ describe("plan-policy", () => {
 
   it("returns the canonical policy table entries", () => {
     expect(getPlanPolicy("free")).toBe(PLAN_POLICIES.free);
-    expect(getPlanPolicy("pro")).toBe(PLAN_POLICIES.pro);
+    expect(getPlanPolicy("standard")).toBe(PLAN_POLICIES.standard);
   });
 });

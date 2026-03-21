@@ -4,7 +4,7 @@
  * Never trust client-supplied plan flags.
  */
 
-export type PlanTier = "free" | "pro";
+export type PlanTier = "free" | "standard";
 
 export type PlanPolicy = {
   /** Maximum parse calls per calendar month. Null = unlimited. */
@@ -36,7 +36,7 @@ export const PLAN_POLICIES: Record<PlanTier, PlanPolicy> = {
     full_checks_list: false,
     negotiation_ai_enabled: false,
   },
-  pro: {
+  standard: {
     parse_per_month: null,
     deal_save_limit: null,
     negotiation_ai_per_month: null,

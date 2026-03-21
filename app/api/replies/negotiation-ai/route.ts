@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       errorResponse(
         code,
         code === "FEATURE_NOT_AVAILABLE_ON_FREE"
-          ? "Negotiation AI is a Pro feature. Upgrade to access it."
+          ? "Negotiation AI is a Standard feature. Upgrade to access it."
           : "Monthly negotiation AI limit reached.",
       ),
       { status: 402 },

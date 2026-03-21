@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     const code = err instanceof Error ? err.message : "ALERTS_NOT_AVAILABLE_ON_FREE";
     return NextResponse.json(
-      errorResponse(code, "Alerts are available on Pro plan. Upgrade to unlock."),
+      errorResponse(code, "Alerts are available on Standard plan. Upgrade to unlock."),
       { status: 402 },
     );
   }

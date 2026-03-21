@@ -68,7 +68,7 @@ export async function GET(
         checks,
         missing_fields: inquiry.missing_fields,
         reply_drafts,
-        reply_meta: { negotiation_ai_available: plan === "pro" },
+        reply_meta: { negotiation_ai_available: plan === "standard" },
         created_at: inquiry.created_at,
         raw_text_preview: inquiry.raw_text_preview,
       }),

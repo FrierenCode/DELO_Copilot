@@ -187,7 +187,7 @@ export function SidebarNav({ userEmail, userName, isPro }: Props) {
             <p className="truncate text-xs font-bold text-[var(--d-b)]">{displayName}</p>
             {isPro ? (
               <span className="mt-0.5 inline-block rounded border border-[#6366F1]/20 bg-gradient-to-r from-[#6366F1]/20 to-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-[#a78bfa]">
-                Pro Plan
+                Standard Plan
               </span>
             ) : (
               <span className="mt-0.5 inline-block rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">

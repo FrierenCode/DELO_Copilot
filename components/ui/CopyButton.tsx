@@ -7,9 +7,10 @@ import { trackClientEvent } from "@/lib/analytics-client";
 type CopyButtonProps = {
   text: string;
   className?: string;
+  onAfterCopy?: () => void;
 };
 
-export function CopyButton({ text, className }: CopyButtonProps) {
+export function CopyButton({ text, className, onAfterCopy }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -18,6 +19,7 @@ export function CopyButton({ text, className }: CopyButtonProps) {
       setCopied(true);
       trackClientEvent("reply_copied");
       setTimeout(() => setCopied(false), 2000);
+      if (onAfterCopy) onAfterCopy();
     } catch {
       // ignore clipboard errors
     }
@@ -28,12 +30,12 @@ export function CopyButton({ text, className }: CopyButtonProps) {
       type="button"
       onClick={handleCopy}
       className={cn(
-        "rounded-md border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-50 active:bg-neutral-100",
-        copied && "border-green-300 text-green-700",
+        "rounded-md border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-50 active:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-700",
+        copied && "border-green-300 text-green-700 dark:border-green-700 dark:text-green-400",
         className,
       )}
     >
-      {copied ? "Copied!" : "Copy"}
+      {copied ? "복사됨!" : "복사"}
     </button>
   );
 }

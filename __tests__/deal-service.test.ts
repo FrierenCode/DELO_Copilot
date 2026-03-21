@@ -43,7 +43,7 @@ describe("buildDealPayload — plan-gated drafts", () => {
       user_id: "user-pro",
       parse_result: PARSE_RESULT,
       source_type: "email",
-      plan: "pro",
+      plan: "standard",
     });
     const tones = payload.draft_inserts.map((d) => d.tone);
     expect(tones).toContain("polite");
@@ -77,7 +77,7 @@ describe("buildDealPayload — plan-gated drafts", () => {
       user_id: "user-pro",
       parse_result: PARSE_RESULT,
       source_type: "email",
-      plan: "pro",
+      plan: "standard",
     });
     for (const draft of payload.draft_inserts) {
       expect(typeof draft.body).toBe("string");

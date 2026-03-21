@@ -99,27 +99,27 @@ describe("plan gating — free tier", () => {
   });
 });
 
-describe("plan gating — pro tier", () => {
+describe("plan gating — standard tier", () => {
   beforeEach(() => {
-    mockPlan = "pro";
+    mockPlan = "standard";
     mockCountValue = 9999;
     vi.clearAllMocks();
   });
 
-  it("allows unlimited parse for pro", async () => {
+  it("allows unlimited parse for standard", async () => {
     await expect(checkUsageLimit("user-pro", "PARSE")).resolves.not.toThrow();
   });
 
-  it("allows unlimited deal saves for pro", async () => {
+  it("allows unlimited deal saves for standard", async () => {
     await expect(checkUsageLimit("user-pro", "SAVE_DEAL")).resolves.not.toThrow();
   });
 
-  it("allows negotiation AI for pro", async () => {
+  it("allows negotiation AI for standard", async () => {
     await expect(checkUsageLimit("user-pro", "NEGOTIATION_AI")).resolves.not.toThrow();
   });
 
-  it("pro policy enables all tones and features", () => {
-    const policy = getPlanPolicy("pro");
+  it("standard policy enables all tones and features", () => {
+    const policy = getPlanPolicy("standard");
     expect(policy.reply_tones).toContain("negotiation");
     expect(policy.full_quote_breakdown).toBe(true);
     expect(policy.full_checks_list).toBe(true);

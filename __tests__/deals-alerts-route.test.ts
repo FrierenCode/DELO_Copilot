@@ -39,7 +39,7 @@ import { GET } from "@/app/api/deals/alerts/route";
 describe("deals alerts route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUserPlanForUser.mockResolvedValue("pro");
+    mockGetUserPlanForUser.mockResolvedValue("standard");
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -56,7 +56,7 @@ describe("deals alerts route", () => {
     expect(response.status).toBe(402);
   });
 
-  it("returns structured alerts for pro users", async () => {
+  it("returns structured alerts for standard users", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
     mockCheckUsageLimit.mockResolvedValue(undefined);
     mockFindDealsByUserId.mockResolvedValue([]);

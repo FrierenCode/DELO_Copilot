@@ -6,7 +6,7 @@ import Link from "next/link";
 import { trackClientEvent } from "@/lib/analytics-client";
 
 type Props = {
-  plan: "free" | "pro";
+  plan: "free" | "standard";
   email: string;
   createdAt: string | null;
   subscriptionStatus: string | null;
@@ -67,7 +67,7 @@ export function SettingsBillingPanel({
     }
   }
 
-  const isPro = plan === "pro";
+  const isPro = plan === "standard";
   const isActive = subscriptionStatus === "active" || subscriptionStatus === "trialing";
 
   const periodLabel = currentPeriodEnd
@@ -118,7 +118,7 @@ export function SettingsBillingPanel({
               <div className="flex items-center gap-3">
                 {isPro ? (
                   <span className="px-3 py-1 bg-gradient-to-r from-[#6366F1]/20 to-indigo-500/20 text-indigo-400 text-xs font-bold rounded-full border border-[#6366F1]/20">
-                    Pro 플랜
+                    Standard 플랜
                   </span>
                 ) : (
                   <span className="px-3 py-1 bg-[var(--d-border)] text-[var(--d-m)] text-xs font-bold rounded-full border border-[var(--d-border)]">
@@ -135,7 +135,7 @@ export function SettingsBillingPanel({
                   </div>
                 )}
                 {subscriptionStatus === "canceled" && (
-                  <span className="text-xs text-amber-400">취소됨 (기간 만료까지 Pro 유지)</span>
+                  <span className="text-xs text-amber-400">취소됨 (기간 만료까지 Standard 유지)</span>
                 )}
                 {subscriptionStatus === "past_due" && (
                   <span className="text-xs text-rose-400">결제 미납 — 플랜 갱신 필요</span>
@@ -168,7 +168,7 @@ export function SettingsBillingPanel({
                         </svg>
                       </div>
                       <p className="text-sm text-[var(--d-b)] max-w-md">
-                        Pro로 업그레이드하면{" "}
+                        Standard로 업그레이드하면{" "}
                         <span className="font-bold text-[#a78bfa]">
                           협상 AI, 딜 파이프라인, 무제한 파싱
                         </span>
@@ -189,7 +189,7 @@ export function SettingsBillingPanel({
                           이동 중...
                         </>
                       ) : (
-                        "Pro 시작하기 →"
+                        "Standard 시작하기 →"
                       )}
                     </button>
                   </div>
@@ -275,9 +275,9 @@ export function SettingsBillingPanel({
             </div>
           )}
           <div className="relative mb-6">
-            <span className="text-[#a78bfa] text-xs font-black uppercase tracking-widest">Pro</span>
+            <span className="text-[#a78bfa] text-xs font-black uppercase tracking-widest">Standard</span>
             <div className="flex items-baseline gap-1 mt-2">
-              <span className="text-3xl font-black text-[var(--d-h)]">₩19,900</span>
+              <span className="text-3xl font-black text-[var(--d-h)]">₩12,900</span>
               <span className="text-[var(--d-f)] font-medium">/ 월</span>
             </div>
           </div>
@@ -472,7 +472,7 @@ export function SettingsBillingPanel({
                 {[
                   "모든 딜 데이터와 분석 히스토리가 삭제됩니다",
                   "크리에이터 프로필 정보가 삭제됩니다",
-                  "Pro 구독이 있다면 즉시 해지됩니다",
+                  "Standard 구독이 있다면 즉시 해지됩니다",
                   "삭제된 데이터는 복구할 수 없습니다",
                 ].map((msg) => (
                   <li key={msg} className="flex items-start gap-2 text-xs text-red-400/80">

@@ -1,5 +1,3 @@
-import { TextArea } from "@/components/ui/TextArea";
-
 type InquiryInputProps = {
   value: string;
   onChange: (value: string) => void;
@@ -8,17 +6,14 @@ type InquiryInputProps = {
 
 export function InquiryInput({ value, onChange, disabled }: InquiryInputProps) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-neutral-700">
-        Paste inquiry message
-      </label>
-      <TextArea
-        rows={8}
-        placeholder="Paste the brand's email or DM here…"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-      />
-    </div>
+    <textarea
+      rows={8}
+      placeholder="이곳에 문의 내용을 입력하세요..."
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="p-textarea w-full rounded-2xl border-none p-6 text-sm font-medium leading-relaxed transition-all disabled:opacity-50"
+      style={{ resize: "vertical" }}
+    />
   );
 }

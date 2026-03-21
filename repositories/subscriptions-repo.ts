@@ -75,7 +75,7 @@ export async function isEventProcessed(polarEventId: string): Promise<boolean> {
 }
 
 /** Sync plan tier to user_plans table after subscription change. */
-export async function syncUserPlan(userId: string, plan: "free" | "pro"): Promise<void> {
+export async function syncUserPlan(userId: string, plan: "free" | "standard"): Promise<void> {
   const db = createAdminClient();
   const { error } = await db
     .from("user_plans")

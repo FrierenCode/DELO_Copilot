@@ -106,6 +106,118 @@ html.landing-light .dark-only-glow { display: none; }
 .light-only-glow { display: none; }
 html.landing-light .light-only-glow { display: block; }
 
+/* ─── Parse Page Theme Variables ─── */
+.parse-page {
+  --p-bg:                   #0e0e13;
+  --p-surface:              #131319;
+  --p-surface-2:            #19191f;
+  --p-surface-3:            #25252d;
+  --p-text:                 #f9f5fd;
+  --p-muted:                #acaab1;
+  --p-dim:                  #48474d;
+  --p-nav-bg:               rgba(14, 14, 19, 0.8);
+  --p-nav-shadow:           0 0 40px rgba(163, 166, 255, 0.06);
+  --p-glow:                 rgba(163, 166, 255, 0.04);
+  --p-primary:              #a3a6ff;
+  --p-secondary:            #a88cfb;
+  --p-tertiary:             #9bffce;
+  --p-error:                #ff6e84;
+  --p-primary-soft:         rgba(163, 166, 255, 0.10);
+  --p-primary-soft-bd:      rgba(163, 166, 255, 0.20);
+  --p-secondary-soft:       rgba(168, 140, 251, 0.12);
+  --p-secondary-badge-bg:   rgba(79, 49, 156, 0.30);
+  --p-secondary-badge-bd:   rgba(168, 140, 251, 0.20);
+  --p-tertiary-soft:        rgba(155, 255, 206, 0.07);
+  --p-tertiary-soft-bd:     rgba(155, 255, 206, 0.20);
+  --p-error-soft:           rgba(255, 110, 132, 0.10);
+  --p-error-soft-bd:        rgba(255, 110, 132, 0.20);
+  --p-border:               rgba(72, 71, 77, 0.40);
+  --p-card-shadow:          none;
+  --p-card-border:          rgba(255, 255, 255, 0.04);
+  --p-btn-gradient:         linear-gradient(to right, #a3a6ff, #a88cfb);
+  --p-btn-shadow:           0 8px 24px rgba(163, 166, 255, 0.20);
+  --p-focus-ring:           0 0 0 2px rgba(163, 166, 255, 0.40);
+}
+
+html.landing-light .parse-page {
+  --p-bg:                   #f8fafc;
+  --p-surface:              #ffffff;
+  --p-surface-2:            #f8fafc;
+  --p-surface-3:            #f1f5f9;
+  --p-text:                 #0f172a;
+  --p-muted:                #64748b;
+  --p-dim:                  #94a3b8;
+  --p-nav-bg:               rgba(248, 250, 252, 0.90);
+  --p-nav-shadow:           0 1px 0 #e2e8f0;
+  --p-glow:                 rgba(79, 70, 229, 0.04);
+  --p-primary:              #4f46e5;
+  --p-secondary:            #7c3aed;
+  --p-tertiary:             #059669;
+  --p-error:                #dc2626;
+  --p-primary-soft:         rgba(79, 70, 229, 0.08);
+  --p-primary-soft-bd:      rgba(79, 70, 229, 0.20);
+  --p-secondary-soft:       rgba(124, 58, 237, 0.10);
+  --p-secondary-badge-bg:   rgba(124, 58, 237, 0.10);
+  --p-secondary-badge-bd:   rgba(124, 58, 237, 0.20);
+  --p-tertiary-soft:        rgba(5, 150, 105, 0.06);
+  --p-tertiary-soft-bd:     rgba(5, 150, 105, 0.20);
+  --p-error-soft:           rgba(220, 38, 38, 0.08);
+  --p-error-soft-bd:        rgba(220, 38, 38, 0.20);
+  --p-border:               rgba(203, 213, 225, 0.80);
+  --p-card-shadow:          0 1px 3px rgba(0, 0, 0, 0.06);
+  --p-card-border:          #e2e8f0;
+  --p-btn-gradient:         linear-gradient(to right, #4f46e5, #7c3aed);
+  --p-btn-shadow:           0 8px 24px rgba(79, 70, 229, 0.20);
+  --p-focus-ring:           0 0 0 2px rgba(79, 70, 229, 0.30);
+}
+
+/* parse page helper classes */
+.p-sample-btn {
+  background-color: var(--p-surface-3);
+  color: var(--p-muted);
+  transition: background-color 0.15s, color 0.15s;
+}
+.p-sample-btn:hover:not(:disabled) {
+  background-color: var(--p-primary-soft);
+  color: var(--p-primary);
+}
+.p-sample-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.p-textarea {
+  background-color: var(--p-surface-2);
+  color: var(--p-text);
+  caret-color: var(--p-primary);
+}
+.p-textarea:focus { box-shadow: var(--p-focus-ring); outline: none; }
+.p-textarea::placeholder { color: var(--p-muted); opacity: 0.55; }
+
+.p-close-btn { color: var(--p-muted); }
+.p-close-btn:hover { background-color: var(--p-surface-3); color: var(--p-text); }
+
+/* Card entrance animation */
+@keyframes p-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Horizontal result scroll */
+.p-results-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--p-surface-3) transparent;
+}
+.p-results-scroll::-webkit-scrollbar { height: 3px; }
+.p-results-scroll::-webkit-scrollbar-track { background: transparent; }
+.p-results-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--p-surface-3);
+  border-radius: 99px;
+}
+
 /* ─── Dashboard Theme Variables ─── */
 .dashboard-theme {
   --d-bg:       #0A0A0F;

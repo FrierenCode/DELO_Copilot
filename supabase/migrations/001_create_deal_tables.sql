@@ -90,7 +90,7 @@ CREATE INDEX IF NOT EXISTS reply_drafts_deal_id_idx ON reply_drafts(deal_id);
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS user_plans (
   user_id    UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan       TEXT        NOT NULL DEFAULT 'free' CHECK (plan IN ('free','pro')),
+  plan       TEXT        NOT NULL DEFAULT 'free' CHECK (plan IN ('free','pro')), -- NOTE: 'pro' renamed to 'standard' in migration 009
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

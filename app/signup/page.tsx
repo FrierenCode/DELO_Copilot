@@ -134,7 +134,7 @@ export default function SignupPage() {
     return (
       <div className="login-page min-h-screen bg-[var(--login-bg-solid)] text-[var(--login-text)] transition-colors">
         <header className="fixed left-0 top-0 z-10 w-full p-8">
-          <Link href="/" className="flex w-fit items-center gap-2">
+          <Link href="/" className="flex w-fit items-center gap-2.5">
             <Image src="/fox-icon.svg" width={28} height={28} alt="DELO 로고" priority />
             <span className="text-xl font-bold tracking-tight">DELO</span>
           </Link>
@@ -185,12 +185,8 @@ export default function SignupPage() {
   return (
     <div className="login-page min-h-screen bg-[var(--login-bg-solid)] text-[var(--login-text)] transition-colors">
       <header className="fixed left-0 top-0 z-10 w-full p-8">
-        <Link href="/" className="flex w-fit items-center gap-2">
-          <div className="text-[var(--login-accent)]">
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 42.4379C4 42.4379 14.0962 36.0744 24 41.1692C35.0664 46.8624 44 42.2078 44 42.2078L44 7.01134C44 7.01134 35.068 11.6577 24.0031 5.96913C14.0971 0.876274 4 7.27094 4 7.27094L4 42.4379Z" />
-            </svg>
-          </div>
+        <Link href="/" className="flex w-fit items-center gap-2.5">
+          <Image src="/fox-icon.svg" width={28} height={28} alt="DELO 로고" priority />
           <span className="text-xl font-bold tracking-tight">DELO</span>
         </Link>
       </header>

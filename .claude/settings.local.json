@@ -36,7 +36,10 @@
       "Bash(npm run:*)",
       "mcp__ide__getDiagnostics",
       "WebFetch(domain:developers.google.com)",
-      "WebFetch(domain:searchadvisor.naver.com)"
+      "WebFetch(domain:searchadvisor.naver.com)",
+      "Bash(find C:UsersPCDesktop모음businesscreator-deal-copilot -type f \\\\\\(-name *prompt* -o -name *reply* \\\\\\))",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \":*)"
     ],
     "deny": [
       "MCPSearch"

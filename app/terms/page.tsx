@@ -101,7 +101,7 @@ export default function TermsPage() {
                   3. 플랜 및 결제
                 </h2>
                 <p>
-                  Free 플랜은 월 5회 파싱, 10건 Deal 저장이 제한됩니다. Pro 플랜은 무제한 이용이
+                  Free 플랜은 월 5회 파싱, 10건 Deal 저장이 제한됩니다. Standard 플랜은 무제한 이용이
                   가능하며 <strong className="text-white">Polar</strong>를 통해 청구됩니다. 환불 정책은 결제 완료 후
                   7일 이내 미사용 건에 한해 적용됩니다.
                 </p>

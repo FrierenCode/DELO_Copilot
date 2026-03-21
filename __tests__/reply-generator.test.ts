@@ -60,12 +60,12 @@ describe("generateReplyDrafts — plan-gated tones", () => {
     expect(result.drafts.negotiation).toBeNull();
   });
 
-  it("PRO: all three drafts are non-null strings", () => {
+  it("STANDARD: all three drafts are non-null strings", () => {
     const result = generateReplyDrafts({
       parsed_json: INQUIRY,
       quote_breakdown: QUOTE,
       missing_fields: [],
-      plan: "pro",
+      plan: "standard",
     });
     expect(result.drafts.polite).toBeTruthy();
     expect(result.drafts.quick).toBeTruthy();
@@ -78,7 +78,7 @@ describe("generateReplyDrafts — plan-gated tones", () => {
       parsed_json: INQUIRY,
       quote_breakdown: QUOTE,
       missing_fields: [],
-      plan: "pro",
+      plan: "standard",
     });
     expect(result).not.toBeInstanceOf(Promise);
     expect(result.drafts).toBeDefined();

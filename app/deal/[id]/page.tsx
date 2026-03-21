@@ -369,9 +369,9 @@ export default function DealDetailPage() {
 
               {!isPro && activeTab !== "polite" ? (
                 <div className="h-40 flex flex-col items-center justify-center gap-2 text-center">
-                  <p className="text-sm text-slate-500">이 초안은 Pro 전용입니다.</p>
+                  <p className="text-sm text-slate-500">이 초안은 Standard 전용입니다.</p>
                   <Link href="/dashboard/settings" className="text-xs text-indigo-400 font-bold hover:underline underline-offset-4">
-                    Pro로 업그레이드 →
+                    Standard로 업그레이드 →
                   </Link>
                 </div>
               ) : (

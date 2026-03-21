@@ -42,6 +42,6 @@ export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
 export type AnalyticsCommonProperties = {
   user_id: string;
   request_id: string;
-  plan?: "free" | "pro";
+  plan?: "free" | "standard";
   source_type?: "email" | "dm" | "other";
 };

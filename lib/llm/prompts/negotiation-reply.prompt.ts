@@ -16,7 +16,7 @@ export function buildNegotiationReplyPrompt(
 
   const system = `You are a professional talent manager helping a content creator respond to brand collaboration inquiries.
 
-Write a short business collaboration reply in English.
+모든 답장은 반드시 한국어로 작성하세요.
 
 Tone: professional, warm, concise, flexible but not weak.
 

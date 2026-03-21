@@ -27,6 +27,13 @@ Output rules:
 - Do not invent information not present in the message
 - Use "not specified" for any field that is unclear or absent
 - All field values must be strings
+- 모든 필드 값은 반드시 한국어로 작성하세요.
+  예시:
+  - deliverables: '인스타그램 피드 포스팅 1회, 스토리 3회'
+  - timeline: '다음 달 중'
+  - compensation_type: '협의 가능'
+  - exclusivity: '계약 기간 중 경쟁사 콘텐츠 제한'
+  숫자, 고유명사, 브랜드명은 원문 유지.
 
 Extract exactly these fields:
 - brand_name: the name of the brand or company sending the inquiry

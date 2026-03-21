@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
     const code = err instanceof Error ? err.message : "PLAN_LIMIT_DEAL_SAVE_REACHED";
     analytics.track("paywall_viewed", { action: "SAVE_DEAL", reason: code });
     return NextResponse.json(
-      errorResponse(code, "Deal save limit reached. Upgrade to Pro for more."),
+      errorResponse(code, "Deal save limit reached. Upgrade to Standard for more."),
       { status: 402 },
     );
   }

@@ -95,7 +95,7 @@ function postRequest(body: object) {
 describe("deals route GET", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUserPlanForUser.mockResolvedValue("pro");
+    mockGetUserPlanForUser.mockResolvedValue("standard");
     mockFindDealsByUserId.mockResolvedValue([]);
     mockCheckUsageLimit.mockResolvedValue(undefined);
   });
@@ -126,7 +126,7 @@ describe("deals route POST — initial_status", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetUser.mockResolvedValue({ data: { user: { id: userId } } });
-    mockGetUserPlanForUser.mockResolvedValue("pro");
+    mockGetUserPlanForUser.mockResolvedValue("standard");
     mockCheckUsageLimit.mockResolvedValue(undefined);
     mockFindProfileByUserId.mockResolvedValue(null);
     mockFindInquiryById.mockResolvedValue(makeInquiry(inquiryId, userId));

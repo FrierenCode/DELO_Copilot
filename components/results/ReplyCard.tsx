@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Card } from "@/components/ui/Card";
+import { useEffect, useRef, useState } from "react";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { SignupPromptModal } from "@/components/ui/SignupPromptModal";
 import type { ReplyDrafts } from "@/types/parse-api";
 
 type ReplyTone = "polite" | "quick" | "negotiation";
@@ -10,6 +10,8 @@ type ReplyTone = "polite" | "quick" | "negotiation";
 type ReplyCardProps = {
   drafts: ReplyDrafts;
   inquiryId?: string;
+  isLoggedIn?: boolean;
+  bare?: boolean;
 };
 
 type ReplyBlockProps = {
@@ -17,33 +19,52 @@ type ReplyBlockProps = {
   tone: ReplyTone;
   text: string | null;
   inquiryId?: string;
+  isLoggedIn?: boolean;
   onSaved: (tone: ReplyTone, value: string) => void;
+  onPromptSignup: () => void;
 };
 
-function ReplyBlock({ label, tone, text, inquiryId, onSaved }: ReplyBlockProps) {
+function ReplyBlock({ label, tone, text, inquiryId, isLoggedIn, onSaved, onPromptSignup }: ReplyBlockProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text ?? "");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const signupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => { if (signupTimerRef.current) clearTimeout(signupTimerRef.current); };
+  }, []);
+
+  function scheduleSignupPrompt(delay: number) {
+    if (signupTimerRef.current) clearTimeout(signupTimerRef.current);
+    signupTimerRef.current = setTimeout(onPromptSignup, delay);
+  }
 
   if (text === null) {
     return (
-      <div className="rounded-lg border border-dashed border-neutral-200 p-4">
+      <div className="rounded-xl p-3" style={{ backgroundColor: "var(--p-surface)" }}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--p-secondary)" }}>
             {label}
           </span>
-          <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">Pro</span>
+          <span
+            className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-widest"
+            style={{ backgroundColor: "var(--p-secondary-soft)", color: "var(--p-secondary)" }}
+          >
+            Standard
+          </span>
         </div>
-        <p className="text-sm text-neutral-400">Upgrade to Pro to unlock this reply.</p>
+        <p className="text-xs" style={{ color: "var(--p-dim)" }}>Standard 플랜에서 사용 가능합니다</p>
       </div>
     );
   }
 
   async function handleSave() {
-    if (!inquiryId) {
+    const skipApi = !isLoggedIn || !inquiryId || inquiryId === "demo";
+    if (skipApi) {
       onSaved(tone, draft);
       setEditing(false);
+      if (!isLoggedIn) scheduleSignupPrompt(1000);
       return;
     }
     setSaving(true);
@@ -55,10 +76,7 @@ function ReplyBlock({ label, tone, text, inquiryId, onSaved }: ReplyBlockProps) 
         body: JSON.stringify({ reply_drafts: { [tone]: draft } }),
       });
       const json = await res.json();
-      if (!json.success) {
-        setSaveError(json.error?.message ?? "Save failed.");
-        return;
-      }
+      if (!json.success) { setSaveError(json.error?.message ?? "Save failed."); return; }
       onSaved(tone, draft);
       setEditing(false);
     } catch {
@@ -75,23 +93,25 @@ function ReplyBlock({ label, tone, text, inquiryId, onSaved }: ReplyBlockProps) 
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 p-4">
+    <div className="rounded-xl p-3" style={{ backgroundColor: "var(--p-surface)" }}>
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--p-secondary)" }}>
           {label}
         </span>
         <div className="flex items-center gap-2">
-          {!editing && <CopyButton text={text} />}
+          {!editing && (
+            <CopyButton
+              text={text}
+              onAfterCopy={!isLoggedIn ? () => scheduleSignupPrompt(2000) : undefined}
+            />
+          )}
           <button
             type="button"
-            onClick={() => {
-              setDraft(text);
-              setEditing((v) => !v);
-              setSaveError(null);
-            }}
-            className="rounded-md border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+            onClick={() => { setDraft(text); setEditing((v) => !v); setSaveError(null); }}
+            className="rounded-full px-3 py-1 text-xs font-bold transition-all hover:brightness-110"
+            style={{ backgroundColor: "var(--p-surface-3)", color: "var(--p-muted)" }}
           >
-            {editing ? "Close" : "Edit"}
+            {editing ? "닫기" : "수정"}
           </button>
         </div>
       </div>
@@ -102,64 +122,102 @@ function ReplyBlock({ label, tone, text, inquiryId, onSaved }: ReplyBlockProps) 
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={8}
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+            className="p-textarea w-full rounded-xl border-none p-4 text-xs leading-relaxed"
           />
-          {saveError && (
-            <p className="text-xs text-red-600">{saveError}</p>
-          )}
+          {saveError && <p className="text-xs" style={{ color: "var(--p-error)" }}>{saveError}</p>}
           <div className="flex gap-2">
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-md bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+              className="rounded-full px-4 py-1.5 text-xs font-black text-white transition-all hover:brightness-110 disabled:opacity-50"
+              style={{ background: "var(--p-btn-gradient)" }}
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? "저장 중…" : "저장"}
             </button>
             <button
               type="button"
               onClick={handleCancel}
               disabled={saving}
-              className="rounded-md border border-neutral-200 px-4 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+              className="rounded-full px-4 py-1.5 text-xs font-bold transition-all disabled:opacity-50"
+              style={{ backgroundColor: "var(--p-surface-3)", color: "var(--p-muted)" }}
             >
-              Cancel
+              취소
             </button>
           </div>
         </div>
       ) : (
-        <pre className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-800">{text}</pre>
+        <pre className="whitespace-pre-wrap text-xs leading-relaxed" style={{ color: "var(--p-text)", fontFamily: "inherit" }}>
+          {text}
+        </pre>
       )}
     </div>
   );
 }
 
-export function ReplyCard({ drafts: initialDrafts, inquiryId }: ReplyCardProps) {
+export function ReplyCard({ drafts: initialDrafts, inquiryId, isLoggedIn = false, bare = false }: ReplyCardProps) {
   const [drafts, setDrafts] = useState(initialDrafts);
-
-  function handleSaved(tone: ReplyTone, value: string) {
-    setDrafts((prev) => ({ ...prev, [tone]: value }));
-  }
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   const blocks: { label: string; tone: ReplyTone; text: string | null }[] = [
-    { label: "Polite reply", tone: "polite", text: drafts.polite },
-    { label: "Quick reply", tone: "quick", text: drafts.quick },
-    { label: "Negotiation reply", tone: "negotiation", text: drafts.negotiation },
+    { label: "정중한 답장", tone: "polite", text: drafts.polite },
+    { label: "간단 답장", tone: "quick", text: drafts.quick },
+    { label: "협상 답장", tone: "negotiation", text: drafts.negotiation },
   ];
 
+  const inner = (
+    <div className="flex flex-col gap-3">
+      {blocks.map((b) => (
+        <ReplyBlock
+          key={b.tone}
+          label={b.label}
+          tone={b.tone}
+          text={b.text}
+          inquiryId={inquiryId}
+          isLoggedIn={isLoggedIn}
+          onSaved={(tone, val) => setDrafts((prev) => ({ ...prev, [tone]: val }))}
+          onPromptSignup={() => setShowSignupPrompt(true)}
+        />
+      ))}
+    </div>
+  );
+
+  if (bare) {
+    return (
+      <>
+        {inner}
+        <SignupPromptModal open={showSignupPrompt} onClose={() => setShowSignupPrompt(false)} />
+      </>
+    );
+  }
+
   return (
-    <Card title="Reply Drafts">
-      <div className="flex flex-col gap-4">
-        {blocks.map((b) => (
-          <ReplyBlock
-            key={b.tone}
-            label={b.label}
-            tone={b.tone}
-            text={b.text}
-            inquiryId={inquiryId}
-            onSaved={handleSaved}
-          />
-        ))}
+    <>
+      <div
+        className="overflow-hidden rounded-2xl border-l-4"
+        style={{
+          backgroundColor: "var(--p-surface-2)",
+          borderLeftColor: "var(--p-secondary)",
+          boxShadow: "var(--p-card-shadow)",
+          border: "1px solid var(--p-card-border)",
+          borderLeftWidth: "4px",
+        }}
+      >
+        <div className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--p-muted)" }}>
+              답장 초안
+            </h3>
+            {!isLoggedIn && (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ color: "var(--p-secondary)" }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            )}
+          </div>
+          {inner}
+        </div>
       </div>
-    </Card>
+      <SignupPromptModal open={showSignupPrompt} onClose={() => setShowSignupPrompt(false)} />
+    </>
   );
 }

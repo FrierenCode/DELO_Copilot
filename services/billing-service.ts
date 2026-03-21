@@ -12,7 +12,7 @@ import { trackEvent } from "@/lib/analytics";
 export type CheckoutResult = { url: string };
 
 /**
- * Creates a Polar hosted checkout session for the Pro subscription.
+ * Creates a Polar hosted checkout session for the Standard subscription.
  */
 export async function createCheckoutSession(
   userId: string,
@@ -73,13 +73,13 @@ export async function handleSubscriptionCreated(
     polar_customer_id: sub.customerId,
     polar_subscription_id: sub.id,
     status: sub.status,
-    plan: "pro",
+    plan: "standard",
     current_period_end: periodEnd,
     polar_event_id: sub.id + "_created",
   });
-  await syncUserPlan(userId, "pro");
+  await syncUserPlan(userId, "standard");
   trackEvent(userId, "upgraded_to_pro", { polar_subscription_id: sub.id });
-  logInfo("user upgraded to pro via subscription.created", { userId, subId: sub.id });
+  logInfo("user upgraded to standard via subscription.created", { userId, subId: sub.id });
 }
 
 /**
@@ -93,7 +93,7 @@ export async function handleSubscriptionUpdated(
   if (await isEventProcessed(eventId)) return;
 
   const isActive = sub.status === "active" || sub.status === "trialing";
-  const plan: "free" | "pro" = isActive ? "pro" : "free";
+  const plan: "free" | "standard" = isActive ? "standard" : "free";
   const periodEnd = sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toISOString() : null;
 
   let row = await findSubscriptionByCustomerId(sub.customerId);

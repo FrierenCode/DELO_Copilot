@@ -56,9 +56,9 @@ export default async function DashboardPage() {
                 </svg>
               </span>
               <p className="text-sm text-[var(--d-m)]">
-                <span className="font-bold text-[var(--d-b)]">운영 알림</span>은 Pro 전용 기능입니다. 마감 임박·미결 항목 알림을 받으려면
+                <span className="font-bold text-[var(--d-b)]">운영 알림</span>은 Standard 전용 기능입니다. 마감 임박·미결 항목 알림을 받으려면
                 {" "}
-                <Link href="/dashboard/settings" className="font-bold text-[#a78bfa] hover:brightness-110 transition-all">Pro로 업그레이드</Link>하세요.
+                <Link href="/dashboard/settings" className="font-bold text-[#a78bfa] hover:brightness-110 transition-all">Standard로 업그레이드</Link>하세요.
               </p>
             </div>
           </div>

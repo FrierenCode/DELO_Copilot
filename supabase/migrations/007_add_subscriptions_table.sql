@@ -9,7 +9,7 @@ create table if not exists subscriptions (
   stripe_customer_id  text not null,
   stripe_sub_id       text unique,           -- null until first checkout.session.completed
   status              text not null default 'inactive',  -- active | canceled | past_due | inactive
-  plan                text not null default 'free',      -- free | pro
+  plan                text not null default 'free',      -- free | pro  (NOTE: 'pro' renamed to 'standard' in migration 009)
   current_period_end  timestamptz,
   stripe_event_id     text,                  -- last processed Stripe event id (idempotency)
   created_at          timestamptz not null default now(),

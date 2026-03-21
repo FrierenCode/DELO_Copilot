@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       const code = err instanceof Error ? err.message : "PLAN_LIMIT_PARSE_REACHED";
       analytics.track("paywall_viewed", { action: "PARSE", reason: code });
       return NextResponse.json(
-        errorResponse(code, "Monthly parse limit reached. Upgrade to Pro for more."),
+        errorResponse(code, "Monthly parse limit reached. Upgrade to Standard for more."),
         { status: 429 },
       );
     }

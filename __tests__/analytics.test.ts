@@ -23,7 +23,7 @@ describe("analytics tracker", () => {
   it("merges common properties into each event", () => {
     const tracker = createAnalyticsTracker({
       user_id: "user-1",
-      plan: "pro",
+      plan: "standard",
       request_id: "req-1",
       source_type: "email",
     });
@@ -35,7 +35,7 @@ describe("analytics tracker", () => {
       event: "parse_started",
       properties: expect.objectContaining({
         user_id: "user-1",
-        plan: "pro",
+        plan: "standard",
         request_id: "req-1",
         source_type: "email",
       }),

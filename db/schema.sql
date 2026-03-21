@@ -145,7 +145,7 @@ CREATE POLICY "users_select_own_reply_drafts" ON reply_drafts FOR SELECT
 -- ============================================================
 CREATE TABLE user_plans (
   user_id    UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  plan       TEXT        NOT NULL DEFAULT 'free' CHECK (plan IN ('free','pro')),
+  plan       TEXT        NOT NULL DEFAULT 'free' CHECK (plan IN ('free','standard')),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

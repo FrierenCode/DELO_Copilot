@@ -22,7 +22,9 @@ export function RootNav() {
     pathname === "/signup" ||
     pathname === "/onboarding" ||
     pathname === "/terms" ||
-    pathname === "/privacy"
+    pathname === "/privacy" ||
+    pathname === "/how-it-works" ||
+    pathname === "/parse"
   ) return null;
 
   return (

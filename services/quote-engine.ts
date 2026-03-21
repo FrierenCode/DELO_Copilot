@@ -30,18 +30,18 @@ const BASE_FEE_MAP: Record<FollowersBand, number> = {
 };
 
 const FOLLOWERS_BAND_LABEL: Record<FollowersBand, string> = {
-  under_10k: "under 10k",
-  "10k_50k": "10k~50k",
-  "50k_100k": "50k~100k",
-  "100k_500k": "100k~500k",
-  over_500k: "over 500k",
+  under_10k: "1만 미만",
+  "10k_50k": "1만~5만",
+  "50k_100k": "5만~10만",
+  "100k_500k": "10만~50만",
+  over_500k: "50만 이상",
 };
 
 const AVG_VIEWS_LABEL: Record<AvgViewsBand, string> = {
-  under_5k: "under 5k",
-  "5k_20k": "5k~20k",
-  "20k_50k": "20k~50k",
-  over_50k: "over 50k",
+  under_5k: "5천 미만",
+  "5k_20k": "5천~2만",
+  "20k_50k": "2만~5만",
+  over_50k: "5만 이상",
 };
 
 function timelineDays(timeline: string): number {
@@ -71,13 +71,13 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
   const viewsLabel = AVG_VIEWS_LABEL[creator_profile.avg_views_band];
 
   const extras: string[] = [];
-  if (usage_rights_fee > 0) extras.push("usage rights");
-  if (exclusivity_fee > 0) extras.push("exclusivity");
-  if (rush_fee > 0) extras.push("rush delivery");
+  if (usage_rights_fee > 0) extras.push("콘텐츠 사용권");
+  if (exclusivity_fee > 0) extras.push("독점 조항");
+  if (rush_fee > 0) extras.push("긴급 납품");
 
-  const extrasNote = extras.length > 0 ? ` with ${extras.join(", ")}` : "";
+  const extrasNote = extras.length > 0 ? ` / ${extras.join(", ")} 포함` : "";
   const explanation =
-    `Based on ${followersLabel} followers and ${viewsLabel} avg views in ${creator_profile.niche} niche${extrasNote}.`;
+    `팔로워 ${followersLabel}, 평균 조회수 ${viewsLabel} ${creator_profile.niche} 채널 기준${extrasNote}.`;
 
   return {
     base_fee,

@@ -65,15 +65,15 @@ describe("usage-guard", () => {
     await expect(checkUsageLimit("user-1", "NEGOTIATION_AI")).rejects.toThrow("FEATURE_NOT_AVAILABLE_ON_FREE");
   });
 
-  it("treats pro parse and save quotas as unlimited", async () => {
-    mockPlan = "pro";
+  it("treats standard parse and save quotas as unlimited", async () => {
+    mockPlan = "standard";
     mockCountValue = 9_999;
     await expect(checkUsageLimit("user-pro", "PARSE")).resolves.not.toThrow();
     await expect(checkUsageLimit("user-pro", "SAVE_DEAL")).resolves.not.toThrow();
   });
 
-  it("treats pro negotiation AI quota as unlimited", async () => {
-    mockPlan = "pro";
+  it("treats standard negotiation AI quota as unlimited", async () => {
+    mockPlan = "standard";
     mockCountValue = 9_999;
     await expect(checkUsageLimit("user-pro", "NEGOTIATION_AI")).resolves.not.toThrow();
   });
