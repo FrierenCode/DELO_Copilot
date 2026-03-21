@@ -33,7 +33,10 @@
       "WebFetch(domain:medium.com)",
       "WebFetch(domain:hookdeck.com)",
       "Bash(cat:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:searchadvisor.naver.com)"
     ],
     "deny": [
       "MCPSearch"

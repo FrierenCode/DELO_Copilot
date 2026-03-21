@@ -25,7 +25,6 @@ export default async function Image() {
           padding: "80px",
         }}
       >
-        {/* Logo row */}
         <div
           style={{
             display: "flex",
@@ -61,7 +60,6 @@ export default async function Image() {
           </span>
         </div>
 
-        {/* Main headline */}
         <div
           style={{
             fontSize: "52px",
@@ -75,7 +73,6 @@ export default async function Image() {
           크리에이터 딜 관리 플랫폼
         </div>
 
-        {/* Sub-headline */}
         <div
           style={{
             fontSize: "28px",
@@ -87,7 +84,6 @@ export default async function Image() {
           브랜드 문의 분석 · 견적 산정 · 응답 초안 · 계약 관리
         </div>
 
-        {/* CTA badge */}
         <div
           style={{
             marginTop: "56px",
