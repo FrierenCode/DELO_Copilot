@@ -3,7 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "이용약관 — DELO",
+  title: "이용약관",
+  description: "DELO 서비스 이용에 관한 약관을 안내합니다.",
+  alternates: { canonical: "/terms" },
+  robots: { index: true, follow: false },
 };
 
 const SECTIONS = [

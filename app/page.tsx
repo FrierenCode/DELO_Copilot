@@ -8,14 +8,32 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "DELO | Creator Deal Copilot",
+  title: "DELO | 크리에이터 딜 관리 플랫폼",
   description:
-    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 딜 운영 도구입니다.",
+    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 AI 딜 관리 플랫폼입니다. 에이전시 없이 혼자 운영하는 크리에이터를 위한 비즈니스 코파일럿.",
+  keywords: [
+    "크리에이터 딜 관리",
+    "인플루언서 계약 관리",
+    "브랜드 협찬 협상",
+    "유튜버 광고 견적",
+    "크리에이터 비즈니스",
+    "브랜드 문의 분석",
+    "DELO",
+  ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "DELO | Creator Deal Copilot",
+    title: "DELO | 크리에이터 딜 관리 플랫폼",
     description:
-      "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 딜 운영 도구입니다.",
+      "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지. 에이전시 없이도 딜 운영 흐름을 빠르게 정리할 수 있습니다.",
     type: "website",
+    url: "/",
+  },
+  twitter: {
+    title: "DELO | 크리에이터 딜 관리 플랫폼",
+    description:
+      "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서. AI 크리에이터 딜 코파일럿.",
   },
 };
 
@@ -94,6 +112,31 @@ const COMPARISON_ROWS = [
   },
 ] as const;
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "DELO",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://delo.app",
+  description:
+    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 AI 딜 관리 플랫폼입니다.",
+  inLanguage: "ko",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "KRW",
+    description: "무료로 시작, 프리미엄 플랜 업그레이드 가능",
+  },
+  featureList: [
+    "브랜드 문의 AI 분석",
+    "적정 견적 범위 산정",
+    "응답 초안 자동 생성",
+    "딜 계약 진행 관리",
+    "협상 AI 코파일럿",
+  ],
+};
+
 export default async function LandingPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -101,6 +144,10 @@ export default async function LandingPage() {
 
   return (
     <div className="landing-page min-h-screen bg-[var(--landing-bg)] text-[var(--landing-text)] antialiased transition-colors">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {/* Nav — theme-aware backdrop */}
       <nav className="fixed top-0 z-50 w-full border-b border-[var(--landing-border)] bg-[color:var(--landing-nav-bg)] backdrop-blur-md transition-colors">

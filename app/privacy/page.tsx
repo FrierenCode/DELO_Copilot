@@ -3,7 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "개인정보처리방침 — DELO",
+  title: "개인정보처리방침",
+  description: "DELO 서비스의 개인정보 수집, 이용, 보호 방침을 안내합니다.",
+  alternates: { canonical: "/privacy" },
+  robots: { index: true, follow: false },
 };
 
 const SECTIONS = [

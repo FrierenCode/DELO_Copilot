@@ -5,9 +5,47 @@ import { RootNav } from "@/components/RootNav";
 import { RootMain } from "@/components/RootMain";
 import { CookieBanner } from "@/components/CookieBanner";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://delo.app";
+
 export const metadata: Metadata = {
-  title: "DELO Copilot",
-  description: "Manage creator-brand deals from inquiry to payout.",
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "DELO | 크리에이터 딜 관리 플랫폼",
+    template: "%s | DELO",
+  },
+  description:
+    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 AI 딜 관리 플랫폼입니다.",
+  keywords: [
+    "크리에이터 딜 관리",
+    "인플루언서 계약",
+    "브랜드 협찬 협상",
+    "유튜버 광고 견적",
+    "크리에이터 에이전시",
+    "DELO",
+    "딜 코파일럿",
+  ],
+  authors: [{ name: "DELO" }],
+  creator: "DELO",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    siteName: "DELO",
+  },
+  twitter: {
+    card: "summary_large_image",
+    creator: "@delo_app",
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.NAVER_SITE_VERIFICATION
+      ? { "naver-site-verification": process.env.NAVER_SITE_VERIFICATION }
+      : undefined,
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -26,7 +64,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="ko">
       <body className="min-h-screen bg-neutral-50 text-neutral-900 antialiased">
         <script
           dangerouslySetInnerHTML={{
