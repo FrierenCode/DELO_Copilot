@@ -35,12 +35,19 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     siteName: "DELO",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "DELO — 크리에이터 딜 관리 플랫폼" }],
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "DELO | Creator Deal Copilot",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     creator: "@delo_app",
-    images: ["/og-image.png"],
+    images: ["/opengraph-image"],
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
