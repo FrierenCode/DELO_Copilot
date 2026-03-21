@@ -25,9 +25,11 @@
 
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsd2J2aHVkcmJzZ3JpcWRta3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTMzNDMsImV4cCI6MjA4ODYyOTM0M30.iz3CjSJAAgAOeswqaIB2_CwrSsamfo-3UViTAP-gHSI",
 
-    "NEXT_PUBLIC_APP_URL": "https://delo-copilot.gigigitg95.workers.dev/",
+    "NEXT_PUBLIC_APP_URL": "https://delo-app.com",
 
-    "POLAR_PRODUCT_ID":"de8cef9c-124d-4b9d-9b47-56a26c406d2a"
+    "POLAR_PRODUCT_ID":"de8cef9c-124d-4b9d-9b47-56a26c406d2a",
+
+    "GOOGLE_SITE_VERIFICATION": "c6df0664ee13eda8f76786d1144de58c46281cc9"
   },
 
   "observability": {
