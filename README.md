@@ -46,8 +46,8 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 브랜드 문의 텍스트를 구조화된 필드로 파싱하는 API
 - 입력 텍스트 정리, SHA-256 해시 기반 dedup, 사용자 범위 캐시, 전역 parse cache
 - 견적 계산 엔진, 누락 조건 체크 엔진, 답장 초안 생성기
-- Free/Pro 플랜 정책과 사용량 제한
-- Pro 전용 Negotiation AI API와 LLM 일일 예산 가드
+- Free/Standard 플랜 정책과 사용량 제한
+- Standard 전용 Negotiation AI API와 LLM 일일 예산 가드
 - inquiry history/detail 조회 및 reply draft 수정 API
 - deals 생성, 조회, 수정, 상태 전이, 상태 로그 저장
 - creator profile 저장/조회 API
@@ -56,7 +56,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - Supabase 이메일/비밀번호 로그인, Google/Discord OAuth 로그인, `/signup` 회원가입, `/auth/callback` 인증 콜백
 - `/api/account` 기반 계정 삭제 흐름
 - `middleware.ts` 기반 `/dashboard`, `/settings`, `/onboarding` 보호
-- PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Google Analytics 스니펫, Sentry 연동, 구조화 로그
+- PostHog 이벤트 추적, 클라이언트 이벤트 수집 API, Google Analytics 스니펫, Microsoft Clarity, Sentry 연동, 구조화 로그
 - Next.js App Router 기반 UI
 - `fox-icon.svg`, `FoxLogo`, `app/icon.svg` 기반 브랜드 아이콘 자산
 - OpenNext + Cloudflare Workers 배포
@@ -68,14 +68,14 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 최근 코드 기준으로 문서에 반영해야 하는 변경점은 아래와 같습니다.
 
 - `/dashboard/intake`에 2단 레이아웃의 Intake Workspace가 추가되어 parse 결과 확인 후 바로 deal 저장까지 이어집니다.
-- `/dashboard`가 더 이상 인증 확인용 플레이스홀더가 아니라 summary cards, tab filter, Pro alert panel을 갖춘 운영 보드로 동작합니다.
+- `/dashboard`가 더 이상 인증 확인용 플레이스홀더가 아니라 summary cards, tab filter, Standard alert panel을 갖춘 운영 보드로 동작합니다.
 - `/dashboard/deals/[id]` 상세 화면에서 상태 전이, 일정, 메모를 수정하고 상태 로그를 확인할 수 있습니다.
 - deal 저장 API가 `initial_status`를 받아 `Lead`, `Replied`, `Negotiating` 중 초기 상태를 지정할 수 있습니다.
 - `GET /api/deals`가 `status` query filter를 지원하고, 허용 플랜에서는 alert summary를 함께 반환합니다.
 - `POST /api/deals`는 `inquiry_id` 우선 저장 경로와 `raw_text + source_type` fallback 저장 경로를 모두 지원합니다.
 - creator profile API는 `POST`와 `PUT`가 동일 저장 로직을 공유하며, onboarding wizard가 PRD 입력값을 API 스키마로 변환합니다.
 - 테스트 범위에 deals route, deals detail route, alerts route, creator profile route, dashboard helper 회귀 검증이 추가되었습니다.
-- `/settings`가 더 이상 placeholder가 아니라 현재 플랜, 구독 상태, 다음 갱신일, Pro 업그레이드 버튼을 보여주는 billing 화면으로 동작합니다.
+- `/settings`가 더 이상 placeholder가 아니라 현재 플랜, 구독 상태, 다음 갱신일, Standard 업그레이드 버튼을 보여주는 billing 화면으로 동작합니다.
 - `POST /api/billing/checkout`, `POST /api/billing/webhook`, `subscriptions` 저장소/서비스가 추가되어 Polar 구독 상태와 `user_plans` 동기화 흐름이 연결되었습니다.
 - `/terms`, `/privacy`, `CookieBanner`가 추가되어 결제/분석 도입에 필요한 기본 법적 고지와 쿠키 동의 UI가 포함되었습니다.
 - `POST /api/analytics/event`와 `trackClientEvent`가 추가되어 랜딩 CTA, 체크아웃 시작, 답장 복사 같은 클라이언트 이벤트를 서버 경유로 수집합니다.
@@ -87,16 +87,21 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 루트 메타데이터에 `metadataBase`, canonical, Open Graph, Twitter 카드, 검색엔진 verification 설정이 추가되어 공개 페이지 SEO 구성이 강화되었습니다.
 - `app/robots.ts`, `app/sitemap.ts`, `app/opengraph-image.tsx`가 추가되어 색인 정책, 사이트맵, 기본 OG 이미지가 코드 기반으로 관리됩니다.
 - `public/naver0c28e8b13a7232c770a84e86a1c9df66.html`가 추가되어 Naver Search Advisor 소유권 확인 파일이 함께 배포됩니다.
+- 비로그인 사용자를 위한 `POST /api/demo/parse`가 추가되어 `/parse`에서 저장 없이 공개 데모 파이프라인을 체험할 수 있습니다.
+- `/how-it-works` 랜딩 보조 페이지가 추가되어 제품 흐름을 4단계 설명과 예시 UI로 안내합니다.
+- 플랜 식별자가 `pro`에서 `standard`로 변경되어 `user_plans`, `subscriptions`, 서버 정책 모듈이 모두 `free | standard`를 기준으로 동작합니다.
+- `supabase/migrations/009_rename_pro_to_standard.sql`가 추가되어 기존 `pro` 값을 `standard`로 이행합니다.
+- 루트 레이아웃에 Microsoft Clarity 스크립트가 추가되어 공개 페이지와 앱 공통 행동 분석이 강화되었습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
-- `Dashboard` 헤더와 Pro 잠금 문구가 실제 운영 보드 맥락에 맞는 한국어 카피로 정리되었습니다.
+- `Dashboard` 헤더와 Standard 잠금 문구가 실제 운영 보드 맥락에 맞는 한국어 카피로 정리되었습니다.
 - `Dashboard Deal Detail` 편집 폼의 저장/오류 문구와 라벨이 한국어 기준으로 다듬어져 실제 사용 흐름 설명과 일치합니다.
 - 저장된 딜이 없을 때 `EmptyDealsState`가 `/parse`로 바로 이동하는 CTA를 제공해 첫 분석 진입점을 명확히 보여줍니다.
 - `/history`가 단순 테이블에서 카드형 히스토리 화면으로 바뀌어 브랜드 검색, 소스별 필터 칩, 빈 상태 CTA를 제공합니다.
 - `/deal/[id]` inquiry 상세가 2컬럼 분석 화면으로 확장되어 파싱 결과, 견적, 체크리스트, 답장 초안 편집, 원문 미리보기를 한 화면에서 처리합니다.
 - inquiry detail 응답 타입에 `created_at`, `raw_text_preview`가 추가되어 상세 화면에서 수신일과 원문 일부를 함께 노출할 수 있습니다.
-- `/settings` billing 패널이 현재 플랜 요약 외에 Free/Pro 비교 카드, 가입일, 지원 메일, 약관/개인정보 링크 섹션까지 포함하는 계정 화면으로 확장되었습니다.
+- `/settings` billing 패널이 현재 플랜 요약 외에 Free/Standard 비교 카드, 가입일, 지원 메일, 약관/개인정보 링크 섹션까지 포함하는 계정 화면으로 확장되었습니다.
 - `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 대시보드 하위 정보 구조를 재사용합니다.
 - `/login`, `/terms`, `/privacy`, `/` 랜딩 페이지가 동일한 다크 톤 브랜딩에 맞춰 재디자인되어 제품 진입부터 법적 고지까지 시각 톤을 통일했습니다.
 - `/login`은 Google, Discord, 이메일/비밀번호 로그인을 함께 제공하고 이메일 폼은 접기/펼치기 방식으로 보조 노출됩니다.
@@ -107,6 +112,10 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 루트 레이아웃에는 `CookieBanner`와 Google Analytics 스니펫이 포함되어 공개 페이지와 앱 공통 레벨의 기본 추적/고지가 동작합니다.
 - 설정 화면에 계정 삭제 모달이 추가되어 이메일 재입력 확인 후 `DELETE /api/account`를 호출하는 danger zone이 제공됩니다.
 - 앱 메타데이터 아이콘과 정적 자산에 `app/icon.svg`, `public/fox-icon.svg`가 반영되어 브라우저 아이콘과 주요 공개 화면 로고가 같은 브랜드 자산을 사용합니다.
+- `/parse`는 로그인 여부에 따라 인증 사용자는 실제 parse API를, 비로그인 사용자는 공개 데모 parse API를 호출하는 단일 체험 화면으로 정리되었습니다.
+- 비로그인 사용자가 답장 초안을 복사하거나 수정하면 `SignupPromptModal`이 노출되어 회원가입 전환을 유도합니다.
+- `ThemeInit`가 `/parse`에서도 랜딩에서 저장한 라이트/다크 테마를 복원해 공개 체험 화면 톤을 유지합니다.
+- 랜딩 Hero에 `LandingProductMockup`이 추가되어 문의 원문, 파싱 결과, 견적, 체크리스트, 답장 초안을 한 번에 보여주는 제품 미리보기가 들어갔습니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -126,6 +135,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `POST /api/billing/checkout`
 - `POST /api/billing/webhook`
 - `POST /api/analytics/event`
+- `POST /api/demo/parse`
 - `POST /api/replies/negotiation-ai`
 - `DELETE /api/account`
 
@@ -133,6 +143,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 
 - `/`
 - `/parse`
+- `/how-it-works`
 - `/history`
 - `/deal/[id]`
 - `/settings`
@@ -224,7 +235,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 플랜 정책:
 
 - Free 플랜은 parse 응답에서 체크 목록이 비활성화됩니다.
-- Pro 플랜은 전체 체크 목록을 반환합니다.
+- Standard 플랜은 전체 체크 목록을 반환합니다.
 
 ### 3. 견적 엔진
 
@@ -239,7 +250,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 플랜 정책:
 
 - Free 플랜은 요약 견적만 반환합니다.
-- Pro 플랜은 전체 breakdown을 반환합니다.
+- Standard 플랜은 전체 breakdown을 반환합니다.
 
 ### 4. 답장 초안 생성
 
@@ -252,12 +263,12 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 현재 구현 메모:
 
 - Free 플랜은 `polite`만 반환합니다.
-- Pro 플랜은 `polite`, `quick`, `negotiation`을 모두 반환합니다.
+- Standard 플랜은 `polite`, `quick`, `negotiation`을 모두 반환합니다.
 - inquiry detail 화면에서는 `PATCH /api/inquiries/[id]`로 초안 수정본을 저장합니다.
 
 ### 5. Negotiation AI 답장
 
-`POST /api/replies/negotiation-ai`는 Pro 전용 기능입니다.
+`POST /api/replies/negotiation-ai`는 Standard 전용 기능입니다.
 
 - 인증 필수
 - `checkUsageLimit`로 플랜 gate와 사용량 제한 적용
@@ -285,7 +296,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `/dashboard`, `/settings`, `/onboarding` 및 하위 경로 보호
 - `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 동일한 보호 레이아웃 안에서 동작
 
-현재 `Dashboard`는 저장된 딜 목록을 상태 탭으로 분류해 보여주고, 요약 카드와 Pro 전용 alert panel을 함께 노출하는 운영 보드입니다.
+현재 `Dashboard`는 저장된 딜 목록을 상태 탭으로 분류해 보여주고, 요약 카드와 Standard 전용 alert panel을 함께 노출하는 운영 보드입니다.
 
 ### 8. 결제와 플랜 업그레이드
 
@@ -295,7 +306,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - Free 사용자는 `POST /api/billing/checkout` 호출로 Polar hosted checkout session 생성
 - `subscription.created`, `subscription.updated`, `subscription.revoked` webhook 처리
 - `subscriptions` 테이블에 Polar customer/subscription 상태 저장
-- webhook 처리 후 `user_plans`를 `free` 또는 `pro`로 동기화
+- webhook 처리 후 `user_plans`를 `free` 또는 `standard`로 동기화
 - 업그레이드/해지 이벤트를 analytics로 기록
 
 구현 메모:
@@ -338,7 +349,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Dashboard`: 저장된 deals를 요약 카드, 탭 필터, alert panel과 함께 보여주는 운영 보드
 - `Dashboard History`: 브랜드 검색, source chip 필터, 빈 상태 CTA를 제공하는 카드형 히스토리 화면
 - `Dashboard Deal Detail`: 상태 전이, 일정, 결제일, 메모, 상태 로그를 수정/확인하는 상세 화면
-- `Dashboard Settings`: 현재 플랜, 구독 상태, Free/Pro 비교, 계정/지원 링크를 제공하는 계정 허브
+- `Dashboard Settings`: 현재 플랜, 구독 상태, Free/Standard 비교, 계정/지원 링크를 제공하는 계정 허브
 - `Onboarding`: creator profile 초기 입력 위저드
 - `Dashboard Intake`: 온보딩 완료 후 바로 parse -> save deal로 이어지는 2단 워크스페이스
 - `Terms` / `Privacy`: 결제 및 분석 도입에 필요한 법적 고지 페이지
@@ -354,16 +365,18 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 - `calcSummary`가 total, active, dueThisWeek, confirmed pipeline 금액을 계산합니다.
 - 목록 화면은 `all`, `active`, `done`, `lost` 탭으로 딜을 필터링합니다.
-- Pro 플랜에서는 활성 alert가 있을 때만 alert panel을 노출합니다.
+- Standard 플랜에서는 활성 alert가 있을 때만 alert panel을 노출합니다.
 - 상세 화면은 `PATCH /api/deals/[id]`를 호출해 상태, next action, deadline, payment due date, notes를 갱신합니다.
 - 잘못된 상태 전이는 422 응답으로 막고, 성공한 전이는 `deal_status_logs`에 기록됩니다.
 
 랜딩 / 설정 / 공통 레이아웃 구현 메모:
 
 - `/` 랜딩 페이지는 누적 deals 수를 보여주고 `무료로 시작하기`, `어떻게 작동하나요?` CTA를 제공합니다.
+- `/how-it-works`는 4단계 워크플로우 설명, 예시 카드, CTA를 포함한 별도 마케팅 상세 페이지입니다.
 - 랜딩 헤더의 `Light` / `Dark` 토글은 `localStorage` 기반으로 현재 테마를 저장하고, 루트 레이아웃이 이를 읽어 로그인 화면까지 같은 모드를 유지합니다.
+- `ThemeInit`가 `/parse`에서 저장된 랜딩 테마를 복원해 공개 체험과 랜딩의 시각 모드를 맞춥니다.
 - `CookieBanner`가 로컬 스토리지 기반 쿠키 동의 상태를 관리합니다.
-- 루트 레이아웃이 Google Analytics 스니펫을 포함해 공개 페이지와 앱 전체 공통 페이지뷰 측정을 준비합니다.
+- 루트 레이아웃이 Google Analytics와 Microsoft Clarity 스크립트를 포함해 공개 페이지와 앱 전체 공통 추적을 준비합니다.
 - 루트 메타데이터는 `app/icon.svg`를 기본 아이콘으로 사용합니다.
 - 설정 화면에서는 checkout 시작 전 `checkout_started` 클라이언트 이벤트를 전송합니다.
 - 설정 화면은 support/legal 링크 외에 danger zone과 이메일 재입력 기반 계정 삭제 모달을 포함합니다.
@@ -372,6 +385,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `Deal Detail` 화면은 답장 tone 탭, 수정 저장, 클립보드 복사, 원문 펼치기 토글을 포함합니다.
 - `Settings` 화면은 현재 플랜, 가입일, 지원 메일, 약관 링크를 한 화면에서 제공하는 계정 허브 역할을 합니다.
 - 로그인 화면은 Google/Discord 소셜 로그인과 이메일 로그인 폴백을 함께 제공하고, 회원가입 화면은 소셜 가입과 강화된 비밀번호 정책 기반 이메일 가입을 같은 브랜딩 안에서 제공합니다.
+- `Parse` 화면은 비로그인 상태에서 데모 rate limit(시간당 10회)과 샘플 문의 선택을 제공하며, 결과 화면에서 회원가입 전환을 유도합니다.
 - 주요 공개 화면과 대시보드 사이드바의 `DELO` 로고는 공통적으로 홈 링크 역할을 합니다.
 - 루트 레이아웃 메타데이터가 `NEXT_PUBLIC_APP_URL` 기준 canonical URL과 verification meta tag를 생성하도록 정리되었습니다.
 - 랜딩 페이지는 `SoftwareApplication` JSON-LD를 포함하고, `/terms`, `/privacy`는 canonical 및 robots 메타데이터를 개별 설정합니다.
@@ -383,11 +397,12 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - `POST /api/deals`를 통한 딜 생성
 - `GET /api/deals`를 통한 딜 목록, status filter, alert 요약 조회
 - `GET/PATCH /api/deals/[id]`를 통한 딜 상세 조회 및 수정
-- `GET /api/deals/alerts`를 통한 Pro 전용 alert 조회
+- `GET /api/deals/alerts`를 통한 Standard 전용 alert 조회
 - `GET/POST/PUT /api/creator-profile`을 통한 프로필 관리
 - `POST /api/billing/checkout`을 통한 Polar Checkout 진입
 - `POST /api/billing/webhook`을 통한 subscription 상태 반영
 - `POST /api/analytics/event`를 통한 클라이언트 이벤트 수집
+- `POST /api/demo/parse`를 통한 비로그인 공개 체험 파싱
 - `DELETE /api/account`를 통한 계정 삭제
 - `GET /api/inquiries`를 통한 inquiry history 조회
 - `GET/PATCH /api/inquiries/[id]`를 통한 inquiry detail 조회 및 초안 저장
@@ -418,6 +433,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - Sentry
 - PostHog
 - Google Analytics
+- Microsoft Clarity
 - Polar
 - Vitest
 - OpenNext
@@ -432,11 +448,13 @@ app/
     analytics/
     billing/
     creator-profile/
+    demo/
     deals/
     health/
     inquiries/
     replies/negotiation-ai/
   auth/callback/
+  how-it-works/
   dashboard/
     deals/[id]/
     intake/
@@ -457,6 +475,7 @@ components/
   ui/
 public/
   fox-icon.svg
+  naver0c28e8b13a7232c770a84e86a1c9df66.html
 db/
   schema.sql
 lib/
@@ -464,6 +483,7 @@ lib/
   analytics-client.ts
   analytics-contract.ts
   creator-profile-mapper.ts
+  demo-samples.ts
   inquiry/
   llm/
   logger.ts
@@ -514,6 +534,7 @@ wrangler.jsonc
 - `reply-template-service`: Negotiation AI fallback 답장 생성
 - `llm-budget-guard`: 일일 LLM 사용량 차단
 - `deal-service`: deals, deal_checks, reply_drafts 저장 payload 생성
+- `demo-samples.ts`: 공개 parse 체험 화면의 샘플 문의 세트
 - `repositories`: Supabase 접근 계층
 - `usage-guard`: 플랜별 사용량 제한과 기능 gate 처리
 - `alert-engine`: 후속 관리용 alert 계산
@@ -576,7 +597,7 @@ NAVER_SITE_VERIFICATION=
 - `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID` 역시 서버 전용 값으로 관리해야 합니다.
 - `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION`은 공개 메타 태그 생성을 위한 선택 값입니다.
 - Cloudflare Workers 배포 시 비밀 값은 Dashboard의 `Settings > Variables and Secrets` 또는 Wrangler secret으로 관리해야 합니다.
-- 현재 `wrangler.jsonc`에는 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`가 `vars`로 정의되어 있습니다.
+- 현재 `wrangler.jsonc`에는 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`, `POLAR_PRODUCT_ID`, `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION`가 `vars`로 정의되어 있습니다.
 
 ## API
 
@@ -621,8 +642,27 @@ NAVER_SITE_VERIFICATION=
 - 인증 사용자에게는 월간 parse 사용량 제한이 적용됩니다.
 - 비인증 사용자는 free 정책으로 처리됩니다.
 - Free 플랜은 요약 견적과 `polite` 초안 위주 응답을 받습니다.
-- Pro 플랜은 전체 checks, 전체 quote breakdown, 추가 tone을 받습니다.
+- Standard 플랜은 전체 checks, 전체 quote breakdown, 추가 tone을 받습니다.
 - 실패 시 구조화된 파싱 오류 코드가 반환됩니다.
+
+### `POST /api/demo/parse`
+
+비로그인 공개 체험용 parse 엔드포인트입니다.
+
+요청 바디:
+
+```json
+{
+  "content": "브랜드 협업 문의 원문"
+}
+```
+
+특징:
+
+- 로그인 없이 `/parse` 화면에서 호출됩니다.
+- IP 기준 시간당 10회 rate limit을 적용합니다.
+- 입력은 `sanitizeRawText`를 거친 뒤 `source_type: "other"`로 데모 파이프라인을 탑니다.
+- 저장 없이 `parsed_json`, 요약 견적, 누락 필드, 기본 초안을 반환합니다.
 
 ### `GET /api/inquiries/[id]`
 
@@ -702,7 +742,7 @@ reply draft 수정 결과를 inquiry에 저장합니다.
 
 ### `GET /api/deals/alerts`
 
-Pro 전용 딜 alert 엔드포인트입니다.
+Standard 전용 딜 alert 엔드포인트입니다.
 
 - 인증 필수
 - Free 플랜은 402 paywall 응답
@@ -727,7 +767,7 @@ Pro 전용 딜 alert 엔드포인트입니다.
 
 ### `POST /api/replies/negotiation-ai`
 
-Pro 전용 협상 답장 생성 API입니다.
+Standard 전용 협상 답장 생성 API입니다.
 
 요청 예시:
 
@@ -803,6 +843,7 @@ npm run deploy
 - `app/robots.ts`
 - `app/sitemap.ts`
 - `app/opengraph-image.tsx`
+- `public/naver0c28e8b13a7232c770a84e86a1c9df66.html`
 
 배포 메모:
 
@@ -816,7 +857,7 @@ npm run deploy
 
 ## 데이터베이스
 
-권위 있는 변경 이력은 `supabase/migrations/`이고, `db/schema.sql`은 001~006 마이그레이션을 합친 참조 스냅샷입니다. billing 관련 최신 변경은 `007_add_subscriptions_table.sql`, `008_rename_stripe_to_polar.sql`을 함께 봐야 합니다.
+권위 있는 변경 이력은 `supabase/migrations/`이고, `db/schema.sql`은 최신 마이그레이션 기준 참조 스냅샷입니다. billing/plan 관련 최신 변경은 `007_add_subscriptions_table.sql`, `008_rename_stripe_to_polar.sql`, `009_rename_pro_to_standard.sql`을 함께 봐야 합니다.
 
 현재 마이그레이션 파일:
 
@@ -828,6 +869,7 @@ npm run deploy
 - `006_add_reply_drafts_to_inquiries.sql`
 - `007_add_subscriptions_table.sql`
 - `008_rename_stripe_to_polar.sql`
+- `009_rename_pro_to_standard.sql`
 
 주요 테이블:
 
@@ -850,6 +892,7 @@ npm run deploy
 - `reply_drafts_json` 컬럼으로 inquiry 단위 수정 초안을 저장합니다.
 - `user_plans`가 현재 플랜 정책의 source of truth입니다.
 - `subscriptions`는 Polar customer/subscription 상태와 마지막 처리 이벤트 id를 저장합니다.
+- 현재 plan enum은 코드와 DB 모두 `free | standard`를 기준으로 사용합니다.
 
 ## 테스트
 
@@ -879,8 +922,9 @@ npm run test
 - `__tests__/billing-checkout-route.test.ts`: checkout session URL 반환과 인증/에러 처리 검증
 - `__tests__/billing-webhook-route.test.ts`: Polar 이벤트 라우팅과 재시도용 500 응답 검증
 - `__tests__/billing-service.test.ts`: subscription 업그레이드/해지/idempotency 검증
-- `__tests__/plan-gating-integration.test.ts`: Free/Pro 플랜 limit와 기능 gate 통합 검증
+- `__tests__/plan-gating-integration.test.ts`: Free/Standard 플랜 limit와 기능 gate 통합 검증
 - `__tests__/analytics-contract.test.ts`: 허용된 analytics event name 목록 회귀 검증
+- `__tests__/analytics.test.ts`: 공통 analytics property 병합과 `standard` 플랜 속성 기록 검증
 
 ## 개발 우선순위
 
@@ -894,7 +938,7 @@ npm run test
 
 ## 현재 상태 요약
 
-현재 저장소는 "문의 파싱 + inquiry 저장 + 딜 저장 API + 운영 대시보드 + 플랜 gate + Polar Billing + 인증 흐름 + 배포 설정"까지 연결된 MVP입니다.
+현재 저장소는 "문의 파싱 + 공개 데모 체험 + inquiry 저장 + 딜 저장 API + 운영 대시보드 + 플랜 gate + Polar Billing + 인증 흐름 + 배포 설정"까지 연결된 MVP입니다.
 
 이미 반영된 요소:
 
@@ -906,9 +950,10 @@ npm run test
 - dashboard 목록/상세 조회와 상태 로그 기록
 - creator profile 온보딩과 intake 진입 흐름
 - Polar checkout, webhook, subscription 동기화
+- 비로그인 공개 parse 체험과 샘플 문의 흐름
 - 랜딩 페이지, 약관/개인정보 페이지, 쿠키 동의 배너
-- Free/Pro 사용량 제한과 기능 gate
-- PostHog, 클라이언트 이벤트 수집 API, Google Analytics, Sentry, 구조화 로그 기반 관측
+- Free/Standard 사용량 제한과 기능 gate
+- PostHog, 클라이언트 이벤트 수집 API, Google Analytics, Microsoft Clarity, Sentry, 구조화 로그 기반 관측
 - Cloudflare Workers 배포 설정
 - 이메일/비밀번호 인증과 보호된 `/dashboard`, `/settings`, `/onboarding`
 - `/history`, `/settings` redirect를 통한 대시보드 하위 진입 경로
