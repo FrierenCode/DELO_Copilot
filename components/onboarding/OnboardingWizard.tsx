@@ -416,12 +416,16 @@ export function OnboardingWizard() {
           <Image src="/fox-icon.svg" width={30} height={30} alt="DELO 로고" />
           <span className="text-2xl font-black tracking-tighter text-[#6366F1]">DELO</span>
         </div>
-        <Link
-          href="/dashboard/intake"
+        <button
+          type="button"
+          onClick={() => {
+            document.cookie = "onboarding_skipped=1; path=/; max-age=31536000";
+            router.push("/dashboard");
+          }}
           className="text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
         >
           나중에 하기
-        </Link>
+        </button>
       </header>
 
       {/* Main */}
