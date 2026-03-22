@@ -95,6 +95,9 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/auth/callback`이 이제 OAuth PKCE 코드 교환뿐 아니라 Supabase 이메일 인증의 `token_hash + type` OTP 검증도 처리하며, redirect 응답에 세션 쿠키를 직접 기록해 인증 직후 세션 유실을 막습니다.
 - 대시보드 레이아웃에 `onboarding_skipped` 쿠키 기반 예외가 추가되어 사용자가 온보딩을 잠시 미뤄도 `/dashboard`는 진입할 수 있지만, 실제 분석 화면인 `/dashboard/intake`는 creator profile이 없으면 다시 `/onboarding`으로 돌려보냅니다.
 - 온보딩 위저드에 `나중에 하기` 동작이 추가되어 스킵 의도를 쿠키로 저장하고 운영 보드로 이동시킬 수 있습니다.
+- 랜딩 `/`, `/parse`, `/how-it-works`의 metadata description과 keyword 구성이 검색 스니펫 길이에 맞게 다시 다듬어졌고, canonical·Open Graph·Twitter 카드 설명이 현재 공개 페이지 카피와 정렬되었습니다.
+- 랜딩 페이지에 `FAQPage` JSON-LD, `/how-it-works`에 `HowTo` 및 breadcrumb JSON-LD, `/parse`에 breadcrumb JSON-LD가 추가되어 공개 유입용 구조화 데이터가 보강되었습니다.
+- `app/layout.tsx`에 `NaverBot: All` 메타가 추가되고 `app/robots.ts`와 `public/robots.txt`가 같은 허용/차단 규칙을 노출하도록 맞춰져 네이버/일반 크롤러용 색인 정책이 더 명시적으로 정리되었습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -120,6 +123,9 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 비로그인 사용자가 답장 초안을 복사하거나 수정하면 `SignupPromptModal`이 노출되어 회원가입 전환을 유도합니다.
 - `ThemeInit`가 `/parse`에서도 랜딩에서 저장한 라이트/다크 테마를 복원해 공개 체험 화면 톤을 유지합니다.
 - 랜딩 Hero에 `LandingProductMockup`이 추가되어 문의 원문, 파싱 결과, 견적, 체크리스트, 답장 초안을 한 번에 보여주는 제품 미리보기가 들어갔습니다.
+- `/parse` 상단 내비게이션에도 `LandingThemeToggle`이 들어가 공개 체험 화면에서 바로 라이트/다크 테마를 바꿀 수 있습니다.
+- `/parse` 하단에 작동 방식, 약관, 개인정보 링크를 담은 공개 푸터가 추가되어 검색 유입 이후의 보조 이동 경로가 생겼습니다.
+- 랜딩 본문에 `/how-it-works`, `/parse`로 직접 연결되는 내부 링크 CTA가 추가되어 공개 페이지 간 탐색성이 강화되었습니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -491,6 +497,7 @@ components/
 public/
   fox-icon.svg
   naver0c28e8b13a7232c770a84e86a1c9df66.html
+  robots.txt
 db/
   schema.sql
 lib/
@@ -859,6 +866,7 @@ npm run deploy
 - `app/sitemap.ts`
 - `app/opengraph-image.tsx`
 - `public/naver0c28e8b13a7232c770a84e86a1c9df66.html`
+- `public/robots.txt`
 
 배포 메모:
 
@@ -869,6 +877,7 @@ npm run deploy
 - Worker 자기 참조는 `WORKER_SELF_REFERENCE` service binding을 사용합니다.
 - `vercel.json`도 포함되어 있어 Next.js 빌드 환경변수 매핑용 보조 설정을 제공합니다.
 - 공개 색인 엔드포인트는 `robots.txt`, `sitemap.xml`, Open Graph 이미지 응답으로 Next.js metadata route를 통해 생성됩니다.
+- 현재 색인 정책은 일반 크롤러와 Naver `Yeti`에 대해 `/`, `/parse`, `/how-it-works`, `/signup`, `/login`, `/terms`, `/privacy`만 허용하고, `/dashboard`, `/api`, `/onboarding`, `/deal`, `/auth` 등 앱 내부 경로는 차단하도록 정리되어 있습니다.
 
 ## 데이터베이스
 
