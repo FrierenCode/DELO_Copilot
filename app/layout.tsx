@@ -100,6 +100,11 @@ export const metadata: Metadata = {
       ? { "naver-site-verification": process.env.NAVER_SITE_VERIFICATION }
       : undefined,
   },
+  // NaverBot: Naver 크롤러에게 전체 색인·링크 추적을 명시적으로 허용합니다.
+  // robots.ts의 Yeti 규칙과 함께 사용하면 네이버 색인 신호가 명확해집니다.
+  other: {
+    NaverBot: "All",
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",

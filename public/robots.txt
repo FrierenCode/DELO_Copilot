@@ -1,0 +1,27 @@
+User-agent: Yeti
+Allow: /
+Allow: /parse
+Allow: /how-it-works
+Allow: /signup
+Allow: /login
+Allow: /terms
+Allow: /privacy
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /settings/
+Disallow: /history/
+Disallow: /onboarding/
+Disallow: /deal/
+Disallow: /auth/
+
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /settings/
+Disallow: /history/
+Disallow: /onboarding/
+Disallow: /deal/
+Disallow: /auth/
+
+Sitemap: https://delo-app.com/sitemap.xml
