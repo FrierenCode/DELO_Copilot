@@ -100,7 +100,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -434,7 +434,7 @@ export default function SignupPage() {
       </main>
 
       <footer className="p-8 text-center">
-        <p className="text-xs text-[var(--login-footer)]">© 2025 DELO Copilot. All rights reserved.</p>
+        <p className="text-xs text-[var(--login-footer)]">© 2026 DELO. All rights reserved.</p>
       </footer>
     </div>
   );

@@ -161,7 +161,7 @@ export default function TermsPage() {
       {/* Footer */}
       <footer className="border-t border-[#1E1E2E] py-10 bg-[#0A0A0F]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-slate-500">© 2025 DELO Copilot. All rights reserved.</p>
+          <p className="text-sm text-slate-500">© 2026 DELO. All rights reserved.</p>
           <div className="flex gap-6 text-xs font-semibold uppercase tracking-widest">
             <Link href="/terms" className="text-slate-500 hover:text-indigo-400 transition-colors">
               이용약관

@@ -9,32 +9,37 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "DELO | 크리에이터 딜 관리 플랫폼",
+  // 홈페이지는 브랜드명 앞, 서비스 설명 뒤 — 검색·직접 유입 모두 고려
+  title: "DELO | 유튜버·인스타그램 크리에이터 브랜드 딜 관리",
+  // 타겟(유튜버·인스타그램) → 핵심 기능(분석·견적·계약) → 차별점(에이전시 없이) 순서
   description:
-    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 AI 딜 관리 플랫폼입니다. 에이전시 없이 혼자 운영하는 크리에이터를 위한 비즈니스 코파일럿.",
+    "브랜드 협찬 문의 분석부터 적정 견적 산출, 답장 초안 생성, 계약 진행 관리까지 한 곳에서 처리합니다. 유튜버·인스타그램·틱톡 크리에이터가 에이전시 없이 브랜드 딜을 체계적으로 운영할 수 있습니다.",
   keywords: [
-    "크리에이터 딜 관리",
-    "인플루언서 계약 관리",
-    "브랜드 협찬 협상",
-    "유튜버 광고 견적",
-    "크리에이터 비즈니스",
+    "크리에이터 브랜드 딜 관리",
+    "인플루언서 협찬 계약 관리",
+    "브랜드 협찬 협상 도구",
+    "유튜버 광고 단가 계산",
+    "인스타그램 협찬 견적",
+    "크리에이터 비즈니스 관리",
     "브랜드 문의 분석",
+    "협찬 계약 체크리스트",
+    "크리에이터 딜 추적",
     "DELO",
   ],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "DELO | 크리에이터 딜 관리 플랫폼",
+    title: "DELO | 유튜버·인스타그램 크리에이터 브랜드 딜 관리",
     description:
-      "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지. 에이전시 없이도 딜 운영 흐름을 빠르게 정리할 수 있습니다.",
+      "브랜드 협찬 문의 분석·견적·답장 초안·계약 관리를 한 곳에서. 에이전시 없이 혼자 운영하는 크리에이터를 위한 AI 딜 관리 플랫폼입니다.",
     type: "website",
     url: "/",
   },
   twitter: {
-    title: "DELO | 크리에이터 딜 관리 플랫폼",
+    title: "DELO | 유튜버·인스타그램 크리에이터 브랜드 딜 관리",
     description:
-      "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서. AI 크리에이터 딜 코파일럿.",
+      "브랜드 협찬 문의를 AI가 분석하고 적정 견적과 답장 초안을 제안합니다. 계약 진행 상태까지 한 곳에서 관리. 무료로 시작하세요.",
   },
 };
 
@@ -125,28 +130,149 @@ const COMPARISON_ROWS = [
   },
 ] as const;
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      // 서비스 정의: AI 검색이 가장 먼저 인용하는 핵심 질문
+      "@type": "Question",
+      name: "DELO는 어떤 서비스인가요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "DELO는 유튜버·인스타그램·틱톡 크리에이터가 브랜드 협찬 문의를 AI로 분석하고, 적정 견적을 산출하며, 계약 진행 상태를 관리할 수 있는 딜 관리 플랫폼입니다. 에이전시 없이 혼자 브랜드 딜을 운영하는 크리에이터를 위해 설계되었으며, 문의 분석부터 답장 초안 생성, 계약 히스토리 추적까지 한 화면에서 처리할 수 있습니다.",
+      },
+    },
+    {
+      // 기능 설명: 가장 많이 검색되는 주요 기능 질문
+      "@type": "Question",
+      name: "브랜드 협찬 문의 분석이란 무엇인가요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "브랜드 협찬 문의 분석은 이메일·인스타그램 DM·카카오톡 등으로 받은 협찬 제안 텍스트를 AI가 읽고, 브랜드명·담당자·요청 산출물(유튜브 영상, 인스타 릴스 등)·일정·보상 조건·콘텐츠 사용 범위 같은 핵심 항목을 자동으로 구조화하는 기능입니다. 누락되거나 불명확한 조건도 함께 체크해 협상 전 확인해야 할 항목을 알려줍니다.",
+      },
+    },
+    {
+      // 견적 로직: 크리에이터가 가장 궁금해하는 부분
+      "@type": "Question",
+      name: "견적은 어떤 기준으로 계산되나요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "DELO는 크리에이터가 설정한 구독자 수 구간, 평균 조회수, 콘텐츠 니치, 주요 활동 플랫폼, 설정한 최소 단가(Floor Rate)를 기준으로 삼고, 분석된 문의의 요청 산출물 종류와 수량을 반영해 Floor(최솟값)·Target(적정값)·Premium(최댓값) 세 단계 견적을 제시합니다. AI 자동 산출 결과이므로 실제 협상의 참고 자료로 활용하고, 최종 견적은 크리에이터가 직접 판단하는 것을 권장합니다.",
+      },
+    },
+    {
+      // 플랫폼 범위: 실사용자 진입 장벽 관련 질문
+      "@type": "Question",
+      name: "어떤 채널로 받은 문의를 분석할 수 있나요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "이메일, 인스타그램 DM, 유튜브 커뮤니티, 카카오톡 등 텍스트로 전달된 문의라면 채널에 관계없이 분석할 수 있습니다. 문의 내용을 그대로 복사해 붙여넣으면 되며, 특정 형식이나 템플릿이 필요하지 않습니다.",
+      },
+    },
+    {
+      // 가격·플랜: 전환 의도 검색어에 직접 대응
+      "@type": "Question",
+      name: "무료로 사용할 수 있나요? 유료 플랜과 차이는 무엇인가요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "네, 무료(Free) 플랜으로 시작할 수 있습니다. 무료 플랜은 월 10회 문의 분석, 기본 견적 산출, 정중한 톤의 답장 초안 1가지를 제공합니다. Standard 플랜(월 12,900원)은 무제한 문의 분석, 3가지 톤(정중·빠른 확인·협상 제안) 답장 초안, 스마트 계약 체크리스트, 딜 파이프라인 관리, 마감 임박 및 미결 항목 실시간 알림을 추가로 제공합니다.",
+      },
+    },
+    {
+      // 접근성: 가입 전 체험 관련 — 전환율에 직접 영향
+      "@type": "Question",
+      name: "회원가입 없이도 사용할 수 있나요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "네. DELO의 문의 분석 기능은 delo-app.com/parse에서 회원가입 없이 무료로 체험할 수 있습니다. 다만 분석 결과 저장, 딜 히스토리 관리, 딜 파이프라인 추적, 답장 초안 수정 저장 등 개인화 기능은 계정 생성 후 이용 가능합니다.",
+      },
+    },
+    {
+      // 답장 초안: 핵심 기능 상세 설명
+      "@type": "Question",
+      name: "답장 초안 기능은 어떻게 작동하나요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "분석된 문의 내용과 크리에이터 프로필(구독자 규모, 니치, 플랫폼 등)을 바탕으로 상황에 맞는 답장 초안을 자동 생성합니다. 무료 플랜은 정중한 답장 1가지를 제공하며, Standard 플랜은 정중한 답장·빠른 확인 요청·협상 제안 등 3가지 톤을 제공합니다. 생성된 초안은 직접 수정하고 저장할 수 있으며, 복사해서 바로 사용하거나 참고 자료로 활용할 수 있습니다.",
+      },
+    },
+    {
+      // 딜 파이프라인: Standard 플랜 핵심 기능 설명
+      "@type": "Question",
+      name: "딜 파이프라인 관리란 무엇인가요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "분석한 문의를 딜로 저장하고 Lead(문의 접수)→Replied(회신 완료)→Negotiating(협상 중)→Confirmed(확정)→Delivered(납품 완료)→Paid(정산 완료) 단계로 진행 상태를 추적하는 기능입니다. 마감 임박 딜과 미결 체크리스트 항목을 알림으로 확인할 수 있습니다(Standard 플랜). 여러 브랜드 딜을 동시에 진행할 때 상태를 한눈에 파악하고 관리 누락을 줄이는 데 도움을 줍니다.",
+      },
+    },
+    {
+      // 데이터 보안: 신뢰도 구축 — GEO에서 중요하게 다루는 항목
+      "@type": "Question",
+      name: "입력한 문의 내용은 어떻게 관리되나요?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "로그인 사용자의 분석 결과는 계정에 암호화되어 저장되며 본인만 조회할 수 있습니다. 비로그인 상태에서 분석한 문의는 서버에 개인 식별 정보와 연결되어 저장되지 않습니다. LLM 분석 과정에서는 입력 텍스트의 해시값을 활용한 캐시 처리로 동일 문의의 불필요한 재처리를 방지하며, 원문은 로그에 기록되지 않습니다.",
+      },
+    },
+  ],
+};
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://delo-app.com";
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
+  "@id": `${APP_URL}/#software`,
   name: "DELO",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://delo.app",
+  url: APP_URL,
+  datePublished: "2025-01-01",
+  dateModified: "2026-03-22",
+  screenshot: {
+    "@type": "ImageObject",
+    url: `${APP_URL}/opengraph-image`,
+    width: 1200,
+    height: 630,
+  },
   description:
-    "브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지 한 곳에서 처리하는 크리에이터 AI 딜 관리 플랫폼입니다.",
+    "유튜버·인스타그램·틱톡 크리에이터를 위한 브랜드 협찬 딜 관리 플랫폼. 문의 분석, 견적 산출, 답장 초안 생성, 계약 진행 관리를 한 곳에서 처리합니다.",
   inLanguage: "ko",
+  publisher: {
+    "@id": `${APP_URL}/#organization`,
+  },
   offers: {
-    "@type": "Offer",
-    price: "0",
+    "@type": "AggregateOffer",
+    lowPrice: "0",
+    highPrice: "12900",
     priceCurrency: "KRW",
-    description: "무료로 시작, 프리미엄 플랜 업그레이드 가능",
+    offerCount: "2",
+    offers: [
+      {
+        "@type": "Offer",
+        name: "Free 플랜",
+        price: "0",
+        priceCurrency: "KRW",
+        description: "월 10회 문의 분석, 기본 견적 산출, 답장 초안 1가지 제공",
+      },
+      {
+        "@type": "Offer",
+        name: "Standard 플랜",
+        price: "12900",
+        priceCurrency: "KRW",
+        description:
+          "무제한 문의 분석, 답장 초안 3가지 톤, 스마트 체크리스트, 딜 파이프라인 관리, 실시간 알림 제공",
+      },
+    ],
   },
   featureList: [
-    "브랜드 문의 AI 분석",
-    "적정 견적 범위 산정",
-    "응답 초안 자동 생성",
-    "딜 계약 진행 관리",
-    "협상 AI 코파일럿",
+    "브랜드 협찬 문의 AI 분석",
+    "구독자·조회수 기반 적정 견적 범위 산출",
+    "3가지 톤 답장 초안 자동 생성",
+    "계약 체크리스트 자동 추출",
+    "딜 파이프라인 상태 관리",
+    "마감 임박 및 미결 항목 알림",
   ],
 };
 
@@ -160,6 +286,10 @@ export default async function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       {/* Nav — theme-aware backdrop */}
@@ -327,9 +457,17 @@ export default async function LandingPage() {
         {/* ── How it works ── */}
         <section id="how-it-works" className="bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-7xl">
-            <h2 className="mb-20 text-center text-3xl font-bold md:text-4xl">
+            <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
               DELO는 이렇게 작동합니다
             </h2>
+            <div className="mb-20 text-center">
+              <Link
+                href="/how-it-works"
+                className="text-sm font-medium text-[var(--landing-accent)] transition-colors hover:underline"
+              >
+                브랜드 협찬 문의 분석 전체 작동 방식 보기 →
+              </Link>
+            </div>
             <div className="flex flex-col items-start justify-between gap-12 md:flex-row md:items-center">
               {HOW_IT_WORKS.map(({ step, badge, title, desc, example }, index) => (
                 <Fragment key={step}>
@@ -364,9 +502,17 @@ export default async function LandingPage() {
         {/* ── Comparison ── */}
         <section className="border-y border-[var(--landing-border)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-5xl">
-            <h2 className="mb-20 text-center text-3xl font-bold md:text-4xl">
+            <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
               수작업 대신 DELO가 맡는 일
             </h2>
+            <div className="mb-20 text-center">
+              <Link
+                href="/parse"
+                className="text-sm font-medium text-[var(--landing-accent)] transition-colors hover:underline"
+              >
+                브랜드 협찬 문의 AI 분석 직접 해보기 →
+              </Link>
+            </div>
             {/* Column headers */}
             <div className="mb-3 hidden grid-cols-12 px-6 text-xs font-semibold uppercase tracking-widest text-[var(--landing-muted)] md:grid">
               <div className="col-span-4" />
@@ -430,6 +576,12 @@ export default async function LandingPage() {
           </div>
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-12">
             <div className="flex gap-6 text-sm font-medium text-[var(--landing-muted)] transition-colors">
+              <Link href="/parse" className="transition-colors hover:text-[var(--landing-text)]">
+                문의 분석하기
+              </Link>
+              <Link href="/how-it-works" className="transition-colors hover:text-[var(--landing-text)]">
+                작동 방식
+              </Link>
               <Link href="/terms" className="transition-colors hover:text-[var(--landing-text)]">
                 이용약관
               </Link>
@@ -438,7 +590,7 @@ export default async function LandingPage() {
               </Link>
             </div>
             <div className="text-sm text-[var(--landing-footer)] transition-colors">
-              Copyright 2025.
+              Copyright 2026.
             </div>
           </div>
         </div>

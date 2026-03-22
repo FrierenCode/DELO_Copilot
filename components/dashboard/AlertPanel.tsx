@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { AlertItem, AlertResult } from "@/types/dashboard";
 
 export function AlertPanel({ alerts }: { alerts: AlertResult }) {
+  const firstDealId = alerts.items[0]?.deal_id;
   if (alerts.items.length === 0) return null;
 
   return (
@@ -34,7 +35,7 @@ export function AlertPanel({ alerts }: { alerts: AlertResult }) {
         </div>
 
         <Link
-          href="/dashboard"
+          href={firstDealId ? `/dashboard/deals/${firstDealId}` : "/dashboard/deals"}
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-amber-500/40 bg-amber-500/10 px-6 py-2.5 text-xs font-bold text-amber-300 transition-all hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-lg hover:shadow-amber-500/10"
         >
           긴급 항목 확인하기

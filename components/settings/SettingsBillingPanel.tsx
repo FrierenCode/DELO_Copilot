@@ -256,7 +256,7 @@ export function SettingsBillingPanel({
 
         {/* PRO card */}
         <div
-          className={`relative overflow-hidden rounded-xl p-8 flex flex-col bg-[var(--d-surface)] ${
+          className={`relative rounded-xl p-8 flex flex-col bg-[var(--d-surface)] ${
             isPro
               ? "border-2 border-[#6366F1]/50 shadow-xl shadow-[#6366F1]/10"
               : "border border-[var(--d-border)]"

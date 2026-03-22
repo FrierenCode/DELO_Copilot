@@ -297,7 +297,7 @@ export default function LoginPage() {
       </main>
 
       <footer className="p-8 text-center">
-        <p className="text-xs text-[var(--login-footer)]">© 2025 DELO Copilot. All rights reserved.</p>
+        <p className="text-xs text-[var(--login-footer)]">© 2026 DELO. All rights reserved.</p>
       </footer>
     </div>
   );
