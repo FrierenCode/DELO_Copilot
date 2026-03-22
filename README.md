@@ -98,6 +98,8 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 랜딩 `/`, `/parse`, `/how-it-works`의 metadata description과 keyword 구성이 검색 스니펫 길이에 맞게 다시 다듬어졌고, canonical·Open Graph·Twitter 카드 설명이 현재 공개 페이지 카피와 정렬되었습니다.
 - 랜딩 페이지에 `FAQPage` JSON-LD, `/how-it-works`에 `HowTo` 및 breadcrumb JSON-LD, `/parse`에 breadcrumb JSON-LD가 추가되어 공개 유입용 구조화 데이터가 보강되었습니다.
 - `app/layout.tsx`에 `NaverBot: All` 메타가 추가되고 `app/robots.ts`와 `public/robots.txt`가 같은 허용/차단 규칙을 노출하도록 맞춰져 네이버/일반 크롤러용 색인 정책이 더 명시적으로 정리되었습니다.
+- `/about` 페이지가 추가되어 제품 배경, 해결하려는 문제, 핵심 기능, 팀/피드백 안내를 공개 소개 페이지로 제공하고 `AboutPage` JSON-LD와 breadcrumb 구조화 데이터도 함께 노출합니다.
+- 공개 페이지 하단 링크 영역이 `LandingFooter`, `PublicFooter`, `SiteFooter`로 분리되어 랜딩, 공개 정보 페이지, 정책 페이지에서 같은 브랜드 링크 구조를 재사용하도록 정리되었습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -126,6 +128,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/parse` 상단 내비게이션에도 `LandingThemeToggle`이 들어가 공개 체험 화면에서 바로 라이트/다크 테마를 바꿀 수 있습니다.
 - `/parse` 하단에 작동 방식, 약관, 개인정보 링크를 담은 공개 푸터가 추가되어 검색 유입 이후의 보조 이동 경로가 생겼습니다.
 - 랜딩 본문에 `/how-it-works`, `/parse`로 직접 연결되는 내부 링크 CTA가 추가되어 공개 페이지 간 탐색성이 강화되었습니다.
+- `/about`, `/terms`, `/privacy`도 공통 푸터 기반으로 재구성되어 `제품`, `회사`, `법적` 링크 허브와 X(Twitter) 링크가 공개 페이지 전반에 일관되게 노출됩니다.
 
 현재 노출된 주요 API 라우트는 아래와 같습니다.
 
@@ -152,6 +155,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 현재 프론트엔드 라우트는 아래와 같습니다.
 
 - `/`
+- `/about`
 - `/parse`
 - `/how-it-works`
 - `/history`
@@ -393,6 +397,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 랜딩 / 설정 / 공통 레이아웃 구현 메모:
 
 - `/` 랜딩 페이지는 누적 deals 수를 보여주고 `무료로 시작하기`, `어떻게 작동하나요?` CTA를 제공합니다.
+- `/about`은 제품이 해결하려는 문제, 핵심 기능, 팀/피드백 안내를 담은 공개 소개 페이지입니다.
 - `/how-it-works`는 4단계 워크플로우 설명, 예시 카드, CTA를 포함한 별도 마케팅 상세 페이지입니다.
 - 랜딩 헤더의 `Light` / `Dark` 토글은 `localStorage` 기반으로 현재 테마를 저장하고, 루트 레이아웃이 이를 읽어 로그인 화면까지 같은 모드를 유지합니다.
 - `ThemeInit`가 `/parse`에서 저장된 랜딩 테마를 복원해 공개 체험과 랜딩의 시각 모드를 맞춥니다.
@@ -410,6 +415,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - 주요 공개 화면과 대시보드 사이드바의 `DELO` 로고는 공통적으로 홈 링크 역할을 합니다.
 - 루트 레이아웃 메타데이터가 `NEXT_PUBLIC_APP_URL` 기준 canonical URL과 verification meta tag를 생성하도록 정리되었습니다.
 - 랜딩 페이지는 `SoftwareApplication` JSON-LD를 포함하고, `/terms`, `/privacy`는 canonical 및 robots 메타데이터를 개별 설정합니다.
+- `/about`은 `AboutPage` JSON-LD를, `/how-it-works`는 `HowTo` JSON-LD를, 랜딩은 `SoftwareApplication` 및 `FAQPage` JSON-LD를 각각 노출합니다.
 
 ### 11. 딜 저장과 운영 데이터
 
@@ -464,6 +470,7 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 
 ```text
 app/
+  about/
   api/
     account/
     analytics/
@@ -486,11 +493,14 @@ app/
   parse/
   settings/
 components/
+  PublicFooter.tsx
+  SiteFooter.tsx
   dashboard/
   inquiry/
   onboarding/
   intake/
   landing/
+    LandingFooter.tsx
   results/
   settings/
   ui/
