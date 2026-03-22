@@ -242,7 +242,7 @@ export default function HistoryPage() {
                     <span className="font-bold text-[var(--d-h)]">{row.brand}</span>
                   </div>
                   <Link
-                    href={`/deal/${row.id}`}
+                    href={`/dashboard/history/${row.id}`}
                     className="shrink-0 text-sm font-medium text-indigo-400 transition-colors hover:text-[#6366F1]"
                   >
                     상세 보기 →
