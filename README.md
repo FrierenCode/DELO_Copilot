@@ -92,6 +92,9 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - 플랜 식별자가 `pro`에서 `standard`로 변경되어 `user_plans`, `subscriptions`, 서버 정책 모듈이 모두 `free | standard`를 기준으로 동작합니다.
 - `supabase/migrations/009_rename_pro_to_standard.sql`가 추가되어 기존 `pro` 값을 `standard`로 이행합니다.
 - 루트 레이아웃에 Microsoft Clarity 스크립트가 추가되어 공개 페이지와 앱 공통 행동 분석이 강화되었습니다.
+- `/auth/callback`이 이제 OAuth PKCE 코드 교환뿐 아니라 Supabase 이메일 인증의 `token_hash + type` OTP 검증도 처리하며, redirect 응답에 세션 쿠키를 직접 기록해 인증 직후 세션 유실을 막습니다.
+- 대시보드 레이아웃에 `onboarding_skipped` 쿠키 기반 예외가 추가되어 사용자가 온보딩을 잠시 미뤄도 `/dashboard`는 진입할 수 있지만, 실제 분석 화면인 `/dashboard/intake`는 creator profile이 없으면 다시 `/onboarding`으로 돌려보냅니다.
+- 온보딩 위저드에 `나중에 하기` 동작이 추가되어 스킵 의도를 쿠키로 저장하고 운영 보드로 이동시킬 수 있습니다.
 
 이번 정리에서 추가로 확인된 UI 업데이트는 아래와 같습니다.
 
@@ -107,6 +110,7 @@ PRD v2 기준에서 이 제품은 "AI가 답장 한 번 써주는 툴"이 아니
 - `/login`은 Google, Discord, 이메일/비밀번호 로그인을 함께 제공하고 이메일 폼은 접기/펼치기 방식으로 보조 노출됩니다.
 - `/signup`은 Google, Discord, 이메일 가입을 함께 제공하고 이메일 가입은 비밀번호 확인, 기존 계정 중복 가드, 이메일 인증 재전송을 포함합니다.
 - 이메일 회원가입 비밀번호 정책이 최소 10자 + 대문자/소문자/숫자/특수문자 포함으로 강화되었습니다.
+- `/auth/callback`은 OAuth redirect와 이메일 인증 링크를 같은 엔드포인트에서 처리하며, 성공 시 항상 `/onboarding`으로 연결됩니다.
 - 랜딩의 Light/Dark 토글은 더 이상 장식 요소가 아니라 실제 테마 전환을 수행하며, 선택한 테마가 로그인 화면까지 유지됩니다.
 - 랜딩, 로그인, 약관, 개인정보, 온보딩, 대시보드 사이드바의 `DELO` 로고가 `fox-icon.svg` 기반으로 통일되었고 모두 홈(`/`)으로 돌아가는 공통 네비게이션 동작을 가집니다.
 - 루트 레이아웃에는 `CookieBanner`와 Google Analytics 스니펫이 포함되어 공개 페이지와 앱 공통 레벨의 기본 추적/고지가 동작합니다.
@@ -291,10 +295,16 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - Supabase 이메일/비밀번호 기반 로그인
 - `/signup`에서 Google/Discord OAuth 가입 또는 이메일/비밀번호 회원가입 후 이메일 확인
 - `/login`에서 `signInWithPassword`와 Google/Discord `signInWithOAuth`
-- `/auth/callback`에서 OAuth 및 이메일 확인 링크의 `exchangeCodeForSession` 세션 교환
+- `/auth/callback`에서 OAuth PKCE `exchangeCodeForSession`과 이메일 인증 `verifyOtp`를 모두 처리
 - `middleware.ts`에서 세션 refresh
 - `/dashboard`, `/settings`, `/onboarding` 및 하위 경로 보호
 - `/history`, `/settings`는 각각 `/dashboard/history`, `/dashboard/settings`로 redirect되어 동일한 보호 레이아웃 안에서 동작
+
+구현 메모:
+
+- 인증 콜백은 redirect 응답 객체에 Supabase 세션 쿠키를 직접 써서 로그인 직후 `/login`으로 되돌아가는 문제를 방지합니다.
+- middleware는 `/login`, `/auth/callback`에도 적용되어 auth 관련 이동 중 세션 refresh가 끊기지 않도록 구성되어 있습니다.
+- 이메일 회원가입 확인 링크는 Supabase 기본 `token_hash` 흐름으로 들어와도 같은 콜백에서 처리됩니다.
 
 현재 `Dashboard`는 저장된 딜 목록을 상태 탭으로 분류해 보여주고, 요약 카드와 Standard 전용 alert panel을 함께 노출하는 운영 보드입니다.
 
@@ -325,6 +335,11 @@ PRD에서 특히 강조하는 포인트는 아래와 같습니다.
 - 기존 profile이 있으면 `/dashboard/intake`로 redirect
 - 저장이 끝나면 `/api/creator-profile`에 POST 후 `/dashboard/intake`로 이동
 - `lib/creator-profile-mapper.ts`에서 PRD용 band 값을 기존 backend enum으로 변환
+
+흐름 메모:
+
+- 대시보드 레이아웃은 profile이 없는 사용자를 기본적으로 `/onboarding`으로 보내지만, 온보딩에서 `나중에 하기`를 누른 경우 `onboarding_skipped=1` 쿠키를 보고 `/dashboard` 진입은 허용합니다.
+- 반대로 `/dashboard/intake`는 실제 분석 워크스페이스이므로 스킵 쿠키가 있어도 profile이 없으면 항상 `/onboarding`으로 redirect됩니다.
 
 온보딩 수집 항목:
 
