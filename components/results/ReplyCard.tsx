@@ -16,6 +16,7 @@ type ReplyCardProps = {
 
 type ReplyBlockProps = {
   label: string;
+  desc: string;
   tone: ReplyTone;
   text: string | null;
   inquiryId?: string;
@@ -24,7 +25,7 @@ type ReplyBlockProps = {
   onPromptSignup: () => void;
 };
 
-function ReplyBlock({ label, tone, text, inquiryId, isLoggedIn, onSaved, onPromptSignup }: ReplyBlockProps) {
+function ReplyBlock({ label, desc, tone, text, inquiryId, isLoggedIn, onSaved, onPromptSignup }: ReplyBlockProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text ?? "");
   const [saving, setSaving] = useState(false);
@@ -43,7 +44,7 @@ function ReplyBlock({ label, tone, text, inquiryId, isLoggedIn, onSaved, onPromp
   if (text === null) {
     return (
       <div className="rounded-xl p-3" style={{ backgroundColor: "var(--p-surface)" }}>
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-1 flex items-center justify-between">
           <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--p-secondary)" }}>
             {label}
           </span>
@@ -54,6 +55,7 @@ function ReplyBlock({ label, tone, text, inquiryId, isLoggedIn, onSaved, onPromp
             Standard
           </span>
         </div>
+        <p className="mb-2 text-[10px]" style={{ color: "var(--p-dim)" }}>{desc}</p>
         <p className="text-xs" style={{ color: "var(--p-dim)" }}>Standard 플랜에서 사용 가능합니다</p>
       </div>
     );
@@ -94,7 +96,7 @@ function ReplyBlock({ label, tone, text, inquiryId, isLoggedIn, onSaved, onPromp
 
   return (
     <div className="rounded-xl p-3" style={{ backgroundColor: "var(--p-surface)" }}>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between">
         <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--p-secondary)" }}>
           {label}
         </span>
@@ -115,6 +117,7 @@ function ReplyBlock({ label, tone, text, inquiryId, isLoggedIn, onSaved, onPromp
           </button>
         </div>
       </div>
+      <p className="mb-2 text-[10px]" style={{ color: "var(--p-dim)" }}>{desc}</p>
 
       {editing ? (
         <div className="flex flex-col gap-2">
@@ -159,10 +162,10 @@ export function ReplyCard({ drafts: initialDrafts, inquiryId, isLoggedIn = false
   const [drafts, setDrafts] = useState(initialDrafts);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
-  const blocks: { label: string; tone: ReplyTone; text: string | null }[] = [
-    { label: "정중한 답장", tone: "polite", text: drafts.polite },
-    { label: "간단 답장", tone: "quick", text: drafts.quick },
-    { label: "협상 답장", tone: "negotiation", text: drafts.negotiation },
+  const blocks: { label: string; desc: string; tone: ReplyTone; text: string | null }[] = [
+    { label: "관계 우선", desc: "첫 답변 추천 · 금액 없이 관심 표현", tone: "polite", text: drafts.polite },
+    { label: "단도직입", desc: "참고 단가 포함 · 빠른 확인용", tone: "quick", text: drafts.quick },
+    { label: "전략 협상", desc: "가치 앵커링 + 조건 협상 · 레버리지 최대화", tone: "negotiation", text: drafts.negotiation },
   ];
 
   const inner = (
@@ -171,6 +174,7 @@ export function ReplyCard({ drafts: initialDrafts, inquiryId, isLoggedIn = false
         <ReplyBlock
           key={b.tone}
           label={b.label}
+          desc={b.desc}
           tone={b.tone}
           text={b.text}
           inquiryId={inquiryId}

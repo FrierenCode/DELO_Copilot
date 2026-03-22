@@ -43,18 +43,18 @@ const SOURCE_TAG: Record<string, string> = {
 };
 const DEFAULT_TAG = "bg-slate-500/10 text-slate-400 border border-slate-500/20";
 
-function classifySource(platform: string): string {
-  const p = platform.toLowerCase();
-  if (p.includes("이메일") || p.includes("email")) return "이메일";
-  if (p.includes("인스타") || p.includes("instagram") || p.includes("dm")) return "인스타 DM";
-  if (p.includes("유튜브") || p.includes("youtube")) return "유튜브";
-  if (p.includes("카카오") || p.includes("kakao")) return "카카오";
-  return platform;
+function classifySource(contact_channel: string): string {
+  const c = (contact_channel ?? "").toLowerCase();
+  if (c.includes("이메일") || c.includes("email")) return "이메일";
+  if (c.includes("인스타") || c.includes("instagram") || c.includes("dm")) return "인스타 DM";
+  if (c.includes("유튜브") || c.includes("youtube")) return "유튜브";
+  if (c.includes("카카오") || c.includes("kakao")) return "카카오";
+  return contact_channel || "기타";
 }
 
-function matchesFilter(platform: string, filter: SourceType): boolean {
+function matchesFilter(contact_channel: string, filter: SourceType): boolean {
   if (filter === "전체") return true;
-  return classifySource(platform) === filter;
+  return classifySource(contact_channel) === filter;
 }
 
 /* ─── skeleton ─── */
@@ -102,7 +102,7 @@ export default function HistoryPage() {
 
   const filtered = rows.filter((r) => {
     const matchSearch = r.brand.toLowerCase().includes(search.toLowerCase());
-    const matchSource = matchesFilter(r.platform, sourceFilter);
+    const matchSource = matchesFilter(r.contact_channel, sourceFilter);
     return matchSearch && matchSource;
   });
 
@@ -214,7 +214,7 @@ export default function HistoryPage() {
       {!loading && filtered.length > 0 && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {filtered.map((row) => {
-            const source = classifySource(row.platform);
+            const source = classifySource(row.contact_channel);
             const tagCls = SOURCE_TAG[source] ?? DEFAULT_TAG;
             const initials = monogram(row.brand);
             return (

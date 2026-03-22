@@ -13,7 +13,9 @@ export type ReplyTemplateInput = {
   platform_requested: string;
   deliverables: string;
   missing_fields: string[];
+  quote_floor: number;
   quote_target: number;
+  quote_premium: number;
   contact_name: string;
   compensation_type: string;
   timeline: string;

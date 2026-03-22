@@ -17,6 +17,7 @@ export async function GET(_req: NextRequest) {
       id: row.id,
       brand: row.parsed_json.brand_name,
       platform: row.parsed_json.platform_requested,
+      contact_channel: row.parsed_json.contact_channel,
       deliverables: row.parsed_json.deliverables,
       suggested_price: row.quote_breakdown_json?.target ?? null,
       created_at: row.created_at,

@@ -17,9 +17,9 @@ const STATUSES: DealStatus[] = [
 ];
 
 const TONE_LABEL: Record<ReplyDraftRecord["tone"], string> = {
-  polite: "정중한 답장",
-  quick: "빠른 확인",
-  negotiation: "협상 제안",
+  polite: "관계 우선",
+  quick: "단도직입",
+  negotiation: "전략 협상",
 };
 
 const TONE_ORDER: ReplyDraftRecord["tone"][] = ["polite", "quick", "negotiation"];
@@ -45,9 +45,19 @@ const STATUS_DOT_COLOR: Record<DealStatus, string> = {
 };
 
 const CHECK_BADGE: Record<DealCheck["severity"], { label: string; className: string }> = {
-  LOW:    { label: "CONFIRM", className: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
-  MEDIUM: { label: "WARNING", className: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
-  HIGH:   { label: "DANGER",  className: "bg-rose-500/10 text-rose-400 border border-rose-500/20" },
+  LOW:    { label: "확인",  className: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
+  MEDIUM: { label: "주의",  className: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
+  HIGH:   { label: "위험",  className: "bg-rose-500/10 text-rose-400 border border-rose-500/20" },
+};
+
+const STATUS_LABEL: Record<DealStatus, string> = {
+  Lead:        "리드",
+  Replied:     "답장함",
+  Negotiating: "협상 중",
+  Confirmed:   "확정",
+  Delivered:   "납품 완료",
+  Paid:        "정산 완료",
+  ClosedLost:  "종료",
 };
 
 type Props = {
@@ -193,7 +203,7 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
           >
             {STATUSES.map((s) => (
               <option key={s} value={s} className="bg-[var(--d-surface)] text-[var(--d-h)]">
-                {s}
+                {STATUS_LABEL[s]}
               </option>
             ))}
           </select>
@@ -228,24 +238,26 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
               </svg>
               딜 정보 (견적 제안)
             </h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 mt-5">
               {/* Floor */}
               <div className="bg-[var(--d-bg)] border border-[var(--d-border)] p-4 rounded-xl flex flex-col justify-between hover:border-slate-600/60 transition-all">
-                <span className="text-[10px] text-[var(--d-f)] font-bold uppercase tracking-wider">Floor</span>
+                <span className="text-[10px] text-[var(--d-f)] font-bold">최저가</span>
                 <p className="text-lg font-black mt-2 text-[var(--d-b)] tabular-nums">{formatKRW(deal.quote_floor)}</p>
               </div>
               {/* Target — recommended */}
-              <div className="relative overflow-hidden bg-gradient-to-b from-[#6366F1]/8 to-transparent border-2 border-[#6366F1]/60 p-4 rounded-xl flex flex-col justify-between shadow-lg shadow-[#6366F1]/8">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1] to-transparent" />
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#6366F1] to-indigo-500 text-[10px] text-white font-black px-3 py-0.5 rounded-full whitespace-nowrap shadow-sm shadow-[#6366F1]/30">
+              <div className="relative">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#6366F1] to-indigo-500 text-[10px] text-white font-black px-3 py-0.5 rounded-full whitespace-nowrap shadow-sm shadow-[#6366F1]/30 z-10">
                   추천
                 </span>
-                <span className="text-[10px] text-[#a78bfa] font-bold uppercase tracking-wider">Target</span>
-                <p className="text-lg font-black mt-2 text-white tabular-nums">{formatKRW(deal.quote_target)}</p>
+                <div className="relative overflow-hidden bg-gradient-to-b from-[#6366F1]/8 to-transparent border-2 border-[#6366F1]/60 p-4 rounded-xl flex flex-col justify-between shadow-lg shadow-[#6366F1]/8 h-full">
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1] to-transparent" />
+                  <span className="text-[10px] text-[#a78bfa] font-bold">목표가</span>
+                  <p className="text-lg font-black mt-2 text-white tabular-nums">{formatKRW(deal.quote_target)}</p>
+                </div>
               </div>
               {/* Premium */}
               <div className="bg-[var(--d-bg)] border border-[var(--d-border)] p-4 rounded-xl flex flex-col justify-between hover:border-slate-600/60 transition-all">
-                <span className="text-[10px] text-[var(--d-f)] font-bold uppercase tracking-wider">Premium</span>
+                <span className="text-[10px] text-[var(--d-f)] font-bold">최고가</span>
                 <p className="text-lg font-black mt-2 text-[var(--d-b)] tabular-nums">{formatKRW(deal.quote_premium)}</p>
               </div>
             </div>
@@ -336,7 +348,7 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                   >
                     {STATUSES.map((s) => (
                       <option key={s} value={s}>
-                        {s}
+                        {STATUS_LABEL[s]}
                       </option>
                     ))}
                   </select>
@@ -386,7 +398,7 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
               </div>
 
               <div className="flex items-center justify-between py-3 border-t border-[var(--d-border)]">
-                <span className="text-xs font-bold text-[var(--d-m)]">후속 알림 (Follow-up)</span>
+                <span className="text-xs font-bold text-[var(--d-m)]">후속 알림</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -424,11 +436,11 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                     />
                     <div>
                       <p className="text-xs font-bold text-[var(--d-h)]">
-                        {log.to_status}
+                        {STATUS_LABEL[log.to_status] ?? log.to_status}
                         <span className="text-[var(--d-f)] font-normal ml-2">{formatDate(log.created_at)}</span>
                       </p>
                       <p className="text-[11px] text-[var(--d-f)] mt-0.5">
-                        {log.from_status} → {log.to_status}
+                        {STATUS_LABEL[log.from_status] ?? log.from_status} → {STATUS_LABEL[log.to_status] ?? log.to_status}
                       </p>
                     </div>
                   </div>

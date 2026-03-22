@@ -38,6 +38,7 @@ export type InquirySummary = {
   id: string;
   brand: string;
   platform: string;
+  contact_channel: string;
   deliverables: string;
   suggested_price: number | null;
   created_at: string;

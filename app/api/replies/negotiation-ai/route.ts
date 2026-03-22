@@ -127,7 +127,9 @@ export async function POST(req: NextRequest) {
     platform_requested: parsed_json.platform_requested,
     deliverables: parsed_json.deliverables,
     missing_fields,
+    quote_floor: inquiry.quote_breakdown_json?.floor ?? 0,
     quote_target: effectiveQuoteTarget,
+    quote_premium: inquiry.quote_breakdown_json?.premium ?? 0,
     contact_name: parsed_json.contact_name,
     compensation_type: parsed_json.compensation_type,
     timeline: parsed_json.timeline,
@@ -151,8 +153,8 @@ export async function POST(req: NextRequest) {
       model,
       system: prompt.system,
       input: prompt.user,
-      temperature: 0.4,
-      maxOutputTokens: 300,
+      temperature: 0.5,
+      maxOutputTokens: 900,
     });
 
     const text = (response.text ?? "").trim();

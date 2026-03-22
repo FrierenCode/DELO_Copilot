@@ -88,7 +88,7 @@ export function computeAlerts(deals: Deal[]): AlertResult {
       });
     }
 
-    if (deal.unresolved_checks_count > 0) {
+    if (deal.unresolved_checks_count > 0 && deal.status !== "ClosedLost" && deal.status !== "Paid") {
       unresolved_checks++;
       items.push({
         type: "unresolved_checks",

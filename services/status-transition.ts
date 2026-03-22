@@ -6,9 +6,9 @@ const ALLOWED_TRANSITIONS: Record<DealStatus, DealStatus[]> = {
   Lead:        ["Replied", "ClosedLost"],
   Replied:     ["Negotiating", "ClosedLost"],
   Negotiating: ["Confirmed", "ClosedLost"],
-  Confirmed:   ["Delivered"],
-  Delivered:   ["Paid"],
-  Paid:        [],
+  Confirmed:   ["Delivered", "ClosedLost"],
+  Delivered:   ["Paid", "ClosedLost"],
+  Paid:        ["ClosedLost"],
   ClosedLost:  [],
 };
 
