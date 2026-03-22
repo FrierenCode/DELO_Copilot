@@ -2,6 +2,7 @@ User-agent: Yeti
 Allow: /
 Allow: /parse
 Allow: /how-it-works
+Allow: /about
 Allow: /signup
 Allow: /login
 Allow: /terms

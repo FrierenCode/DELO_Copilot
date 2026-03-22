@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ParseInterface } from "@/components/ParseInterface";
 import { LandingThemeToggle } from "@/components/landing/LandingThemeToggle";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   // 주요 키워드(브랜드 협찬 문의 분석)를 앞에, 부수 기능(견적 계산)과 브랜드를 뒤에 배치
@@ -150,26 +151,7 @@ export default async function ParsePage() {
         <ParseInterface isLoggedIn={!!user} />
       </main>
 
-      <footer className="border-t px-6 py-8" style={{ borderColor: "var(--p-border, rgba(255,255,255,0.06))" }}>
-        <div className="mx-auto flex max-w-3xl flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/fox-icon.svg" width={18} height={18} alt="DELO" />
-            <span className="text-sm font-black" style={{ color: "var(--p-primary)" }}>DELO</span>
-          </Link>
-          <div className="flex gap-5 text-xs" style={{ color: "var(--p-muted)" }}>
-            <Link href="/how-it-works" className="transition-colors hover:text-[var(--p-primary)]">
-              작동 방식
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-[var(--p-primary)]">
-              이용약관
-            </Link>
-            <Link href="/privacy" className="transition-colors hover:text-[var(--p-primary)]">
-              개인정보처리방침
-            </Link>
-          </div>
-          <p className="text-xs" style={{ color: "var(--p-muted)" }}>© 2026 DELO</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -24,7 +24,8 @@ export function RootNav() {
     pathname === "/terms" ||
     pathname === "/privacy" ||
     pathname === "/how-it-works" ||
-    pathname === "/parse"
+    pathname === "/parse" ||
+    pathname === "/about"
   ) return null;
 
   return (

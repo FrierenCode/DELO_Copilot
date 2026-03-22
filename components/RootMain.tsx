@@ -16,7 +16,8 @@ export function RootMain({ children }: { children: React.ReactNode }) {
     pathname === "/terms" ||
     pathname === "/privacy" ||
     pathname === "/how-it-works" ||
-    pathname === "/parse"
+    pathname === "/parse" ||
+    pathname === "/about"
   ) {
     return <div className="min-h-screen">{children}</div>;
   }

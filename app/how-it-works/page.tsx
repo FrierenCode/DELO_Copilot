@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { LandingThemeToggle } from "@/components/landing/LandingThemeToggle";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   // 페이지 목적(작동 방식 설명) + 핵심 가치(4단계) + 브랜드 순서
@@ -60,7 +61,7 @@ const STEPS = [
           style={{ backgroundColor: "var(--p-surface-2)", color: "var(--p-muted)" }}
         >
           <span style={{ color: "var(--p-muted)" }}>
-            "안녕하세요! 저희는 친환경 뷰티 브랜드 그린글로우입니다.
+            "안녕하세요! 저희는 친환경 뷰티 브랜드 소프트블룸입니다.
             인스타그램 피드 포스팅 1회와 스토리 3회 협찬을 제안드립니다..."
           </span>
           <span
@@ -88,7 +89,7 @@ const STEPS = [
     mockup: (
       <div className="space-y-2">
         {[
-          { label: "브랜드", value: "그린글로우", ok: true },
+          { label: "브랜드", value: "소프트블룸", ok: true },
           { label: "플랫폼", value: "인스타그램", ok: true },
           { label: "예산", value: "MISSING", ok: false },
           { label: "사용권", value: "MISSING", ok: false },
@@ -416,30 +417,7 @@ export default function HowItWorksPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t px-6 py-8" style={{ borderColor: "var(--p-border)" }}>
-        <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/fox-icon.svg" width={20} height={20} alt="DELO" />
-            <span className="font-black" style={{ color: "var(--p-primary)" }}>DELO</span>
-          </Link>
-          <div className="flex gap-6 text-xs" style={{ color: "var(--p-dim)" }}>
-            <Link href="/parse" className="transition-colors hover:text-[var(--p-primary)]">
-              브랜드 문의 분석하기
-            </Link>
-            <Link href="/" className="transition-colors hover:text-[var(--p-primary)]">
-              홈
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-[var(--p-primary)]">
-              이용약관
-            </Link>
-            <Link href="/privacy" className="transition-colors hover:text-[var(--p-primary)]">
-              개인정보처리방침
-            </Link>
-          </div>
-          <p className="text-xs" style={{ color: "var(--p-dim)" }}>© 2026 DELO</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function LandingProductMockup() {
           <div className="rounded-xl border border-[var(--landing-border)] bg-[var(--landing-bg)]/50 p-3">
             <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--landing-muted)]">원문 문의</p>
             <p className="text-xs leading-relaxed text-[var(--landing-muted)] line-clamp-2">
-              "안녕하세요! 저희는 친환경 뷰티 브랜드 그린글로우입니다. 인스타그램 피드 포스팅 1회와 스토리 3회 협찬을 제안드립니다..."
+              "안녕하세요! 저희는 친환경 뷰티 브랜드 소프트블룸입니다. 인스타그램 피드 포스팅 1회와 스토리 3회 협찬을 제안드립니다..."
             </p>
           </div>
 
@@ -40,7 +40,7 @@ export function LandingProductMockup() {
           {/* Parsed info row */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: "브랜드", value: "그린글로우" },
+              { label: "브랜드", value: "소프트블룸" },
               { label: "플랫폼", value: "인스타그램" },
               { label: "납기", value: "다음 달" },
             ].map(({ label, value }) => (

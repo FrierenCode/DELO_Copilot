@@ -123,7 +123,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         {/*
          * paint 전에 동기적으로 실행 — useEffect보다 먼저 실행되어
