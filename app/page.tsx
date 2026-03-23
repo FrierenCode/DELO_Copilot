@@ -336,12 +336,6 @@ export default async function LandingPage() {
             <span className="text-xl font-black tracking-tight">DELO</span>
           </Link>
           <div className="flex items-center gap-6">
-            <Link
-              href="/pricing"
-              className="hidden text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-accent)] sm:block"
-            >
-              가격
-            </Link>
             <LandingThemeToggle />
             {user ? (
               <div className="flex items-center gap-2">

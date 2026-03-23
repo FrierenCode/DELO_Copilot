@@ -79,10 +79,11 @@ DELO는 이 흐름을 AI + 구조화된 워크스페이스로 대체한다.
 | 배포 | Cloudflare Workers (via `@opennextjs/cloudflare`) | 엣지 배포 |
 | 빌링 | Polar (`@polar-sh/sdk`) | 구독 결제 |
 | AI/LLM | OpenAI (gpt-4o-mini), Google (gemini-2.0-flash-lite), Anthropic (claude-sonnet) | 파싱·협상 답장 |
-| 이메일 / 스케줄링 | Resend, Vercel Cron | Standard 미응답 알림 메일 발송 |
+| 이메일 | Resend (`@resend/node`) | Standard 미응답 알림 메일 발송 |
+| Cron 스케줄러 | cron-job.org (외부) | `/api/cron/unanswered-alert` 매일 KST 09:00 호출 |
 | 분석 | PostHog (34 이벤트), Sentry, Microsoft Clarity | |
 | UI | Tailwind CSS + shadcn/ui (Radix UI 기반) | |
-| 테스트 | Vitest | 유닛·통합 ~52개 |
+| 테스트 | Vitest | 유닛·통합 ~152개 |
 | 스타일링 | CSS Variables 다크/라이트 테마 | |
 
 > **주의:** `stripe` 패키지가 package.json에 남아있으나 실제로 사용하지 않는다. Polar로 완전 이전됨 (migration 008). 차후 제거 예정.
@@ -117,9 +118,10 @@ DELO는 이 흐름을 AI + 구조화된 워크스페이스로 대체한다.
           │    parse-service.ts          │        │  Google AI API        │
           │    deal-service.ts           │        │  Anthropic API        │
           │    billing-service.ts        │        │  Polar API            │
-          │    alert-engine.ts           │        │  PostHog              │
-          │    reply-generator.ts        │        │  Sentry               │
-          │                              │        └───────────────────────┘
+          │    alert-engine.ts           │        │  Resend API (이메일)  │
+          │    reply-generator.ts        │        │  PostHog              │
+          │                              │        │  Sentry               │
+          │  lib/email.ts (Resend)       │        └───────────────────────┘
           │  repositories/               │
           │    deals-repo.ts             │
           │    inquiries-repo.ts         │
@@ -312,6 +314,7 @@ auth.users (Supabase 내장)
     │    └─── deals ──────────────── brand_name, quote_*, deadline
     │         │   (inquiry_id FK)     payment_due_date, status
     │         │                       next_action, next_action_due_at
+    │         │                       notified_at (미응답 알림 발송 시점)
     │         │
     │         ├─── deal_checks ────── type, message, severity(HIGH|MED|LOW), resolved
     │         ├─── deal_status_logs ─ from_status, to_status, created_at
@@ -514,6 +517,51 @@ API Route 인증 패턴:
 
 ---
 
+### 6-E. 미응답 알림 Cron 플로우
+
+Standard 유저가 7일 이상 답장하지 않은 딜에 이메일로 알림을 보낸다.
+
+```
+cron-job.org (매일 UTC 00:00 = KST 09:00)
+  Authorization: Bearer $CRON_SECRET
+        │
+        ▼
+GET /api/cron/unanswered-alert
+        │
+        ▼
+[1] Bearer 토큰 검증
+    CRON_SECRET 불일치 → 401 UNAUTHORIZED
+        │
+        ▼
+[2] Standard 유저 조회
+    user_plans WHERE plan = 'standard'
+        │
+        ▼
+[3] 미응답 딜 조회 (각 유저)
+    deals WHERE
+      user_id IN (standard_user_ids)
+      AND status = 'Lead'
+      AND created_at < now() - 7 days
+      AND notified_at IS NULL
+        │
+        ▼
+[4] 유저별 이메일 1통 발송 (Resend)
+    제목: "[DELO] 답장하지 않은 브랜드 딜이 N건 있어요"
+    내용: 브랜드명·금액·수신일 테이블 + 딜별 "확인하기" 링크
+        │
+        ▼
+[5] 발송 성공 → deals.notified_at = now() 업데이트
+    발송 실패 → 해당 유저 skip, 다음 유저 계속 진행
+
+[END] { processed: N, skipped: M } 반환
+```
+
+**중복 발송 방지:** `notified_at IS NULL` 조건으로 이미 알림 발송된 딜은 재발송하지 않는다.
+
+**Cloudflare Workers 배포 환경:** Vercel Cron은 동작하지 않으므로, cron-job.org 외부 스케줄러가 `Authorization: Bearer $CRON_SECRET` 헤더를 포함해 엔드포인트를 직접 호출한다.
+
+---
+
 ## 7. API 레퍼런스
 
 ### 범례
@@ -650,7 +698,7 @@ cp .env.example .env.local
 
 ```bash
 # Supabase 대시보드 → SQL Editor에서
-# supabase/migrations/001_*.sql ~ 009_*.sql 순서대로 실행
+# supabase/migrations/001_*.sql ~ 010_*.sql 순서대로 실행
 
 # 또는 CLI 사용 (로컬 Supabase)
 npx supabase db push
@@ -669,6 +717,7 @@ npm run dev
 |------|----------|
 | Negotiation AI | `ANTHROPIC_API_KEY` 또는 `OPENAI_API_KEY` |
 | 결제 (Polar) | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID` |
+| 미응답 알림 이메일 | `RESEND_API_KEY`, `FROM_EMAIL`, `CRON_SECRET` |
 | 분석 (PostHog) | `POSTHOG_API_KEY` |
 | 에러 추적 (Sentry) | `SENTRY_DSN` |
 
@@ -798,10 +847,12 @@ npm run preview
 ```
 
 **Cloudflare 주의사항:**
-- `wrangler.jsonc` 에 env vars 별도 관리 필요
+- `wrangler.jsonc` 에 env vars 별도 관리 필요 (public 변수는 `vars`, 민감 정보는 `wrangler secret put`)
 - `server-only` 패키지 사용 모듈은 Edge 런타임 호환 확인 필요
 - Cloudflare Workers는 Node.js crypto 대신 Web Crypto API 사용
-- Vercel Cron은 Cloudflare에 자동 전달되지 않으므로, Cloudflare에서 운영할 경우 별도 Cron Trigger 또는 외부 스케줄러가 `/api/cron/unanswered-alert` 를 호출해야 함
+- Vercel Cron은 Cloudflare에 자동 전달되지 않음 → **현재 cron-job.org 외부 스케줄러로 운영 중**
+  - `Authorization: Bearer $CRON_SECRET` 헤더 포함해 `GET /api/cron/unanswered-alert` 호출
+  - 스케줄: `0 0 * * *` (UTC 00:00 = KST 09:00)
 
 ---
 
@@ -902,14 +953,15 @@ const result = await client.complete(prompt)
 |------|------------|-----------|
 | `stripe` 패키지 제거 | 잔존만 됨, 기능은 없음 | 30분 |
 | `db/schema.sql` 최신화 | 007~010 마이그레이션 반영 안 됨 | 1시간 |
-| Cloudflare Cron Trigger 연결 | 현재 라우트/시크릿만 준비, 스케줄러 연동 별도 필요 | 반나절 |
 
 ### 최근 반영된 업데이트 (2026-03 기준)
 
 - 공개 가격 페이지 `/pricing` 추가
-- Resend 기반 미응답 딜 알림 메일 발송 구현
-- `vercel.json` 에 `/api/cron/unanswered-alert` 스케줄 추가
+- Resend 기반 미응답 딜 알림 메일 발송 구현 (`lib/email.ts`, `app/api/cron/unanswered-alert/`)
 - `supabase/migrations/010_add_deal_notified_at.sql` 로 알림 중복 발송 방지 필드 추가
+- cron-job.org 외부 스케줄러 연결 완료 (매일 KST 09:00, `Authorization: Bearer $CRON_SECRET`)
+- 랜딩 nav 가격 링크 제거 (서비스 체험 전 가격 노출 → 이탈 유발)
+- 앱 내 페이월 흐름 추가: 파싱/저장 한도 초과 시 에러 대신 업그레이드 유도 UI 표시
 
 ### Phase 2~3 계획 (3~6개월)
 
@@ -932,6 +984,7 @@ const result = await client.complete(prompt)
 | `db/schema.sql` 스냅샷 미동기화 | `db/schema.sql` | 001~006 기준, 007~010 반영 안 됨 |
 | 단일 Polar 상품 ID | `POLAR_PRODUCT_ID` | 멀티플랜 시 구조 변경 필요 |
 | 라우트 리다이렉트 이중화 | `app/settings/`, `app/history/` | 공개 경로가 대시보드 경로로 리다이렉트됨 |
+| `vercel.json` cron 항목 잔존 | `vercel.json` | Cloudflare Workers 배포 환경에선 동작 안 함, 실제 스케줄러는 cron-job.org |
 
 ---
 

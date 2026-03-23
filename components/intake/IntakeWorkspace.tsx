@@ -13,7 +13,7 @@ import { trackClientEvent } from "@/lib/analytics-client";
 
 type SourceType = "email" | "instagram_dm" | "youtube" | "kakao" | "other";
 type ReplyTone = "polite" | "quick" | "negotiation";
-type PanelState = "empty" | "loading" | "success" | "error";
+type PanelState = "empty" | "loading" | "success" | "error" | "paywall";
 type DealStatus = "Lead" | "Replied" | "Negotiating";
 
 const SAMPLE_INQUIRY =
@@ -84,10 +84,14 @@ export function IntakeWorkspace() {
       const json = (await res.json()) as {
         success: boolean;
         data?: ParseApiResult;
-        error?: { message?: string };
+        error?: { code?: string; message?: string };
       };
 
       if (!json.success) {
+        if (json.error?.code === "PLAN_LIMIT_PARSE_REACHED") {
+          setPanelState("paywall");
+          return;
+        }
         setParseError(json.error?.message ?? "분석에 실패했습니다.");
         setPanelState("error");
         return;
@@ -127,11 +131,15 @@ export function IntakeWorkspace() {
 
       const json = (await res.json()) as {
         success: boolean;
-        error?: { message?: string };
+        error?: { code?: string; message?: string };
       };
 
       if (!json.success) {
-        setSaveError(json.error?.message ?? "저장에 실패했습니다.");
+        if (json.error?.code === "PLAN_LIMIT_DEAL_SAVE_REACHED") {
+          setSaveError("__PAYWALL__");
+        } else {
+          setSaveError(json.error?.message ?? "저장에 실패했습니다.");
+        }
         setSaving(false);
         return;
       }
@@ -253,6 +261,7 @@ export function IntakeWorkspace() {
         <div className="max-w-4xl mx-auto space-y-10">
           {panelState === "empty" && <EmptyState />}
           {panelState === "loading" && <LoadingState step={progressStep} />}
+          {panelState === "paywall" && <PaywallState />}
           {panelState === "error" && (
             <ErrorState
               message={parseError}
@@ -299,7 +308,14 @@ export function IntakeWorkspace() {
                   </svg>
                 </div>
               </div>
-              {saveError ? (
+              {saveError === "__PAYWALL__" ? (
+                <p className="text-xs text-[#a78bfa] hidden md:block">
+                  딜 저장 한도에 도달했습니다.{" "}
+                  <a href="/pricing" className="underline underline-offset-2 hover:text-white transition-colors">
+                    Standard로 업그레이드
+                  </a>
+                </p>
+              ) : saveError ? (
                 <p className="text-xs text-red-400 hidden md:block">{saveError}</p>
               ) : (
                 <p className="text-xs text-[var(--d-f)] hidden md:block">
@@ -421,6 +437,29 @@ function ErrorState({
           다시 시도
         </button>
       )}
+    </div>
+  );
+}
+
+function PaywallState() {
+  return (
+    <div className="flex min-h-[24rem] flex-col items-center justify-center rounded-xl border border-[#6366F1]/30 bg-[#6366F1]/5 px-8 py-16 text-center">
+      <div className="w-12 h-12 rounded-full bg-[#6366F1]/10 flex items-center justify-center mb-4">
+        <svg width="22" height="22" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      </div>
+      <p className="font-bold text-white">이번 달 분석 횟수를 모두 사용했어요</p>
+      <p className="mt-2 text-sm text-[var(--d-m)] max-w-xs">
+        Free 플랜은 월 5회까지 분석할 수 있습니다. Standard로 업그레이드하면 무제한으로 사용할 수 있어요.
+      </p>
+      <a
+        href="/pricing"
+        className="mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-black text-white transition-all hover:brightness-110 active:scale-95"
+        style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+      >
+        Standard 플랜 보기
+      </a>
     </div>
   );
 }
