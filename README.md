@@ -290,39 +290,95 @@ creator-deal-copilot/
 
 ## 5. 데이터 모델 (ERD)
 
-```
-auth.users (Supabase 내장)
-    │
-    ├─── user_plans ──────────────── plan: 'free' | 'standard'
-    │    (PK: user_id)               updated_at
-    │
-    ├─── subscriptions ──────────── polar_customer_id, polar_subscription_id
-    │    (PK: id)                    polar_event_id (idempotency)
-    │    UNIQUE(user_id)             status: active | canceled | past_due | inactive
-    │
-    ├─── creator_profiles ────────── followers_band, avg_views_band, niche
-    │    UNIQUE(user_id)             floor_rate, primary_platform, geo_region, currency
-    │
-    ├─── usage_events ────────────── action, meta (JSONB)
-    │    (user_id, action, created_at)  → 월별 사용량 집계용
-    │
-    ├─── inquiries ───────────────── input_hash (dedup 키)
-    │    │  UNIQUE(user_id, input_hash  parsed_json, missing_fields
-    │    │  WHERE user_id IS NOT NULL)  quote_breakdown_json, checks_json
-    │    │                             reply_drafts_json, parser_meta
-    │    │
-    │    └─── deals ──────────────── brand_name, quote_*, deadline
-    │         │   (inquiry_id FK)     payment_due_date, status
-    │         │                       next_action, next_action_due_at
-    │         │                       notified_at (미응답 알림 발송 시점)
-    │         │
-    │         ├─── deal_checks ────── type, message, severity(HIGH|MED|LOW), resolved
-    │         ├─── deal_status_logs ─ from_status, to_status, created_at
-    │         └─── reply_drafts ───── tone(polite|negotiation|quick), body
-    │
-    └─── parse_cache ─────────────── (PK: input_hash)
-         (NO RLS — admin client only) parsed_json, missing_fields, parser_meta
+```mermaid
+erDiagram
+  auth_users ||--o| user_plans : has
+  auth_users ||--o| subscriptions : has
+  auth_users ||--o| creator_profiles : has
+  auth_users ||--o{ usage_events : tracks
+  auth_users ||--o{ inquiries : creates
+  inquiries ||--o{ deals : spawns
 
+  deals ||--o{ deal_checks : has
+  deals ||--o{ deal_status_logs : logs
+  deals ||--o{ reply_drafts : has
+
+  user_plans {
+    uuid user_id PK
+    string plan "free | standard"
+    timestamp updated_at
+  }
+
+  subscriptions {
+    uuid id PK
+    uuid user_id
+    string polar_customer_id
+    string polar_subscription_id
+    string polar_event_id "idempotency"
+    string status "active | canceled | past_due"
+    string plan
+    timestamp current_period_end
+  }
+
+  creator_profiles {
+    uuid user_id PK
+    string followers_band
+    string avg_views_band
+    string niche
+    int floor_rate
+    string primary_platform
+    string geo_region
+    string currency
+  }
+
+  inquiries {
+    uuid id PK
+    uuid user_id
+    string input_hash "dedup 키"
+    json parsed_json
+    json missing_fields
+    json quote_breakdown_json
+    json checks_json
+    json reply_drafts_json
+  }
+
+  deals {
+    uuid id PK
+    uuid user_id
+    uuid inquiry_id
+    string brand_name
+    string status "Lead|Replied|Negotiating|Confirmed|Delivered|Paid|ClosedLost"
+    int quote_floor
+    int quote_target
+    int quote_premium
+    timestamp deadline
+    timestamp payment_due_date
+    timestamp notified_at "미응답 알림 발송 시점"
+    timestamp created_at
+  }
+
+  deal_checks {
+    uuid id PK
+    uuid deal_id
+    string type
+    string message
+    string severity "HIGH | MEDIUM | LOW"
+    boolean resolved
+  }
+
+  reply_drafts {
+    uuid id PK
+    uuid deal_id
+    string tone "polite | negotiation | quick"
+    string body
+  }
+
+  parse_cache {
+    string input_hash PK
+    json parsed_json
+    json missing_fields
+    string parser_meta
+  }
 ```
 
 **RLS 정책 요약:**
@@ -341,59 +397,32 @@ auth.users (Supabase 내장)
 
 브랜드 문의 텍스트 한 줄이 어떻게 구조화된 데이터가 되는가.
 
-```
-POST /api/inquiries/parse
-         │
-         ▼
-[1] 플랜 게이트 확인
-    user_plans.plan → getPlanPolicy() → parse_per_month 한도 체크
-    초과 시 → 402 PLAN_LIMIT_PARSE_REACHED
-         │
-         ▼
-[2] sanitizeRawText(raw_text)
-    - 이메일 주소, 전화번호 마스킹
-    - 불필요한 공백·특수문자 정리
-    - max 10,000자 truncate
-         │
-         ▼
-[3] createInquiryHash(sanitized_text, source_type, PARSE_PROMPT_VERSION)
-    → SHA-256 hex (dedup 키)
-         │
-         ▼
-[4] 사용자 문의 캐시 조회 (인증 사용자만)
-    findInquiryByHash(hash, userId)
-    ─── HIT ──→ 기존 inquiry 반환 (LLM 호출 없음) ──→ [END]
-         │
-         ▼ MISS
-[5] 전역 파싱 캐시 조회
-    getCachedParse(hash) ← parse_cache 테이블
-    ─── HIT ──→ createInquiry() (inquiry 레코드 생성) ──→ [END]
-         │
-         ▼ MISS
-[6] LLM 파싱 (비용 발생 구간)
-    parseWithLlm()
-      primary: gemini-2.0-flash-lite (Google AI)
-      fallback: gpt-4o-mini (OpenAI)
-    → inquirySchema(Zod) 검증
-         │
-         ▼
-[7] 누락 필드 감지
-    REQUIRED_FIELDS 중 값 = "not specified" 인 것 수집
-         │
-         ▼
-[8] createInquiry() + storeParse()
-    inquiries 테이블 저장 + parse_cache 저장 (비동기)
-         │
-         ▼
-[END] { inquiry_id, parsed_json, missing_fields } 반환
+```mermaid
+flowchart TD
+  A[POST /api/inquiries/parse] --> B{플랜 한도 체크\nparse_per_month}
+  B -->|초과| Z1[402 PLAN_LIMIT_PARSE_REACHED]
+  B -->|통과| C[sanitizeRawText\n이메일·전화 마스킹, 10000자 truncate]
+  C --> D[SHA-256 hash\nsanitized + source_type + PROMPT_VERSION]
+  D --> E{inquiries 캐시 HIT?\nuser_id + input_hash}
+  E -->|HIT| R[기존 inquiry 반환\nLLM 호출 없음]
+  E -->|MISS| F{parse_cache HIT?\ninput_hash 전역}
+  F -->|HIT| G[createInquiry from cache]
+  G --> R
+  F -->|MISS| H[LLM 파싱\nprimary: gemini-2.0-flash-lite\nfallback: gpt-4o-mini]
+  H --> I[Zod 검증\ninquirySchema]
+  I --> J[누락 필드 감지\nnot specified 수집]
+  J --> K[createInquiry + storeParse 비동기]
+  K --> R
+  R --> END[응답\ninquiry_id, parsed_json, missing_fields]
 ```
 
 **캐시 3단계 구조:**
-```
-1차: inquiries 테이블  (user_id + input_hash)  ← 가장 빠름, 사용자별
-2차: parse_cache 테이블  (input_hash)           ← 전역, LLM 없이 재생성
-3차: LLM 호출                                   ← 비용 발생, 최후 수단
-```
+
+| 단계 | 저장소 | 키 | 특징 |
+|------|--------|-----|------|
+| 1차 | `inquiries` 테이블 | `user_id + input_hash` | 가장 빠름, 사용자별 |
+| 2차 | `parse_cache` 테이블 | `input_hash` | 전역, LLM 없이 재생성 |
+| 3차 | LLM 호출 | — | 비용 발생, 최후 수단 |
 
 **주의:** `POST /api/inquiries/parse` 의 응답 스키마(`{ inquiry_id, parsed_json, missing_fields }`)는 여러 클라이언트가 의존하므로 **절대 변경 불가**.
 
@@ -401,118 +430,87 @@ POST /api/inquiries/parse
 
 ### 6-B. Deal 저장 & 상태 머신
 
+```mermaid
+flowchart TD
+  A["딜로 저장 클릭\nPOST /api/deals"] --> B{deal_save_limit 체크}
+  B -->|초과| Z1[402 PLAN_LIMIT_DEAL_SAVE_REACHED]
+  B -->|통과| C{inquiry_id 있음?}
+  C -->|Yes| D[getInquiry 조회]
+  C -->|No| E[parseService 재실행]
+  D --> F[서버사이드 재계산\nquoteEngine + checkEngine]
+  E --> F
+  F --> G[createDeal + createDealChecks]
+  G --> H[replyRoutingService\n플랜별 허용 tone만 초안 생성]
+  H --> END[딜 저장 완료]
 ```
-[파싱 완료 후] "딜로 저장" 클릭
-        │
-        ▼
-POST /api/deals
-  body: { inquiry_id } 또는 { raw_text, source_type }
-        │
-        ▼
-[1] 플랜 게이트: deal_save_limit 체크
-    초과 시 → 402 PLAN_LIMIT_DEAL_SAVE_REACHED
-        │
-        ▼
-[2] inquiry 데이터 로드
-    inquiry_id 경로: getInquiry(id)
-    raw_text 경로:   parseService() 재실행
-        │
-        ▼
-[3] 서버사이드 재계산 (클라이언트 값 신뢰 안 함)
-    quoteEngine.calculate(parsed_json, creatorProfile)
-    checkEngine.run(parsed_json)
-        │
-        ▼
-[4] createDeal() + createDealChecks()
-    → deals 테이블 + deal_checks 테이블
-        │
-        ▼
-[5] 답장 초안 생성 (플랜별)
-    replyRoutingService → 허용된 tone만 생성
-    → reply_drafts 테이블 (또는 inquiries.reply_drafts_json)
 
+**딜 상태 머신 (PATCH /api/deals/[id])**
 
-딜 상태 전이 (PATCH /api/deals/[id])
-─────────────────────────────────────
-        Lead
-       /    \
-  Replied  ClosedLost
-      │
-  Negotiating ──── ClosedLost
-      │
-  Confirmed
-      │
-  Delivered
-      │
-    Paid
-
-규칙: services/status-transition.ts 의 ALLOWED_TRANSITIONS 만 허용
-위반 시 → 400 INVALID_STATUS_TRANSITION
+```mermaid
+stateDiagram-v2
+  direction LR
+  [*] --> Lead
+  Lead --> Replied
+  Lead --> ClosedLost
+  Replied --> Negotiating
+  Replied --> ClosedLost
+  Negotiating --> Confirmed
+  Negotiating --> ClosedLost
+  Confirmed --> Delivered
+  Delivered --> Paid
+  Paid --> [*]
+  ClosedLost --> [*]
 ```
+
+> `services/status-transition.ts`의 `ALLOWED_TRANSITIONS`만 허용. 위반 시 → `400 INVALID_STATUS_TRANSITION`
 
 ---
 
 ### 6-C. Billing 플로우 (Polar)
 
-```
-사용자가 "Standard 업그레이드" 클릭
-        │
-        ▼
-POST /api/billing/checkout
-  → getPolar() SDK로 체크아웃 세션 생성
-  → { url } 반환 → 브라우저에서 Polar 결제 페이지로 이동
-        │
-        ▼ (결제 완료 후 Polar → 웹훅)
-POST /api/billing/webhook
-  헤더: polar-signature
-        │
-        ▼
-[1] validateWebhook(secret) 서명 검증
-[2] isEventProcessed(polar_event_id) 중복 체크
-    → 이미 처리됨: 200 early return
-        │
-        ▼
-[3] 이벤트 종류별 처리
-    subscription.created  → upsertSubscription() + syncUserPlan('standard')
-    subscription.updated  → upsertSubscription() + syncUserPlan(plan)
-    subscription.revoked  → upsertSubscription() + syncUserPlan('free')
-        │
-        ▼
-[4] user_plans.plan 업데이트 → 이후 모든 getPlanPolicy() 호출에 반영
-
-플랜 정보 읽기 경로 (API Route 기준):
-  createClient(cookies)  →  auth.getUser()
-  → getSubscriptionsRepo().getUserPlan(userId)
-  → getPlanPolicy(plan) from lib/plan-policy.ts
+```mermaid
+flowchart TD
+  A[Standard 업그레이드 클릭] --> B[POST /api/billing/checkout]
+  B --> C[Polar 체크아웃 세션 생성]
+  C --> D[Polar 결제 페이지 이동]
+  D --> E[결제 완료]
+  E --> F[POST /api/billing/webhook\npolar-signature 헤더]
+  F --> G{서명 검증\nvalidateWebhook}
+  G -->|실패| Z[400 거절]
+  G -->|성공| H{이미 처리된 이벤트?\npolar_event_id 중복 체크}
+  H -->|Yes| I[200 early return]
+  H -->|No| J{이벤트 종류}
+  J -->|subscription.created| K[syncUserPlan standard]
+  J -->|subscription.updated| K
+  J -->|subscription.revoked| L[syncUserPlan free]
+  K --> M[user_plans.plan 업데이트\n이후 getPlanPolicy 반영]
+  L --> M
 ```
 
 ---
 
 ### 6-D. 인증 & 미들웨어
 
+```mermaid
+flowchart TD
+  A[모든 요청] --> B[middleware.ts\nEdge Runtime]
+  B --> C[supabase.auth.getUser\n세션 쿠키 갱신]
+  C --> D{보호 경로?\n/dashboard /settings /onboarding}
+  D -->|Yes + 미인증| E[redirect /login]
+  D -->|No 또는 인증됨| F[통과]
+  F --> G{/dashboard/intake?}
+  G -->|Yes + 프로필 없음| H[redirect /onboarding]
+  G -->|No 또는 프로필 있음| I[페이지 렌더]
 ```
-모든 요청
-    │
-    ▼
-middleware.ts  (Edge Runtime)
-  createServerClient(URL, ANON_KEY, cookies)
-  supabase.auth.getUser()  ← 세션 쿠키 갱신 (사이드이펙트)
-    │
-    ├── 경로가 /dashboard, /settings, /onboarding 이고 user 없음?
-    │        └──→ redirect /login
-    │
-    └── 그 외: 통과 (세션 쿠키만 갱신)
 
-대시보드 레이아웃 추가 로직 (app/dashboard/layout.tsx):
-  creator_profile 없고 onboarding_skipped 쿠키 없음?
-  → /dashboard는 허용, /dashboard/intake 는 /onboarding 리다이렉트
+**API Route 인증 패턴:**
 
-API Route 인증 패턴:
-  const supabase = await createClient()       ← lib/supabase/server.ts
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return errorResponse('UNAUTHORIZED')
-  // 이후 admin client로 DB 접근
-  const admin = createAdminClient()           ← lib/supabase/admin.ts
+```ts
+const supabase = await createClient()                    // lib/supabase/server.ts
+const { data: { user } } = await supabase.auth.getUser()
+if (!user) return NextResponse.json(errorResponse("UNAUTHORIZED"), { status: 401 })
+
+const admin = createAdminClient()                        // lib/supabase/admin.ts (RLS 우회)
 ```
 
 ---
@@ -521,39 +519,23 @@ API Route 인증 패턴:
 
 Standard 유저가 7일 이상 답장하지 않은 딜에 이메일로 알림을 보낸다.
 
-```
-cron-job.org (매일 UTC 00:00 = KST 09:00)
-  Authorization: Bearer $CRON_SECRET
-        │
-        ▼
-GET /api/cron/unanswered-alert
-        │
-        ▼
-[1] Bearer 토큰 검증
-    CRON_SECRET 불일치 → 401 UNAUTHORIZED
-        │
-        ▼
-[2] Standard 유저 조회
-    user_plans WHERE plan = 'standard'
-        │
-        ▼
-[3] 미응답 딜 조회 (각 유저)
-    deals WHERE
-      user_id IN (standard_user_ids)
-      AND status = 'Lead'
-      AND created_at < now() - 7 days
-      AND notified_at IS NULL
-        │
-        ▼
-[4] 유저별 이메일 1통 발송 (Resend)
-    제목: "[DELO] 답장하지 않은 브랜드 딜이 N건 있어요"
-    내용: 브랜드명·금액·수신일 테이블 + 딜별 "확인하기" 링크
-        │
-        ▼
-[5] 발송 성공 → deals.notified_at = now() 업데이트
-    발송 실패 → 해당 유저 skip, 다음 유저 계속 진행
-
-[END] { processed: N, skipped: M } 반환
+```mermaid
+flowchart TD
+  A[cron-job.org\n매일 KST 09:00] -->|Authorization: Bearer CRON_SECRET| B[GET /api/cron/unanswered-alert]
+  B --> C{Bearer 토큰 검증}
+  C -->|실패| Z[401 UNAUTHORIZED]
+  C -->|성공| D[user_plans WHERE plan = standard]
+  D --> E{Standard 유저 있음?}
+  E -->|No| G[200 processed:0]
+  E -->|Yes| F["deals WHERE\nstatus = Lead\nAND created_at < now - 7d\nAND notified_at IS NULL"]
+  F --> H{미응답 딜 있음?}
+  H -->|No| G
+  H -->|Yes| I[유저별 이메일 1통 발송\nResend]
+  I --> J{발송 성공?}
+  J -->|Yes| K[deals.notified_at = now 업데이트]
+  J -->|No| L[해당 유저 skip\n다음 유저 계속]
+  K --> M[200 processed:N skipped:M]
+  L --> M
 ```
 
 **중복 발송 방지:** `notified_at IS NULL` 조건으로 이미 알림 발송된 딜은 재발송하지 않는다.
@@ -625,10 +607,19 @@ GET /api/cron/unanswered-alert
 
 **SSOT: `lib/plan-policy.ts`** — 여기 외에는 플랜 제한을 하드코딩하지 않는다.
 
-```ts
-// 현재 PlanTier
-type PlanTier = "free" | "standard"
-// (Pro, Business는 PRD에 정의됨, 아직 미구현)
+```mermaid
+flowchart TD
+  A[API 요청 수신] --> B{인증됨?}
+  B -->|No| Z1[401 UNAUTHORIZED]
+  B -->|Yes| C[user_plans 조회\ngetPlanPolicy]
+  C --> D{plan = standard?}
+  D -->|Yes| E[무제한 허용]
+  D -->|No: free| F{횟수 한도 초과?}
+  F -->|No| G[처리 진행]
+  F -->|Yes| H[402 PLAN_LIMIT_REACHED]
+  G --> I{기능 게이트?}
+  I -->|통과| J[성공 응답]
+  I -->|차단| K[403 FEATURE_NOT_AVAILABLE_ON_FREE]
 ```
 
 | 기능 | Free | Standard |
@@ -640,6 +631,7 @@ type PlanTier = "free" | "standard"
 | 알림 패널 | ❌ | ✅ |
 | 견적 상세 breakdown | ❌ | ✅ |
 | 계약 체크 전체 목록 | ❌ | ✅ |
+| 미응답 이메일 알림 | ❌ | ✅ |
 
 **플랜 게이트 추가 방법:**
 
