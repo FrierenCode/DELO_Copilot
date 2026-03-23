@@ -7,6 +7,7 @@ const LINKS = [
     links: [
       { label: "문의 분석하기", href: "/parse" },
       { label: "작동 방식", href: "/how-it-works" },
+      { label: "가격", href: "/pricing" },
       { label: "무료 시작하기", href: "/signup" },
     ],
   },

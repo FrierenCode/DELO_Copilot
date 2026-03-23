@@ -5,6 +5,7 @@ dist/
 .env
 .env.local
 .env.*.local
+.claude
 npm-debug.log*
 claude/
 .open-next

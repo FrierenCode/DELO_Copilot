@@ -58,3 +58,34 @@ export async function deleteDeal(id: string): Promise<void> {
   const { error } = await db.from("deals").delete().eq("id", id);
   if (error) throw new Error(`deals.delete failed: ${error.message}`);
 }
+
+/** Returns Lead-status deals older than `daysOld` days with notified_at IS NULL, for the given user IDs. */
+export async function findUnansweredDealsForCron(
+  userIds: string[],
+  daysOld: number,
+): Promise<Deal[]> {
+  if (userIds.length === 0) return [];
+  const db = createAdminClient();
+  const cutoff = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await db
+    .from("deals")
+    .select()
+    .in("user_id", userIds)
+    .eq("status", "Lead")
+    .lt("created_at", cutoff)
+    .is("notified_at", null)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`deals.findUnansweredForCron failed: ${error.message}`);
+  return (data ?? []) as Deal[];
+}
+
+/** Sets notified_at = now() for the given deal IDs. */
+export async function markDealsNotified(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const db = createAdminClient();
+  const { error } = await db
+    .from("deals")
+    .update({ notified_at: new Date().toISOString() })
+    .in("id", ids);
+  if (error) throw new Error(`deals.markNotified failed: ${error.message}`);
+}

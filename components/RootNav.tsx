@@ -11,22 +11,15 @@ const NAV_LINKS = [
   { href: "/settings", label: "Settings" },
 ];
 
+// Only these app routes use the shared top nav.
+// All other routes (public pages, auth, dashboard) manage their own layout.
+// Add a path here only if it needs the shared nav bar.
+const APP_NAV_ROUTES = ["/history", "/settings"];
+
 export function RootNav() {
   const pathname = usePathname();
 
-  // These pages manage their own nav/layout.
-  if (
-    pathname.startsWith("/dashboard") ||
-    pathname === "/" ||
-    pathname === "/login" ||
-    pathname === "/signup" ||
-    pathname === "/onboarding" ||
-    pathname === "/terms" ||
-    pathname === "/privacy" ||
-    pathname === "/how-it-works" ||
-    pathname === "/parse" ||
-    pathname === "/about"
-  ) return null;
+  if (!APP_NAV_ROUTES.includes(pathname)) return null;
 
   return (
     <header className="border-b border-[#1E1E2E]/60 bg-[#0A0A0F]/80 backdrop-blur-md">

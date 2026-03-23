@@ -40,6 +40,7 @@ export type Deal = {
 
   created_at: string;
   updated_at: string;
+  notified_at?: string | null;
 };
 
 export type DealInsert = Omit<Deal, "id" | "created_at" | "updated_at">;
