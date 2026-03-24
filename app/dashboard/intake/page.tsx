@@ -17,7 +17,7 @@ export default async function IntakePage() {
 
   // Break out of the dashboard main's px-4 py-6 sm:px-6 padding
   return (
-    <div className="-mx-4 -my-6 sm:-mx-6">
+    <div className="-mx-4 -mt-5 sm:-mx-6 sm:-my-6">
       <IntakeWorkspace />
     </div>
   );

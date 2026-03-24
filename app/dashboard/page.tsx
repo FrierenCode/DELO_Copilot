@@ -30,12 +30,11 @@ export default async function DashboardPage() {
 
   return (
     <>
-      {/* Page header */}
-      <div className="relative flex h-16 items-center justify-between -mx-4 sm:-mx-6 px-8 mb-8 -mt-6 border-b border-[var(--d-border)]">
+      <div className="relative mb-6 -mx-4 -mt-5 flex min-h-14 items-center justify-between border-b border-[var(--d-border)] px-4 sm:-mx-6 sm:mb-8 sm:-mt-6 sm:h-16 sm:px-8">
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#6366F1]/20 to-transparent" />
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-black tracking-tight text-[var(--d-h)]">Deal Pipeline</h1>
-          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#6366F1]/15 px-1.5 text-[10px] font-black text-[#a78bfa] tabular-nums">
+          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#6366F1]/15 px-1.5 text-[10px] font-black tabular-nums text-[#a78bfa]">
             {deals.length}
           </span>
         </div>
@@ -44,7 +43,6 @@ export default async function DashboardPage() {
       <div className="flex flex-col gap-8">
         <SummaryCards summary={summary} />
 
-        {/* Alerts — Pro only */}
         {alerts && alerts.items.length > 0 && <AlertPanel alerts={alerts} />}
         {!policy.alerts_enabled && (
           <div className="relative overflow-hidden rounded-xl border border-[var(--d-border)] bg-[var(--d-surface)] px-5 py-4">
@@ -56,9 +54,11 @@ export default async function DashboardPage() {
                 </svg>
               </span>
               <p className="text-sm text-[var(--d-m)]">
-                <span className="font-bold text-[var(--d-b)]">운영 알림</span>은 Standard 전용 기능입니다. 마감 임박·미결 항목 알림을 받으려면
-                {" "}
-                <Link href="/dashboard/settings" className="font-bold text-[#a78bfa] hover:brightness-110 transition-all">Standard로 업그레이드</Link>하세요.
+                <span className="font-bold text-[var(--d-b)]">운영 알림</span>은 Standard 전용 기능입니다. 마감 임박과 미결 체크를 받으려면{" "}
+                <Link href="/dashboard/settings" className="font-bold text-[#a78bfa] transition-all hover:brightness-110">
+                  Standard로 업그레이드
+                </Link>
+                하세요.
               </p>
             </div>
           </div>
@@ -67,13 +67,12 @@ export default async function DashboardPage() {
         <DealList deals={deals} />
       </div>
 
-      {/* FAB */}
       <Link
         href="/dashboard/intake"
-        className="btn-gradient fixed bottom-10 right-10 flex items-center gap-2 text-white font-bold py-4 px-7 rounded-full shadow-xl shadow-[#6366F1]/25 hover:scale-105 active:scale-95 z-50"
+        className="btn-gradient fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full px-5 py-3 text-white shadow-xl shadow-[#6366F1]/25 hover:scale-105 active:scale-95 md:bottom-10 md:right-10 md:px-7 md:py-4"
       >
         <span className="text-lg leading-none">+</span>
-        <span className="text-sm tracking-tight">새 문의 분석하기</span>
+        <span className="text-sm font-bold tracking-tight">새 문의 분석하기</span>
       </Link>
     </>
   );

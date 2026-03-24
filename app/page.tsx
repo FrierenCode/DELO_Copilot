@@ -7,15 +7,13 @@ import { LandingThemeToggle } from "@/components/landing/LandingThemeToggle";
 import { LandingProductMockup } from "@/components/landing/LandingProductMockup";
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
 import { SiteFooter } from "@/components/SiteFooter";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   // 홈페이지는 브랜드명 앞, 서비스 설명 뒤 — 검색·직접 유입 모두 고려
-  title: "DELO | 유튜버·인스타그램 크리에이터 브랜드 딜 관리",
-  // 네이버 권고 80자 이내: 타겟(유튜버·인스타) → 핵심 기능 → 한 곳에서 순서
+  title: "DELO | 에이전시 없이 활동하는 크리에이터의 AI 매니저",
   description:
-    "유튜버·인스타그램 크리에이터를 위한 AI 딜 관리 플랫폼. 브랜드 협찬 문의 분석, 견적 산출, 답장 초안, 계약 추적을 한 곳에서.",
+    "협찬 문의 분석부터 계약·수금까지. 기획사 없이 혼자 활동하는 크리에이터를 위한 AI 매니저 — 월 12,900원",
   keywords: [
     "크리에이터 브랜드 딜 관리",
     "인플루언서 협찬 계약 관리",
@@ -44,18 +42,6 @@ export const metadata: Metadata = {
       "브랜드 협찬 문의를 AI가 분석하고 적정 견적과 답장 초안을 제안합니다. 계약 진행 상태까지 한 곳에서 관리. 무료로 시작하세요.",
   },
 };
-
-async function getDealsCount(): Promise<number | null> {
-  try {
-    const db = createAdminClient();
-    const { count } = await db
-      .from("deals")
-      .select("id", { count: "exact", head: true });
-    return count ?? null;
-  } catch {
-    return null;
-  }
-}
 
 const PROBLEM_CARDS = [
   {
@@ -208,7 +194,7 @@ const faqJsonLd = {
       name: "무료로 사용할 수 있나요? 유료 플랜과 차이는 무엇인가요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "네, 무료(Free) 플랜으로 시작할 수 있습니다. 무료 플랜은 월 5회 문의 분석, 딜 10건 저장, 기본 견적 산출, 정중한 톤의 답장 초안 1가지를 제공합니다. Standard 플랜(월 12,900원)은 무제한 문의 분석, 딜 무제한 저장, 3가지 톤(정중·빠른 확인·협상 제안) 답장 초안, 스마트 계약 체크리스트, 딜 파이프라인 관리, 마감 임박 및 미결 항목 실시간 알림을 추가로 제공합니다.",
+        text: "네, 무료(Free) 플랜으로 시작할 수 있습니다. 무료 플랜은 월 5회 문의 분석, 딜 10건 저장, 기본 견적 산출, 정중한 톤의 답장 초안 1가지를 제공합니다. Standard 플랜(월 12,900원)은 무제한 문의 분석, 딜 무제한 저장, 3가지 톤(정중·빠른 확인·협상 제안) 답장 초안, 스마트 계약 체크리스트, 딜 진행 관리, 마감 임박 및 미결 항목 실시간 알림을 추가로 제공합니다.",
       },
     },
     {
@@ -217,7 +203,7 @@ const faqJsonLd = {
       name: "회원가입 없이도 사용할 수 있나요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "네. DELO의 문의 분석 기능은 delo-app.com/parse에서 회원가입 없이 무료로 체험할 수 있습니다. 다만 분석 결과 저장, 딜 히스토리 관리, 딜 파이프라인 추적, 답장 초안 수정 저장 등 개인화 기능은 계정 생성 후 이용 가능합니다.",
+        text: "네. DELO의 문의 분석 기능은 delo-app.com/parse에서 회원가입 없이 무료로 체험할 수 있습니다. 다만 분석 결과 저장, 지난 문의 내역 관리, 딜 진행 추적, 답장 초안 수정 저장 등 개인화 기능은 계정 생성 후 이용 가능합니다.",
       },
     },
     {
@@ -232,10 +218,10 @@ const faqJsonLd = {
     {
       // 딜 파이프라인: Standard 플랜 핵심 기능 설명
       "@type": "Question",
-      name: "딜 파이프라인 관리란 무엇인가요?",
+      name: "딜 진행 관리란 무엇인가요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "분석한 문의를 딜로 저장하고 Lead(문의 접수)→Replied(회신 완료)→Negotiating(협상 중)→Confirmed(확정)→Delivered(납품 완료)→Paid(정산 완료) 단계로 진행 상태를 추적하는 기능입니다. 마감 임박 딜과 미결 체크리스트 항목을 알림으로 확인할 수 있습니다(Standard 플랜). 여러 브랜드 딜을 동시에 진행할 때 상태를 한눈에 파악하고 관리 누락을 줄이는 데 도움을 줍니다.",
+        text: "분석한 문의를 딜로 저장하고 문의 접수→회신 완료→협상 중→확정→납품 완료→정산 완료 단계로 진행 상태를 추적하는 기능입니다. 마감 임박 딜과 미결 체크리스트 항목을 알림으로 확인할 수 있습니다(Standard 플랜). 여러 브랜드 딜을 동시에 진행할 때 상태를 한눈에 파악하고 관리 누락을 줄이는 데 도움을 줍니다.",
       },
     },
     {
@@ -244,7 +230,7 @@ const faqJsonLd = {
       name: "입력한 문의 내용은 어떻게 관리되나요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "로그인 사용자의 분석 결과는 계정에 암호화되어 저장되며 본인만 조회할 수 있습니다. 비로그인 상태에서 분석한 문의는 서버에 개인 식별 정보와 연결되어 저장되지 않습니다. LLM 분석 과정에서는 입력 텍스트의 해시값을 활용한 캐시 처리로 동일 문의의 불필요한 재처리를 방지하며, 원문은 로그에 기록되지 않습니다.",
+        text: "로그인 사용자의 분석 결과는 계정에 암호화되어 저장되며 본인만 조회할 수 있습니다. 비로그인 상태에서 분석한 문의는 개인 정보와 연결되어 저장되지 않습니다. 동일한 문의를 반복 제출해도 원문 내용은 서버에 별도 기록되지 않습니다.",
       },
     },
   ],
@@ -298,7 +284,7 @@ const jsonLd = {
         availability: "https://schema.org/OnlineOnly",
         url: `${APP_URL}/signup`,
         description:
-          "무제한 문의 분석, 딜 무제한 저장, 답장 초안 3가지 톤, 스마트 체크리스트, 딜 파이프라인 관리, 실시간 알림 제공",
+          "무제한 문의 분석, 딜 무제한 저장, 답장 초안 3가지 톤, 스마트 체크리스트, 딜 진행 관리, 실시간 알림 제공",
       },
     ],
   },
@@ -307,7 +293,7 @@ const jsonLd = {
     "구독자·조회수 기반 적정 견적 범위 산출",
     "3가지 톤 답장 초안 자동 생성",
     "계약 체크리스트 자동 추출",
-    "딜 파이프라인 상태 관리",
+    "딜 진행 상태 관리",
     "마감 임박 및 미결 항목 알림",
   ],
 };
@@ -315,8 +301,6 @@ const jsonLd = {
 export default async function LandingPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const dealsCount = await getDealsCount();
-
   return (
     <div className="landing-page min-h-screen bg-[var(--landing-bg)] text-[var(--landing-text)] antialiased transition-colors">
       <script
@@ -329,25 +313,25 @@ export default async function LandingPage() {
       />
 
       {/* Nav — theme-aware backdrop */}
-      <nav className="fixed top-0 z-50 w-full border-b border-[var(--landing-border)] bg-[color:var(--landing-nav-bg)] backdrop-blur-md transition-colors">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <nav className="fixed top-0 z-50 w-full border-b-2 border-dashed border-[var(--landing-border)] bg-[color:var(--landing-nav-bg)] backdrop-blur-md transition-colors">
+        <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:px-6 sm:py-0">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/fox-icon.svg" width={30} height={30} alt="DELO 로고" priority />
-            <span className="text-xl font-black tracking-tight">DELO</span>
+            <Image src="/fox-icon.svg" width={30} height={30} alt="DELO 로고" priority className="[image-rendering:pixelated]" />
+            <span className="font-pixel text-[11px] text-[var(--landing-text)] leading-none">DELO</span>
           </Link>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6">
             <LandingThemeToggle />
             {user ? (
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--landing-accent-soft)] text-sm font-bold text-[var(--landing-accent)]">
+                <div className="flex h-8 w-8 items-center justify-center bg-[var(--landing-accent-soft)] text-sm font-bold text-[var(--landing-accent)]" style={{ boxShadow: "2px 2px 0 rgba(99,102,241,0.30)" }}>
                   {(user.email ?? "??").slice(0, 2).toUpperCase()}
                 </div>
-                <span className="text-sm text-[var(--landing-muted)]">{user.email}</span>
+                <span className="hidden text-sm text-[var(--landing-muted)] sm:block">{user.email}</span>
               </div>
             ) : (
               <Link
                 href="/login"
-                className="text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-accent)]"
+                className="hidden text-sm font-medium text-[var(--landing-muted)] transition-colors hover:text-[var(--landing-accent)] sm:block"
               >
                 로그인
               </Link>
@@ -399,30 +383,20 @@ export default async function LandingPage() {
             <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
               {/* Left: text content */}
               <div className="text-center md:text-left">
-                {dealsCount !== null && dealsCount > 0 && (
-                  <p className="mb-6 inline-block rounded-full bg-[var(--landing-accent-soft)] px-4 py-1.5 text-xs font-medium text-[var(--landing-accent)]">
-                    지금까지 {dealsCount.toLocaleString("ko-KR")}건의 딜을 관리했어요
-                  </p>
-                )}
 
                 {/* Trust badge */}
-                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--landing-accent)]/25 bg-[var(--landing-accent-soft)] px-4 py-2 text-xs font-semibold tracking-wide text-[var(--landing-accent)]">
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--landing-accent)]" />
-                  크리에이터를 위한 AI 딜 관리 플랫폼
+                <div className="mb-6 inline-flex items-center gap-2 border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
+                  <span className="font-pixel text-[9px] text-[var(--landing-accent)]">▶ AI DEAL MANAGER</span>
                 </div>
 
-                <h1 className="mb-4 text-5xl font-bold leading-tight tracking-tight md:text-6xl">
-                  크리에이터 딜 운영,
-                  <br />
-                  <span className="text-gradient">DELO가</span> 정리합니다
+                <h1 className="mb-4 break-keep text-5xl font-bold leading-tight tracking-tight md:text-6xl">
+                  에이전시 없이 활동하는{" "}
+                  <span className="text-gradient">크리에이터의 AI 매니저</span>
                 </h1>
-                <p className="mb-4 text-sm font-medium text-[var(--landing-muted)] transition-colors">
-                  월 2~5건 협찬 문의를 직접 처리하는 크리에이터를 위한 도구입니다
-                </p>
                 <p className="mb-10 text-lg leading-relaxed text-[var(--landing-muted)] transition-colors">
-                  브랜드 문의 분석부터 견적, 응답 초안, 계약 관리까지.
+                  협찬 문의 분석 · 계약 검토 · 수금 추적 —
                   <br className="hidden md:block" />
-                  에이전시 없이도 운영 흐름을 빠르게 정리할 수 있습니다.
+                  월 12,900원으로 기획사 역할을 대신합니다
                 </p>
                 <div className="flex flex-col items-center gap-4 sm:flex-row md:items-start">
                   <LandingCtaButton
@@ -444,15 +418,15 @@ export default async function LandingPage() {
                 {/* Social proof */}
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-[var(--landing-muted)] md:justify-start">
                   <span className="flex items-center gap-1.5">
-                    <span className="text-[var(--landing-accent)]">✓</span> 무료로 시작
+                    <span className="font-bold text-[var(--landing-accent)]">■</span> 무료로 시작
                   </span>
-                  <span className="h-4 w-px bg-[var(--landing-border)]" />
+                  <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
                   <span className="flex items-center gap-1.5">
-                    <span className="text-[var(--landing-accent)]">✓</span> 신용카드 불필요
+                    <span className="font-bold text-[var(--landing-accent)]">■</span> 신용카드 불필요
                   </span>
-                  <span className="h-4 w-px bg-[var(--landing-border)]" />
+                  <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
                   <span className="flex items-center gap-1.5">
-                    <span className="text-[var(--landing-accent)]">✓</span> 30초 내 분석 완료
+                    <span className="font-bold text-[var(--landing-accent)]">■</span> 30초 내 분석 완료
                   </span>
                 </div>
               </div>
@@ -466,12 +440,12 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Problem cards ── */}
-        <section className="border-t border-[var(--landing-border)] bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
+        <section className="border-t-4 border-[var(--landing-accent)]/20 bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-7xl">
             <ScrollReveal>
               <div className="mb-5 text-center">
-                <span className="inline-block rounded-full bg-rose-400/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-rose-400">
-                  에이전시 없이 혼자 운영하는 현실
+                <span className="inline-block border-2 border-rose-400/50 bg-rose-400/10 px-4 py-2 font-pixel text-[9px] text-rose-400" style={{ boxShadow: "4px 4px 0 rgba(251,113,133,0.45)" }}>
+                  PROBLEM
                 </span>
               </div>
               <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
@@ -486,18 +460,18 @@ export default async function LandingPage() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {PROBLEM_CARDS.map(({ emoji, tag, barFrom, barTo, tagBg, tagText, iconBg, impactText, title, quote, desc, impact }, index) => (
                 <ScrollReveal key={title} index={index} total={PROBLEM_CARDS.length} stagger={140}>
-                  <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_16px_48px_rgba(0,0,0,0.13)] hover:border-[var(--landing-accent)]/20">
-                    {/* Top accent bar — brightens on hover */}
-                    <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${barFrom} ${barTo} opacity-50 transition-opacity duration-300 group-hover:opacity-100`} />
+                  <div className="landing-pixel-card group relative flex h-full flex-col overflow-hidden border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] transition-all duration-75 hover:border-[var(--landing-accent)]/50">
+                    {/* Top accent bar — 4px solid pixel stripe */}
+                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${barFrom} ${barTo}`} />
 
-                    <div className="flex flex-1 flex-col p-7 pt-8">
+                    <div className="flex flex-1 flex-col p-6 pt-7">
                       {/* Header */}
-                      <div className="mb-6 flex items-start justify-between">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
+                      <div className="mb-5 flex items-start justify-between">
+                        <div className={`flex h-12 w-12 items-center justify-center text-2xl ${iconBg}`} style={{ boxShadow: "3px 3px 0 rgba(99,102,241,0.25)" }}>
                           {emoji}
                         </div>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tagBg} ${tagText}`}>
-                          {tag}
+                        <span className={`border-2 px-2.5 py-1 font-pixel text-[8px] ${tagBg} ${tagText}`} style={{ borderColor: "currentColor", boxShadow: "2px 2px 0 currentColor" }}>
+                          {tag.toUpperCase()}
                         </span>
                       </div>
 
@@ -505,7 +479,7 @@ export default async function LandingPage() {
                       <h3 className="mb-4 text-[1.05rem] font-bold leading-snug">{title}</h3>
 
                       {/* Quote */}
-                      <blockquote className="mb-4 rounded-lg bg-[var(--landing-bg)] px-4 py-3 text-sm italic leading-relaxed text-[var(--landing-muted)] transition-colors">
+                      <blockquote className="mb-4 border-l-4 border-[var(--landing-accent)]/50 bg-[var(--landing-bg)] px-4 py-3 text-sm italic leading-relaxed text-[var(--landing-muted)] transition-colors">
                         {quote}
                       </blockquote>
 
@@ -515,9 +489,9 @@ export default async function LandingPage() {
                       </p>
 
                       {/* Impact line */}
-                      <div className="border-t border-[var(--landing-border)] pt-4 transition-colors">
-                        <p className={`text-xs font-medium leading-relaxed ${impactText}`}>
-                          → {impact}
+                      <div className="border-t-2 border-dashed border-[var(--landing-border)] pt-4 transition-colors">
+                        <p className={`font-pixel text-[8px] leading-relaxed ${impactText}`}>
+                          ▶ {impact}
                         </p>
                       </div>
                     </div>
@@ -529,15 +503,16 @@ export default async function LandingPage() {
             {/* Section connector */}
             <ScrollReveal delay={500} variant="fade-in">
               <div className="mt-14 flex items-center justify-center gap-3">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[var(--landing-border)]" />
+                <div className="h-px flex-1 border-t-2 border-dashed border-[var(--landing-border)]" />
                 <Link
                   href="#how-it-works"
-                  className="flex items-center gap-2 rounded-full border border-[var(--landing-border)] bg-[var(--landing-surface)] px-5 py-2.5 text-xs font-medium text-[var(--landing-muted)] transition-all duration-200 hover:border-[var(--landing-accent)]/40 hover:text-[var(--landing-accent)]"
+                  className="flex items-center gap-2 border-2 border-dashed border-[var(--landing-border)] bg-[var(--landing-surface)] px-5 py-2.5 text-xs font-medium text-[var(--landing-muted)] transition-all duration-200 hover:border-[var(--landing-accent)]/50 hover:text-[var(--landing-accent)]"
+                  style={{ boxShadow: "3px 3px 0 rgba(99,102,241,0.15)" }}
                 >
                   DELO가 이 3가지를 어떻게 해결하는지 보기
                   <span className="text-[var(--landing-accent)]">↓</span>
                 </Link>
-                <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[var(--landing-border)]" />
+                <div className="h-px flex-1 border-t-2 border-dashed border-[var(--landing-border)]" />
               </div>
             </ScrollReveal>
           </div>
@@ -548,8 +523,8 @@ export default async function LandingPage() {
           <div className="mx-auto max-w-7xl">
             <ScrollReveal>
               <div className="mb-5 text-center">
-                <span className="inline-block rounded-full bg-[var(--landing-accent-soft)] px-4 py-1.5 text-xs font-semibold tracking-wide text-[var(--landing-accent)]">
-                  3단계로 끝납니다
+                <span className="inline-block border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 font-pixel text-[9px] text-[var(--landing-accent)]" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
+                  HOW IT WORKS
                 </span>
               </div>
               <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
@@ -579,13 +554,16 @@ export default async function LandingPage() {
                     stagger={170}
                     variant={index === 0 ? "slide-left" : index === 2 ? "slide-right" : "fade-up"}
                   >
-                    <div className="group flex h-full flex-col rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] hover:border-[var(--landing-accent)]/25">
+                    <div className="landing-pixel-card group flex h-full flex-col border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-all duration-75 hover:border-[var(--landing-accent)]/50">
                       {/* Step header */}
-                      <div className="mb-6 flex items-center justify-between">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--landing-accent)] to-indigo-500 text-sm font-bold text-white shadow-lg shadow-[var(--landing-accent)]/30 transition-transform duration-300 group-hover:scale-110">
-                          {step}
+                      <div className="mb-6 flex items-start justify-between gap-4">
+                        {/* Big pixel step number */}
+                        <div className="flex-shrink-0">
+                          <div className="flex h-14 w-14 items-center justify-center border-2 border-[var(--landing-accent)] bg-[var(--landing-accent)] font-pixel text-lg text-white" style={{ boxShadow: "5px 5px 0 #312e81" }}>
+                            {step}
+                          </div>
                         </div>
-                        <span className="rounded-full bg-[var(--landing-accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--landing-accent)]">
+                        <span className="mt-1 border-2 border-[var(--landing-accent)]/50 bg-[var(--landing-accent-soft)] px-2.5 py-1 font-pixel text-[8px] text-[var(--landing-accent)]" style={{ boxShadow: "2px 2px 0 rgba(99,102,241,0.40)" }}>
                           {badge}
                         </span>
                       </div>
@@ -597,27 +575,26 @@ export default async function LandingPage() {
                       </p>
 
                       {/* Example preview */}
-                      <div className="mb-5 rounded-xl border border-[var(--landing-accent)]/15 bg-[var(--landing-accent)]/5 px-4 py-3 transition-colors">
-                        <p className="whitespace-pre-line text-xs leading-relaxed text-[var(--landing-muted)]">
+                      <div className="mb-5 border-2 border-dashed border-[var(--landing-accent)]/35 bg-[var(--landing-accent)]/8 px-4 py-3 transition-colors">
+                        <p className="font-pixel text-[8px] leading-[1.9] text-[var(--landing-muted)]">
                           {example}
                         </p>
                       </div>
 
                       {/* Outcome chip */}
-                      <div className={`inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1.5 text-xs font-semibold ${outcomeBg} ${outcomeText}`}>
-                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                      <div className={`inline-flex items-center gap-2 self-start border-2 px-3 py-1.5 font-pixel text-[8px] ${outcomeBg} ${outcomeText}`} style={{ borderColor: "currentColor", boxShadow: "3px 3px 0 currentColor" }}>
+                        <span className="inline-block h-2 w-2 bg-current" />
                         {outcome}
                       </div>
                     </div>
                   </ScrollReveal>
 
                   {index < HOW_IT_WORKS.length - 1 && (
-                    <ScrollReveal className="hidden md:block flex-shrink-0 w-16 self-center" delay={index * 170 + 140} variant="fade-in">
-                      <div className="relative h-[2px] w-full overflow-hidden rounded-full bg-[var(--landing-accent)]/15">
-                        <div
-                          className="animate-flow-right absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-[var(--landing-accent)] to-transparent"
-                          style={{ animationDelay: `${index * 0.5}s` }}
-                        />
+                    <ScrollReveal className="hidden md:block flex-shrink-0 w-12 self-center" delay={index * 170 + 140} variant="fade-in">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="h-px w-full border-t-2 border-dashed border-[var(--landing-accent)]/40" />
+                        <span className="font-pixel text-[10px] text-[var(--landing-accent)]/60">▶▶</span>
+                        <div className="h-px w-full border-t-2 border-dashed border-[var(--landing-accent)]/40" />
                       </div>
                     </ScrollReveal>
                   )}
@@ -628,12 +605,12 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Comparison ── */}
-        <section className="border-y border-[var(--landing-border)] px-6 py-[120px] transition-colors">
+        <section className="border-y-4 border-dashed border-[var(--landing-accent)]/20 bg-[var(--landing-surface)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-5xl">
             <ScrollReveal>
               <div className="mb-5 text-center">
-                <span className="inline-block rounded-full bg-rose-400/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-rose-400">
-                  수작업과 비교
+                <span className="inline-block border-2 border-rose-400/50 bg-rose-400/10 px-4 py-2 font-pixel text-[9px] text-rose-400" style={{ boxShadow: "4px 4px 0 rgba(251,113,133,0.45)" }}>
+                  BEFORE / AFTER
                 </span>
               </div>
               <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
@@ -659,15 +636,13 @@ export default async function LandingPage() {
               <div className="mb-3 hidden grid-cols-12 px-5 md:grid">
                 <div className="col-span-4" />
                 <div className="col-span-4 pr-6">
-                  <div className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-400/20 bg-rose-400/5 py-2 text-xs font-semibold text-rose-400/80">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-400/15 text-[9px]">✕</span>
-                    기존 수작업
+                  <div className="flex items-center justify-center gap-2 border-2 border-rose-400/40 bg-rose-400/8 py-2.5 font-pixel text-[9px] text-rose-400/80" style={{ boxShadow: "3px 3px 0 rgba(251,113,133,0.35)" }}>
+                    ✕ 기존 수작업
                   </div>
                 </div>
                 <div className="col-span-4 pl-6">
-                  <div className="flex items-center justify-center gap-1.5 rounded-xl border border-[var(--landing-accent)]/25 bg-[var(--landing-accent-soft)] py-2 text-xs font-semibold text-[var(--landing-accent)]">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--landing-accent)]/20 text-[9px]">✓</span>
-                    DELO
+                  <div className="flex items-center justify-center gap-2 border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] py-2.5 font-pixel text-[9px] text-[var(--landing-accent)]" style={{ boxShadow: "3px 3px 0 rgba(99,102,241,0.50)" }}>
+                    ✓ DELO
                   </div>
                 </div>
               </div>
@@ -676,16 +651,16 @@ export default async function LandingPage() {
             <div className="space-y-3">
               {COMPARISON_ROWS.map(({ emoji, feature, agency, delo }, index) => (
                 <ScrollReveal key={feature} index={index} total={COMPARISON_ROWS.length} stagger={90}>
-                  <div className="group grid grid-cols-12 items-center rounded-2xl border border-[var(--landing-border)] bg-[var(--landing-surface)] p-5 transition-all duration-200 hover:border-[var(--landing-accent)]/30 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+                  <div className="landing-pixel-card group grid grid-cols-12 items-center border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] p-5 transition-all duration-150 hover:border-[var(--landing-accent)]/35">
                     {/* Feature */}
                     <div className="col-span-12 mb-4 flex items-center gap-3 md:col-span-4 md:mb-0">
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--landing-icon-bg)] text-base">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-[var(--landing-icon-bg)] text-base" style={{ boxShadow: "2px 2px 0 rgba(99,102,241,0.15)" }}>
                         {emoji}
                       </div>
                       <span className="text-sm font-bold">{feature}</span>
                     </div>
                     {/* Before */}
-                    <div className="col-span-6 border-r border-[var(--landing-border)] pr-6 md:col-span-4">
+                    <div className="col-span-6 border-r-2 border-dashed border-[var(--landing-accent)]/20 pr-6 md:col-span-4">
                       <div className="flex items-start gap-2">
                         <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-rose-400/15 text-[9px] font-bold text-rose-400">✕</span>
                         <span className="text-sm leading-snug text-[var(--landing-muted)] transition-colors">{agency}</span>
@@ -706,20 +681,21 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Closing CTA ── */}
-        <section className="relative overflow-hidden bg-[var(--landing-surface)] px-6 py-[120px] text-center transition-colors">
+        <section className="relative overflow-hidden border-t-4 border-[var(--landing-accent)]/30 bg-[var(--landing-bg)] px-6 py-[120px] text-center transition-colors">
+          {/* Pixel corner accents */}
+          <div className="pointer-events-none absolute left-0 top-0 h-16 w-16 border-b-2 border-r-2 border-dashed border-[var(--landing-accent)]/25" />
+          <div className="pointer-events-none absolute right-0 top-0 h-16 w-16 border-b-2 border-l-2 border-dashed border-[var(--landing-accent)]/25" />
+          <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-16 border-r-2 border-t-2 border-dashed border-[var(--landing-accent)]/25" />
+          <div className="pointer-events-none absolute bottom-0 right-0 h-16 w-16 border-l-2 border-t-2 border-dashed border-[var(--landing-accent)]/25" />
           {/* Background glow */}
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="absolute left-1/2 top-1/2 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--landing-accent)]/8 blur-[80px]" />
           </div>
 
           <div className="mx-auto max-w-3xl">
-            <ScrollReveal variant="fade-in">
-              <div className="mb-10 h-px bg-gradient-to-r from-transparent via-[var(--landing-accent)]/35 to-transparent" />
-            </ScrollReveal>
-
             <ScrollReveal variant="scale-up" delay={80}>
-              <div className="mb-6 inline-block rounded-full bg-[var(--landing-accent-soft)] px-4 py-1.5 text-xs font-semibold tracking-wide text-[var(--landing-accent)]">
-                무료로 시작
+              <div className="mb-6 inline-block border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 font-pixel text-[9px] text-[var(--landing-accent)]" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
+                FREE START
               </div>
               <h2 className="mb-5 text-3xl font-bold leading-tight md:text-5xl">
                 첫 번째 브랜드 문의부터<br className="hidden md:block" /> 정리해보세요
@@ -748,15 +724,15 @@ export default async function LandingPage() {
             <ScrollReveal delay={380}>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-xs text-[var(--landing-muted)]">
                 <span className="flex items-center gap-1.5">
-                  <span className="text-emerald-400">✓</span> 회원가입 없이 체험 가능
+                  <span className="font-bold text-emerald-400">■</span> 회원가입 없이 체험 가능
                 </span>
-                <span className="h-3 w-px bg-[var(--landing-border)]" />
+                <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
                 <span className="flex items-center gap-1.5">
-                  <span className="text-emerald-400">✓</span> 신용카드 불필요
+                  <span className="font-bold text-emerald-400">■</span> 신용카드 불필요
                 </span>
-                <span className="h-3 w-px bg-[var(--landing-border)]" />
+                <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
                 <span className="flex items-center gap-1.5">
-                  <span className="text-emerald-400">✓</span> 30초 내 분석 완료
+                  <span className="font-bold text-emerald-400">■</span> 30초 내 분석 완료
                 </span>
               </div>
             </ScrollReveal>

@@ -34,10 +34,10 @@ export function IntakeReply({ drafts, selectedTone, onToneChange }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-[#F8FAFC]">답장 초안</h2>
-      <div className="bg-[#13131A] border border-[#1E1E2E] rounded-xl overflow-hidden">
+      <h2 className="text-xl font-bold text-[var(--d-h)]">답장 초안</h2>
+      <div className="d-pixel-card bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl overflow-hidden">
         {/* Tab strip */}
-        <div className="flex border-b border-[#1E1E2E] bg-[#0A0A0F]/50">
+        <div className="flex overflow-x-auto border-b border-[var(--d-border)] bg-[var(--d-surface2)]">
           {TABS.map(({ tone, label }) => (
             <button
               key={tone}
@@ -47,10 +47,10 @@ export function IntakeReply({ drafts, selectedTone, onToneChange }: Props) {
                 trackClientEvent("reply_tab_changed", { tone });
               }}
               className={[
-                "px-6 py-3 text-sm font-medium transition-colors",
+                "shrink-0 px-4 py-3 text-sm font-medium transition-colors sm:px-6",
                 selectedTone === tone
-                  ? "border-b-2 border-[#6366F1] text-[#F8FAFC] font-bold"
-                  : "text-[#64748B] hover:text-[#94A3B8]",
+                  ? "border-b-2 border-[#6366F1] text-[var(--d-h)] font-bold"
+                  : "text-[var(--d-f)] hover:text-[var(--d-m)]",
               ].join(" ")}
             >
               {label}
@@ -68,14 +68,14 @@ export function IntakeReply({ drafts, selectedTone, onToneChange }: Props) {
           if (rawDraft === null) {
             return (
               <div key={tone} className="p-6">
-                <div className="rounded-xl border border-dashed border-[#1E1E2E] p-4">
+                <div className="rounded-xl border border-dashed border-[var(--d-border)] p-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#64748B]">{label}</span>
+                    <span className="text-xs font-medium text-[var(--d-f)]">{label}</span>
                     <span className="rounded-md bg-[#6366F1]/10 px-2 py-0.5 text-xs text-[#6366F1] font-bold">
                       Standard
                     </span>
                   </div>
-                  <p className="text-sm text-[#64748B]">
+                  <p className="text-sm text-[var(--d-f)]">
                     이 답장 유형은 Standard 플랜에서 이용 가능합니다.
                   </p>
                 </div>
@@ -86,18 +86,18 @@ export function IntakeReply({ drafts, selectedTone, onToneChange }: Props) {
           const displayText = getDisplayText(tone);
 
           return (
-            <div key={tone} className="p-6 space-y-3">
+            <div key={tone} className="space-y-3 p-4 sm:p-6">
               <div className="relative group">
                 <textarea
                   value={displayText}
                   onChange={(e) => handleEdit(tone, e.target.value)}
-                  rows={10}
-                  className="w-full bg-[#0A0A0F] border border-[#1E1E2E] p-4 rounded-lg text-sm leading-relaxed text-[#CBD5E1] outline-none focus:border-[#6366F1] transition-colors resize-none"
+                  rows={9}
+                  className="w-full rounded-lg border border-[var(--d-border)] bg-[var(--d-surface2)] p-4 pr-16 text-sm leading-relaxed text-[var(--d-b)] outline-none resize-none transition-colors focus:border-[#6366F1]"
                 />
                 <div className="absolute top-3 right-3">
                   <CopyButton
                     text={displayText}
-                    className="border-[#1E1E2E] bg-[#6366F1] text-white hover:bg-indigo-600 px-3 py-1.5 text-[11px] font-bold shadow-sm"
+                    className="border-[var(--d-border)] bg-[#6366F1] text-white hover:bg-indigo-600 px-3 py-1.5 text-[11px] font-bold shadow-sm"
                   />
                 </div>
               </div>

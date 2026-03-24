@@ -90,19 +90,19 @@ export default async function ParsePage() {
         className="sticky top-0 z-50 backdrop-blur-xl"
         style={{ backgroundColor: "var(--p-nav-bg)", boxShadow: "var(--p-nav-shadow)" }}
       >
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
+        <div className="mx-auto flex min-h-16 max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:px-6 sm:py-0">
           <Link href="/" className="flex items-center gap-2.5">
             <Image src="/fox-icon.svg" width={26} height={26} alt="DELO" priority />
             <span className="text-lg font-black tracking-tighter" style={{ color: "var(--p-primary)" }}>
               DELO
             </span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <LandingThemeToggle />
             {user ? (
               <Link
                 href="/dashboard"
-                className="rounded-full px-5 py-2 text-sm font-black transition-all hover:brightness-110 active:scale-95"
+                className="rounded-full px-4 py-2 text-sm font-black transition-all hover:brightness-110 active:scale-95 sm:px-5"
                 style={{ background: "var(--p-btn-gradient)", color: "white" }}
               >
                 대시보드 →
@@ -111,14 +111,14 @@ export default async function ParsePage() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium transition-all hover:brightness-125"
+                  className="hidden text-sm font-medium transition-all hover:brightness-125 sm:block"
                   style={{ color: "var(--p-muted)" }}
                 >
                   로그인
                 </Link>
                 <Link
                   href="/signup"
-                  className="rounded-full px-5 py-2 text-sm font-black transition-all hover:brightness-110 active:scale-95"
+                  className="rounded-full px-4 py-2 text-sm font-black transition-all hover:brightness-110 active:scale-95 sm:px-5"
                   style={{ background: "var(--p-btn-gradient)", color: "white" }}
                 >
                   무료로 시작하기
@@ -129,7 +129,7 @@ export default async function ParsePage() {
         </div>
       </nav>
 
-      <main className="relative mx-auto max-w-3xl px-6 pb-20 pt-12">
+      <main className="relative mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-6 sm:pb-20 sm:pt-12">
         {/* Header */}
         <header className="mb-10 text-center">
           <div

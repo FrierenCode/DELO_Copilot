@@ -156,10 +156,10 @@ export function IntakeWorkspace() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--d-bg)]">
+    <div className="flex min-h-screen flex-col bg-[var(--d-bg)] lg:flex-row">
       {/* ── Left panel (40%) ── */}
-      <section className="w-full lg:w-[40%] border-r border-[var(--d-border)] p-8 overflow-y-auto bg-[var(--d-surface)]/20">
-        <div className="max-w-xl mx-auto space-y-8">
+      <section className="w-full overflow-y-auto border-b border-[var(--d-border)] bg-[var(--d-surface)]/20 p-4 sm:p-6 lg:w-[40%] lg:border-b-0 lg:border-r lg:p-8">
+        <div className="mx-auto max-w-xl space-y-6 sm:space-y-8">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#6366F1]/25 bg-[#6366F1]/10 px-3 py-1.5">
               <span className="relative flex h-2 w-2">
@@ -186,7 +186,7 @@ export function IntakeWorkspace() {
                 onPaste={() => trackClientEvent("inquiry_pasted", { source_type: sourceType })}
                 disabled={panelState === "loading"}
                 placeholder="브랜드로부터 받은 이메일, DM, 카카오톡 내용을 그대로 붙여넣으세요."
-                className="w-full h-[320px] bg-[var(--d-surface2)] border border-[var(--d-border)] rounded-xl text-sm text-[var(--d-h)] p-4 placeholder:text-[var(--d-f)] focus:ring-2 focus:ring-[#6366F1]/40 focus:border-[#6366F1]/60 resize-none transition-all outline-none disabled:opacity-60"
+                className="h-[280px] w-full rounded-xl border border-[var(--d-border)] bg-[var(--d-surface2)] p-4 text-sm text-[var(--d-h)] placeholder:text-[var(--d-f)] outline-none transition-all resize-none focus:border-[#6366F1]/60 focus:ring-2 focus:ring-[#6366F1]/40 disabled:opacity-60 sm:h-[320px]"
               />
             </div>
 
@@ -257,8 +257,8 @@ export function IntakeWorkspace() {
       </section>
 
       {/* ── Right panel (60%) ── */}
-      <section className="w-full lg:w-[60%] p-8 overflow-y-auto bg-[var(--d-bg)] pb-24">
-        <div className="max-w-4xl mx-auto space-y-10">
+      <section className="w-full overflow-y-auto bg-[var(--d-bg)] p-4 pb-36 sm:p-6 sm:pb-40 lg:w-[60%] lg:p-8 lg:pb-28">
+        <div className="mx-auto max-w-4xl space-y-6 sm:space-y-10">
           {panelState === "empty" && <EmptyState />}
           {panelState === "loading" && <LoadingState step={progressStep} />}
           {panelState === "paywall" && <PaywallState />}
@@ -289,14 +289,14 @@ export function IntakeWorkspace() {
 
       {/* ── Sticky action bar — only visible after a successful parse ── */}
       {parseResult && (
-        <footer className="fixed bottom-0 left-0 right-0 h-20 bg-[var(--d-surface)]/95 backdrop-blur-md border-t border-[var(--d-border)] flex items-center px-8 z-[60] before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#6366F1]/30 before:to-transparent">
-          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-            <div className="flex items-center gap-6">
+        <footer className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] border-t border-[var(--d-border)] bg-[var(--d-surface)]/95 px-4 py-3 backdrop-blur-md before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#6366F1]/30 before:to-transparent md:bottom-0 md:px-8">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-6">
               <div className="relative">
                 <select
                   value={dealStatus}
                   onChange={(e) => setDealStatus(e.target.value as DealStatus)}
-                  className="bg-[var(--d-bg)] border border-[var(--d-border)] text-[var(--d-h)] text-xs font-semibold rounded-xl py-2.5 px-4 pr-10 focus:ring-1 focus:ring-[#6366F1] outline-none appearance-none min-w-[140px]"
+                  className="min-w-[140px] appearance-none rounded-xl border border-[var(--d-border)] bg-[var(--d-bg)] px-4 py-2.5 pr-10 text-xs font-semibold text-[var(--d-h)] outline-none focus:ring-1 focus:ring-[#6366F1]"
                 >
                   <option value="Lead">검토 중</option>
                   <option value="Replied">답장 완료</option>
@@ -309,25 +309,25 @@ export function IntakeWorkspace() {
                 </div>
               </div>
               {saveError === "__PAYWALL__" ? (
-                <p className="text-xs text-[#a78bfa] hidden md:block">
+                <p className="text-xs text-[#a78bfa]">
                   딜 저장 한도에 도달했습니다.{" "}
                   <a href="/pricing" className="underline underline-offset-2 hover:text-white transition-colors">
                     Standard로 업그레이드
                   </a>
                 </p>
               ) : saveError ? (
-                <p className="text-xs text-red-400 hidden md:block">{saveError}</p>
+                <p className="text-xs text-red-400">{saveError}</p>
               ) : (
-                <p className="text-xs text-[var(--d-f)] hidden md:block">
-                  이 딜을 저장하면 파이프라인 대시보드에서 관리할 수 있습니다.
+                <p className="text-xs text-[var(--d-f)]">
+                  이 딜을 저장하면 딜 관리 대시보드에서 확인할 수 있습니다.
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 gap-3 md:flex md:items-center">
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="px-6 py-2.5 bg-transparent border border-[var(--d-border)] rounded-xl text-sm font-medium text-[var(--d-m)] hover:text-[var(--d-h)] hover:bg-white/5 transition-colors"
+                className="rounded-xl border border-[var(--d-border)] bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--d-m)] transition-colors hover:bg-white/5 hover:text-[var(--d-h)] md:px-6"
               >
                 취소
               </button>
@@ -335,7 +335,7 @@ export function IntakeWorkspace() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="btn-gradient px-10 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-[#6366F1]/25 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                className="btn-gradient flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#6366F1]/25 disabled:cursor-not-allowed disabled:opacity-60 md:px-10"
               >
                 {saving ? (
                   <>

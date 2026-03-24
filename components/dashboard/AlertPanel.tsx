@@ -36,7 +36,7 @@ export function AlertPanel({ alerts }: { alerts: AlertResult }) {
 
         <Link
           href={firstDealId ? `/dashboard/deals/${firstDealId}` : "/dashboard/deals"}
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-amber-500/40 bg-amber-500/10 px-6 py-2.5 text-xs font-bold text-amber-300 transition-all hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-lg hover:shadow-amber-500/10"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-6 py-2.5 text-xs font-bold text-amber-300 transition-all hover:bg-amber-500/20 hover:border-amber-400/60 hover:shadow-lg hover:shadow-amber-500/10 md:w-auto md:whitespace-nowrap"
         >
           긴급 항목 확인하기
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

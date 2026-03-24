@@ -9,13 +9,13 @@ type StatusVisual = {
 };
 
 const STATUS_VISUAL: Record<DealStatus, StatusVisual> = {
-  Lead:        { edgeGradient: "from-slate-500 to-slate-600",     badgeBg: "bg-slate-800",        badgeText: "text-slate-400",   label: "Lead" },
-  Replied:     { edgeGradient: "from-blue-500 to-blue-600",       badgeBg: "bg-blue-500/10",      badgeText: "text-blue-400",    label: "Replied" },
-  Negotiating: { edgeGradient: "from-amber-400 to-orange-500",    badgeBg: "bg-amber-500/10",     badgeText: "text-amber-400",   label: "Negotiating" },
-  Confirmed:   { edgeGradient: "from-emerald-400 to-green-500",   badgeBg: "bg-emerald-500/10",   badgeText: "text-emerald-400", label: "Confirmed" },
-  Delivered:   { edgeGradient: "from-teal-400 to-teal-500",       badgeBg: "bg-teal-500/10",      badgeText: "text-teal-400",    label: "Delivered" },
-  Paid:        { edgeGradient: "from-emerald-400 to-emerald-600", badgeBg: "bg-emerald-600/10",   badgeText: "text-emerald-500", label: "Paid" },
-  ClosedLost:  { edgeGradient: "from-gray-500 to-gray-700",       badgeBg: "bg-gray-800",         badgeText: "text-gray-500",    label: "Closed" },
+  Lead:        { edgeGradient: "from-slate-500 to-slate-600",     badgeBg: "bg-[var(--d-border)]",  badgeText: "text-slate-400",   label: "Lead" },
+  Replied:     { edgeGradient: "from-blue-500 to-blue-600",       badgeBg: "bg-blue-500/10",        badgeText: "text-blue-400",    label: "Replied" },
+  Negotiating: { edgeGradient: "from-amber-400 to-orange-500",    badgeBg: "bg-amber-500/10",       badgeText: "text-amber-400",   label: "Negotiating" },
+  Confirmed:   { edgeGradient: "from-emerald-400 to-green-500",   badgeBg: "bg-emerald-500/10",     badgeText: "text-emerald-400", label: "Confirmed" },
+  Delivered:   { edgeGradient: "from-teal-400 to-teal-500",       badgeBg: "bg-teal-500/10",        badgeText: "text-teal-400",    label: "Delivered" },
+  Paid:        { edgeGradient: "from-emerald-400 to-emerald-600", badgeBg: "bg-emerald-600/10",     badgeText: "text-emerald-500", label: "Paid" },
+  ClosedLost:  { edgeGradient: "from-gray-500 to-gray-700",       badgeBg: "bg-[var(--d-border)]",  badgeText: "text-gray-500",    label: "Closed" },
 };
 
 const MONOGRAM_GRADIENTS = [
@@ -53,7 +53,7 @@ export function DealCard({ deal }: { deal: Deal }) {
   return (
     <Link
       href={`/dashboard/deals/${deal.id}`}
-      className="group relative flex items-center overflow-hidden rounded-xl border border-[var(--d-border)] bg-[var(--d-surface)] transition-all duration-200 hover:border-[#6366F1]/30 hover:bg-[#15151E] hover:shadow-lg hover:shadow-[#6366F1]/5 hover:-translate-y-0.5"
+      className="d-pixel-card group relative flex items-center overflow-hidden rounded-xl border border-[var(--d-border)] bg-[var(--d-surface)] transition-all duration-200 hover:border-[#6366F1]/30 hover:bg-[var(--d-surface2)] hover:shadow-lg hover:shadow-[#6366F1]/5 hover:-translate-y-0.5"
     >
       {/* Left gradient edge bar */}
       <div className={`absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b ${visual.edgeGradient}`} />
@@ -63,9 +63,9 @@ export function DealCard({ deal }: { deal: Deal }) {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6366F1]/20 to-transparent" />
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-4 items-center p-5 pl-7">
+      <div className="grid flex-1 grid-cols-1 gap-4 p-4 pl-6 sm:grid-cols-12 sm:items-center sm:gap-4 sm:p-5 sm:pl-7">
         {/* Brand monogram + name + channel */}
-        <div className="col-span-4 flex items-center gap-4 min-w-0">
+        <div className="flex min-w-0 items-center gap-3 sm:col-span-4 sm:gap-4">
           <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${monogramGradient} flex items-center justify-center font-black text-white text-sm shrink-0 shadow-lg`}>
             {monogram}
           </div>
@@ -78,7 +78,7 @@ export function DealCard({ deal }: { deal: Deal }) {
         </div>
 
         {/* Status badge + amount */}
-        <div className="col-span-3 flex flex-col items-center gap-1.5">
+        <div className="flex items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-center sm:justify-center sm:gap-1.5">
           <span
             className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${visual.badgeBg} ${visual.badgeText}`}
           >
@@ -88,7 +88,7 @@ export function DealCard({ deal }: { deal: Deal }) {
         </div>
 
         {/* Next action + deadline chip */}
-        <div className="col-span-4 flex items-center justify-end gap-3">
+        <div className="flex items-start justify-between gap-3 sm:col-span-4 sm:items-center sm:justify-end">
           {deal.next_action && (
             <div className="text-right min-w-0">
               <p className="text-[11px] font-bold text-[var(--d-b)] truncate">{deal.next_action}</p>
@@ -107,7 +107,7 @@ export function DealCard({ deal }: { deal: Deal }) {
             ) : (
               <span
                 className={`px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 ${
-                  chip.past ? "bg-slate-800/80 text-slate-600" : "bg-[var(--d-border)] text-[var(--d-m)]"
+                  chip.past ? "bg-[var(--d-border)] text-[var(--d-f)]" : "bg-[var(--d-border)] text-[var(--d-m)]"
                 }`}
               >
                 {chip.label}
@@ -116,7 +116,7 @@ export function DealCard({ deal }: { deal: Deal }) {
         </div>
 
         {/* Arrow icon */}
-        <div className="col-span-1 flex justify-end">
+        <div className="hidden sm:col-span-1 sm:flex sm:justify-end">
           <svg
             className="w-4 h-4 text-slate-600 group-hover:text-[#6366F1] transition-all duration-200 group-hover:translate-x-0.5"
             fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"

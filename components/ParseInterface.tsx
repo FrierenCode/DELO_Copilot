@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { InquiryCard } from "@/components/results/InquiryCard";
 import { QuoteCard } from "@/components/results/QuoteCard";
 import { ChecksCard } from "@/components/results/ChecksCard";
@@ -14,34 +15,52 @@ type Props = {
   isLoggedIn?: boolean;
 };
 
-const SKELETON_ACCENTS = [
-  "var(--p-primary)",
-  "var(--p-tertiary)",
-  "var(--p-error)",
-  "var(--p-secondary)",
-];
+const PARSE_STEPS = [
+  { emoji: "📋", text: "문의 내용을 읽고 있어요..." },
+  { emoji: "💰", text: "시장 단가와 비교하고 있어요..." },
+  { emoji: "✍️", text: "답장 초안을 준비하고 있어요..." },
+] as const;
 
-function ResultSkeleton() {
+function LoadingSteps({ step }: { step: number }) {
   return (
-    <div className="flex flex-col gap-3">
-      {SKELETON_ACCENTS.map((accent, i) => (
-        <div
-          key={i}
-          className="animate-pulse overflow-hidden rounded-2xl"
-          style={{
-            backgroundColor: "var(--p-surface-2)",
-            border: "1px solid var(--p-card-border)",
-            borderLeft: `4px solid ${accent}`,
-            animationDelay: `${i * 80}ms`,
-          }}
-        >
-          <div className="flex items-center gap-4 px-5 py-4">
-            <div className="h-2 w-16 rounded-full" style={{ backgroundColor: "var(--p-surface-3)" }} />
-            <div className="h-2 flex-1 rounded-full" style={{ backgroundColor: "var(--p-surface-3)", maxWidth: "45%" }} />
-            <div className="ml-auto h-2 w-8 rounded-full" style={{ backgroundColor: "var(--p-surface-3)" }} />
+    <div
+      className="flex flex-col gap-4 rounded-2xl px-6 py-6"
+      style={{
+        backgroundColor: "var(--p-surface-2)",
+        border: "1px solid var(--p-card-border)",
+      }}
+    >
+      {PARSE_STEPS.slice(0, step + 1).map((s, i) => {
+        const isDone = i < step;
+        return (
+          <div
+            key={i}
+            className="flex items-center gap-3"
+            style={{ animation: `p-card-in 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms both` }}
+          >
+            <span className="w-6 text-center text-base leading-none">
+              {isDone ? "✅" : s.emoji}
+            </span>
+            <span
+              className="flex-1 text-sm font-medium"
+              style={{ color: isDone ? "var(--p-muted)" : "var(--p-text)" }}
+            >
+              {s.text}
+            </span>
+            {!isDone && (
+              <svg
+                className="h-4 w-4 shrink-0 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+                style={{ color: "var(--p-primary)" }}
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -112,13 +131,19 @@ function SectionRow({ accent, title, summary, children, delay = 0, defaultOpen =
 
 
 export function ParseInterface({ isLoggedIn = false }: Props) {
+  const router = useRouter();
   const [text, setText] = useState("");
   const [sourceType, setSourceType] = useState<SourceType>("other");
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [pendingResult, setPendingResult] = useState<ParseApiResult | null>(null);
   const [result, setResult] = useState<ParseApiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const resultAreaRef = useRef<HTMLDivElement>(null);
 
+  // Scroll into view when loading starts or result appears
   useEffect(() => {
     if (!resultAreaRef.current) return;
     if (loading || result) {
@@ -129,11 +154,35 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
     }
   }, [loading, result]);
 
+  // Step timer: advance 0→1 at 2s, 1→2 at 4s
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0);
+      return;
+    }
+    const t1 = setTimeout(() => setLoadingStep(1), 2000);
+    const t2 = setTimeout(() => setLoadingStep(2), 4000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [loading]);
+
+  // Reveal result once last step shown AND API has responded
+  useEffect(() => {
+    if (!loading || !pendingResult || loadingStep < PARSE_STEPS.length - 1) return;
+    const t = setTimeout(() => {
+      setResult(pendingResult);
+      setPendingResult(null);
+      setLoading(false);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [loadingStep, pendingResult, loading]);
+
   async function handleParse() {
     if (!text.trim()) return;
     setLoading(true);
     setResult(null);
+    setPendingResult(null);
     setError(null);
+    setSaveError(null);
 
     try {
       const res = await fetch(isLoggedIn ? "/api/inquiries/parse" : "/api/demo/parse", {
@@ -147,13 +196,42 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
       const json = await res.json();
       if (!json.success) {
         setError(json.error?.message ?? (res.status === 429 ? "잠시 후 다시 시도해주세요." : "분석에 실패했습니다."));
+        setLoading(false);
         return;
       }
-      setResult(json.data as ParseApiResult);
+      // Buffer the result — reveal effect will display it after last step
+      setPendingResult(json.data as ParseApiResult);
     } catch {
       setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-    } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!result || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inquiry_id: result.inquiry_id,
+          selected_reply_tone: "polite",
+          source_type: sourceType,
+          initial_status: "Lead",
+        }),
+      });
+      const json = await res.json() as { success: boolean; error?: { code?: string; message?: string } };
+      if (!json.success) {
+        setSaveError(json.error?.message ?? "저장에 실패했습니다.");
+        setSaving(false);
+        return;
+      }
+      router.push("/dashboard");
+    } catch {
+      setSaveError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      setSaving(false);
     }
   }
 
@@ -167,7 +245,7 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
         {/* Left accent bar */}
         <div className="absolute bottom-0 left-0 top-0 w-1" style={{ backgroundColor: "var(--p-primary)" }} />
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* Step header */}
           <div className="mb-6">
             <div className="mb-1.5 flex items-center gap-2.5">
@@ -229,7 +307,7 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
                   value={sourceType}
                   onChange={(e) => setSourceType(e.target.value as SourceType)}
                   disabled={loading}
-                  className="rounded-full border-none px-4 py-2 text-xs font-medium outline-none"
+                  className="min-w-[7rem] rounded-full border-none px-4 py-2 text-xs font-medium outline-none"
                   style={{ backgroundColor: "var(--p-surface-3)", color: "var(--p-text)" }}
                 >
                   <option value="email">이메일</option>
@@ -286,7 +364,7 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
       )}
 
       {/* Result area — scroll target, skeleton, and final results */}
-      <div ref={resultAreaRef} className="flex flex-col gap-6">
+      <div ref={resultAreaRef} className="flex flex-col gap-5 sm:gap-6">
         {/* Step 2 label — visible only when results are loading or shown */}
         {(loading || result) && (
           <div className="flex items-center gap-2.5">
@@ -302,8 +380,8 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
           </div>
         )}
 
-        {/* Loading skeleton */}
-        {loading && <ResultSkeleton />}
+        {/* 3-step loading progress */}
+        {loading && <LoadingSteps step={loadingStep} />}
 
         {/* Results */}
         {result && (
@@ -449,6 +527,42 @@ export function ParseInterface({ isLoggedIn = false }: Props) {
                   bare
                 />
               </SectionRow>
+            </div>
+
+            {/* Single CTA */}
+            <div className="mt-2 flex flex-col items-stretch gap-2">
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-black tracking-tight text-white transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ background: "var(--p-btn-gradient)", boxShadow: "var(--p-btn-shadow)" }}
+                >
+                  {saving ? (
+                    <>
+                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      저장 중…
+                    </>
+                  ) : "딜로 저장하기"}
+                </button>
+              ) : (
+                <a
+                  href="/signup?redirect=/parse"
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-sm font-black tracking-tight text-white transition-all hover:brightness-110 active:scale-95"
+                  style={{ background: "var(--p-btn-gradient)", boxShadow: "var(--p-btn-shadow)" }}
+                >
+                  무료로 저장하기
+                </a>
+              )}
+              {saveError && (
+                <p className="text-center text-xs font-medium" style={{ color: "var(--p-error)" }}>
+                  {saveError}
+                </p>
+              )}
             </div>
           </>
         )}

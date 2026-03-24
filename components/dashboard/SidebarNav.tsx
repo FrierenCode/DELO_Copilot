@@ -56,7 +56,6 @@ function ThemeToggle() {
       onClick={() => setIsDark(!isDark)}
       className="relative flex h-8 w-[3.75rem] items-center rounded-full border border-[var(--d-border)] bg-[var(--d-bg)] p-1 shadow-inner transition-all duration-300 hover:border-[#6366F1]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1]/50"
     >
-      {/* Track fill */}
       <span
         className={[
           "absolute inset-0 rounded-full transition-all duration-300",
@@ -66,9 +65,7 @@ function ThemeToggle() {
         ].join(" ")}
       />
 
-      {/* Icons row */}
       <span className="relative flex w-full items-center justify-between px-1">
-        {/* Sun */}
         <span
           className={[
             "flex items-center justify-center transition-all duration-300",
@@ -80,7 +77,6 @@ function ThemeToggle() {
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
           </svg>
         </span>
-        {/* Moon */}
         <span
           className={[
             "flex items-center justify-center transition-all duration-300",
@@ -93,7 +89,6 @@ function ThemeToggle() {
         </span>
       </span>
 
-      {/* Sliding thumb */}
       <span
         className={[
           "absolute top-1 flex h-6 w-6 items-center justify-center rounded-full shadow-md transition-all duration-300",
@@ -143,68 +138,142 @@ export function SidebarNav({ userEmail, userName, isPro }: Props) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <aside className="hidden h-screen w-[240px] shrink-0 flex-col border-r border-[var(--d-border)] bg-[var(--d-surface2)] md:flex">
-      <Link href="/" className="flex items-center gap-2.5 p-6 pb-4">
-        <Image src="/fox-icon.svg" width={32} height={32} alt="DELO 로고" priority />
-        <h1 className="text-xl font-black tracking-tighter text-[var(--d-h)]">DELO</h1>
-      </Link>
-      <div className="h-px bg-gradient-to-r from-[#6366F1]/20 to-transparent mx-4 mb-2" />
-
-      <nav className="flex-1 space-y-0.5 px-3">
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
-          const active = isActive(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={[
-                "flex items-center gap-3 py-2.5 text-sm transition-all",
-                active
-                  ? "rounded-r-lg bg-[#6366F1]/10 font-semibold text-[#6366F1] border-l-2 border-[#6366F1] pl-[10px] pr-3"
-                  : "rounded-lg px-3 font-medium text-[var(--d-m)] hover:bg-white/[0.04] hover:text-[var(--d-h)]",
-              ].join(" ")}
-            >
-              <Icon size={18} />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="border-t border-[var(--d-border)] p-4 space-y-3">
-        {/* Theme toggle row */}
-        <div className="flex items-center justify-between px-2">
-          <span className="text-[11px] font-semibold text-[var(--d-f)] uppercase tracking-wider">테마</span>
+    <>
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-[var(--d-border)] bg-[var(--d-surface)]/95 px-4 py-3 backdrop-blur-md md:hidden">
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image
+            src="/fox-icon.svg"
+            width={24}
+            height={24}
+            alt="DELO 로고"
+            priority
+            className="[image-rendering:pixelated]"
+          />
+          <div className="flex items-center gap-2">
+            <span className="font-pixel text-[10px] text-[var(--d-h)] leading-none">DELO</span>
+            <span className="border border-[var(--d-border)] bg-[var(--d-surface2)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--d-m)]">
+              {isPro ? "Standard" : "Free"}
+            </span>
+          </div>
+        </Link>
+        <div className="flex items-center gap-3">
           <ThemeToggle />
-        </div>
-
-        {/* User row */}
-        <div className="flex items-center gap-3 rounded-xl p-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#6366F1] to-purple-500 text-xs font-bold text-white">
-            {initials}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-bold text-[var(--d-b)]">{displayName}</p>
-            {isPro ? (
-              <span className="mt-0.5 inline-block rounded border border-[#6366F1]/20 bg-gradient-to-r from-[#6366F1]/20 to-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-[#a78bfa]">
-                Standard Plan
-              </span>
-            ) : (
-              <span className="mt-0.5 inline-block rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">
-                Free Plan
-              </span>
-            )}
-          </div>
           <button
             type="button"
             onClick={handleLogout}
-            className="shrink-0 text-[10px] text-[var(--d-f)] transition-colors hover:text-[var(--d-m)]"
+            className="text-[11px] font-medium text-[var(--d-m)] transition-colors hover:text-[var(--d-h)]"
             title="로그아웃"
           >
             로그아웃
           </button>
         </div>
-      </div>
-    </aside>
+      </header>
+
+      <aside className="sidebar-pixel hidden h-screen w-[240px] shrink-0 flex-col border-r-2 border-[var(--d-border)] bg-[var(--d-surface2)] md:flex">
+        <Link href="/" className="flex items-center gap-3 px-5 py-5 pb-4">
+          <Image
+            src="/fox-icon.svg"
+            width={28}
+            height={28}
+            alt="DELO 로고"
+            priority
+            className="[image-rendering:pixelated]"
+          />
+          <h1 className="font-pixel text-[11px] text-[var(--d-h)] leading-none">DELO</h1>
+        </Link>
+
+        <div className="mx-4 mb-3 border-t-2 border-dashed border-[#6366F1]/25" />
+
+        <nav className="flex-1 space-y-1 px-3">
+          {NAV_ITEMS.map(({ href, label, Icon }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={[
+                  "flex items-center gap-3 py-2.5 text-sm transition-all duration-150",
+                  active
+                    ? "border-l-2 border-[#6366F1] bg-[#6366F1]/10 pl-[10px] pr-3 font-semibold text-[#6366F1] shadow-[2px_2px_0_rgba(99,102,241,0.30)]"
+                    : "px-3 font-medium text-[var(--d-m)] hover:translate-x-px hover:bg-[var(--d-nav-hover)] hover:text-[var(--d-h)] hover:shadow-[1px_1px_0_rgba(99,102,241,0.20)]",
+                ].join(" ")}
+              >
+                <Icon size={17} strokeWidth={active ? 2.5 : 2} />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="space-y-3 border-t-2 border-dashed border-[var(--d-border)] p-4">
+          <div className="flex items-center justify-between px-1">
+            <span className="font-pixel text-[7px] uppercase tracking-widest text-[var(--d-f)]">THEME</span>
+            <ThemeToggle />
+          </div>
+
+          <div className="flex items-center gap-3 p-2">
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center bg-gradient-to-br from-[#6366F1] to-purple-500 text-xs font-bold text-white"
+              style={{ boxShadow: "2px 2px 0 rgba(99,102,241,0.45)" }}
+            >
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-[var(--d-b)]">{displayName}</p>
+              {isPro ? (
+                <span
+                  className="mt-0.5 inline-block border border-[#6366F1]/30 bg-gradient-to-r from-[#6366F1]/20 to-purple-500/20 px-1.5 py-0.5 text-[9px] font-bold text-[#a78bfa]"
+                  style={{ boxShadow: "1px 1px 0 rgba(99,102,241,0.25)" }}
+                >
+                  Standard
+                </span>
+              ) : (
+                <span className="mt-0.5 inline-block border border-[var(--d-border)] bg-[var(--d-border)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--d-m)]">
+                  Free
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="shrink-0 text-[10px] text-[var(--d-f)] transition-colors hover:text-[var(--d-m)]"
+              title="로그아웃"
+            >
+              로그아웃
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--d-border)] bg-[var(--d-surface)]/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-md md:hidden">
+        <div className="grid grid-cols-4 gap-1">
+          {NAV_ITEMS.map(({ href, label, Icon }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={[
+                  "flex min-w-0 flex-col items-center justify-center gap-1 px-2 py-2 text-[10px] font-semibold transition-colors",
+                  active ? "text-[#6366F1]" : "text-[var(--d-m)]",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "flex h-9 w-9 items-center justify-center border transition-colors",
+                    active
+                      ? "border-[#6366F1]/40 bg-[#6366F1]/10"
+                      : "border-[var(--d-border)] bg-[var(--d-surface2)]",
+                  ].join(" ")}
+                >
+                  <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                </span>
+                <span className="truncate">{label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }

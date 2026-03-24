@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/parse", label: "Parse" },
+  { href: "/parse", label: "문의 분석" },
   { href: "/history", label: "History" },
   { href: "/settings", label: "Settings" },
 ];
@@ -23,12 +23,12 @@ export function RootNav() {
 
   return (
     <header className="border-b border-[#1E1E2E]/60 bg-[#0A0A0F]/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
           <Image src="/fox-icon.svg" width={24} height={24} alt="DELO 로고" priority />
           <span className="text-sm font-semibold tracking-tight text-white">DELO</span>
         </Link>
-        <nav className="flex gap-5">
+        <nav className="flex flex-wrap gap-3 sm:gap-5">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}

@@ -32,10 +32,12 @@ export default async function DashboardLayout({
   const userName = (user.user_metadata?.full_name as string | undefined) ?? null;
 
   return (
-    <div className="dashboard-theme flex h-screen overflow-hidden">
+    <div className="dashboard-theme flex min-h-screen flex-col md:h-screen md:flex-row md:overflow-hidden">
       <SidebarNav userEmail={user.email ?? null} userName={userName} isPro={isPro} />
-      <div className="flex flex-1 flex-col overflow-y-auto">
-        <main className="flex-1 px-4 py-6 sm:px-6 text-[var(--d-h)]">{children}</main>
+      <div className="flex flex-1 flex-col md:overflow-y-auto">
+        <main className="flex-1 px-4 py-5 pb-24 text-[var(--d-h)] sm:px-6 md:py-6 md:pb-6">
+          {children}
+        </main>
       </div>
     </div>
   );
