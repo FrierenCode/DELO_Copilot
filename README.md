@@ -1,4 +1,4 @@
-# DELO — 크리에이터 AI 매니저
+# DELO | 크리에이터 브랜디드 딜 운영 AI
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![React](https://img.shields.io/badge/React-19-149eca)
@@ -6,10 +6,9 @@
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth-3ecf8e)
 ![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-F38020)
 ![Polar](https://img.shields.io/badge/Polar-Billing-blue)
-![Tests](https://img.shields.io/badge/Tests-Vitest-6E9F18)
+![Tests](https://img.shields.io/badge/Tests-Vitest-27%20files-6E9F18)
 
-에이전시 없이 활동하는 크리에이터의 브랜드 협업 운영을 자동화하는 SaaS.
-문의 텍스트를 붙여 넣으면 계약 조건 구조화 → 견적 산출 → 체크리스트 → 답장 초안 → 딜 저장까지 원스톱으로 처리한다.
+DELO는 크리에이터가 브랜드 협업 문의를 입력하면 조건 정리, 견적 산출, 체크리스트 생성, 답장 초안 작성, 딜 저장과 진행 추적까지 한 번에 처리하도록 만든 Next.js SaaS입니다.
 
 ---
 
@@ -21,18 +20,14 @@
 4. [디렉터리 구조](#4-디렉터리-구조)
 5. [데이터 모델 (ERD)](#5-데이터-모델-erd)
 6. [핵심 플로우 상세](#6-핵심-플로우-상세)
-   - 6-A. Parse Pipeline
-   - 6-B. Deal 저장 & 상태 머신
-   - 6-C. Billing (Polar)
-   - 6-D. 인증 & 미들웨어
-7. [API 레퍼런스](#7-api-레퍼런스)
+7. [API 인터페이스](#7-api-인터페이스)
 8. [플랜 정책](#8-플랜-정책)
 9. [로컬 개발 셋업](#9-로컬-개발-셋업)
-10. [환경변수 레퍼런스](#10-환경변수-레퍼런스)
+10. [환경변수 인터페이스](#10-환경변수-인터페이스)
 11. [테스트 가이드](#11-테스트-가이드)
 12. [배포](#12-배포)
-13. [코드 작성 패턴 가이드](#13-코드-작성-패턴-가이드)
-14. [현재 미구현 / 로드맵](#14-현재-미구현--로드맵)
+13. [코드 작성 규칙 가이드](#13-코드-작성-규칙-가이드)
+14. [현재 상태 / 로드맵](#14-현재-상태--로드맵)
 
 ---
 
@@ -40,631 +35,413 @@
 
 ### 무엇을 해결하는가
 
-크리에이터가 브랜드로부터 협업 문의를 받으면, 보통 아래 과정을 수작업으로 처리한다.
+브랜드 협업 문의를 받은 크리에이터는 보통 아래 일을 수동으로 반복합니다.
 
-- 문의 텍스트(이메일·DM·카카오) 정리 → 계약 조건 파악
-- 사용권·독점권·수정 횟수·지급 조건 누락 여부 확인
-- 견적 감으로 제시 → 과소 청구 또는 협상 실패
-- 답장 문구 매번 새로 작성
-- 딜 진행 상황 머릿속으로 추적 → 입금 누락
+- 이메일/DM의 긴 텍스트에서 조건을 다시 정리
+- 빠진 계약 항목과 리스크를 직접 확인
+- 팔로워/조회수/플랫폼에 맞는 견적 범위를 감으로 계산
+- 답장 문구를 매번 새로 작성
+- 저장된 딜의 상태, 후속 액션, 미응답 건을 따로 추적
 
-DELO는 이 흐름을 AI + 구조화된 워크스페이스로 대체한다.
+DELO는 이 반복 업무를 다음 워크플로우로 압축합니다.
 
-### 타겟 사용자 (ICP)
+1. 문의 원문 입력
+2. AI 구조화 파싱
+3. 서버 계산 기반 견적/체크리스트/답장 초안 생성
+4. 딜 저장
+5. 대시보드에서 상태 전이와 후속 일정 관리
 
-| 항목 | 내용 |
+### 현재 구현된 사용자 가치
+
+| 영역 | 현재 동작 |
 |------|------|
-| 팔로워 규모 | 5만~15만 (소·중형 크리에이터) |
-| 활동 패턴 | 월 2~5건 이상 브랜드 협업 직접 처리 |
-| 공통점 | 매니저 없음, 협업은 이미 하지만 운영 효율 낮음 |
+| 문의 파싱 | 이메일, DM, 기타 텍스트를 구조화된 문의 데이터로 변환 |
+| 견적 산출 | 크리에이터 프로필과 문의 내용을 바탕으로 floor / target / premium 계산 |
+| 체크리스트 | 사용권, 수정 횟수, 독점 여부, 지급 조건 등 리스크 항목 생성 |
+| 답장 초안 | Free는 polite 1종, Standard는 polite / quick / negotiation 3종 제공 |
+| 협상 AI | Standard 전용 AI 협상 답장 생성, 실패 시 템플릿 fallback |
+| 딜 관리 | Lead ~ Paid / ClosedLost 상태 추적, next action / due date 관리 |
+| 알림 | Standard 전용 대시보드 alerts + 7일 이상 미응답 딜 이메일 알림 |
+| 계정 설정 | 닉네임 변경, 비밀번호 재설정, 계정 삭제, 구독 상태 확인 |
 
-### 플랜 구조 (현재 구현)
+### 대상 사용자
+
+| 항목 | 설명 |
+|------|------|
+| 핵심 사용자 | 브랜드 협업을 직접 처리하는 1인 크리에이터 |
+| 주 채널 | 이메일, 인스타그램 DM, 기타 메신저/커뮤니티 메시지 |
+| 문제 강도 | 협업이 월 단위로 누적되면서 견적/계약/후속 관리가 분산되는 경우 |
+
+### 플랜 구조
 
 | 플랜 | 가격 | 상태 |
 |------|------|------|
 | Free | 0원 | 구현 완료 |
-| Standard | 12,900원/월 | 구현 완료 (Polar) |
-| Pro | 29,900원/월 | **미구현** (Phase 2~3 예정) |
-| Business | 79,000원/월 | **미구현** (Phase 3~4 예정) |
+| Standard | 월 12,900원 | 구현 완료 |
 
 ---
 
 ## 2. 기술 스택
 
 | 레이어 | 기술 | 용도 |
-|--------|------|------|
-| 프레임워크 | Next.js 15 (App Router) | 풀스택, SSR/RSC |
-| 런타임 | React 19, TypeScript 5.8 | |
-| DB / 인증 | Supabase (PostgreSQL + Auth) | 데이터 저장, OAuth, RLS |
-| 배포 | Cloudflare Workers (via `@opennextjs/cloudflare`) | 엣지 배포 |
-| 빌링 | Polar (`@polar-sh/sdk`) | 구독 결제 |
-| AI/LLM | OpenAI (gpt-4o-mini), Google (gemini-2.0-flash-lite), Anthropic (claude-sonnet) | 파싱·협상 답장 |
-| 이메일 | Resend (`@resend/node`) | Standard 미응답 알림 메일 발송 |
-| Cron 스케줄러 | cron-job.org (외부) | `/api/cron/unanswered-alert` 매일 KST 09:00 호출 |
-| 분석 | PostHog (34 이벤트), Sentry, Microsoft Clarity | |
-| UI | Tailwind CSS + shadcn/ui (Radix UI 기반) | |
-| 테스트 | Vitest | 유닛·통합 ~152개 |
-| 스타일링 | CSS Variables 다크/라이트 테마 | |
+|------|------|------|
+| 프레임워크 | Next.js 15 App Router | 페이지, API Route, SSR/RSC |
+| UI | React 19, TypeScript 5.8, Tailwind CSS | 프론트엔드 |
+| 인증/DB | Supabase Auth, PostgreSQL | 세션, 사용자 데이터, 딜 저장 |
+| 배포 | Cloudflare Workers + OpenNext | 메인 운영 배포 |
+| 보조 배포 설정 | Vercel | 대체 배포 설정 및 cron 정의 참고 |
+| 결제 | Polar | Standard 구독 결제와 웹훅 동기화 |
+| LLM | OpenAI, Google Gemini, Anthropic | 문의 파싱, 협상 답장 생성 |
+| 이메일 | Resend | 미응답 딜 알림 메일 |
+| 분석/모니터링 | PostHog, Sentry | 이벤트 추적, 에러 모니터링 |
+| 테스트 | Vitest | 서비스/라우트 단위 테스트 |
 
-> **주의:** `stripe` 패키지가 package.json에 남아있으나 실제로 사용하지 않는다. Polar로 완전 이전됨 (migration 008). 차후 제거 예정.
+### 현재 모델 정책
+
+`lib/llm/registry.ts` 기준:
+
+- `parse_inquiry`: primary `gpt-4o-mini`, fallback `gemini-2.5-flash-lite`
+- `reply_negotiation`: primary `gpt-4o-mini`, fallback `claude-sonnet-4-6`
+
+### 참고
+
+- `package.json`에는 `stripe` 패키지가 남아 있지만 현재 결제 구현은 Polar 기준입니다.
+- 분석 이벤트는 `lib/analytics-contract.ts`에서 단일 소스로 관리하며 현재 33개 이벤트 이름이 정의돼 있습니다.
 
 ---
 
 ## 3. 아키텍처 다이어그램
 
-### 전체 시스템 구조
+### 전체 구조
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Browser / Mobile                              │
-│                  (Next.js Client Components)                     │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ HTTPS
-┌──────────────────────────▼──────────────────────────────────────┐
-│              Cloudflare Workers (Edge)                           │
-│         Next.js App Router (Server Components + API Routes)      │
-│                                                                  │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐  │
-│  │  middleware  │  │ API Routes   │  │  Server Components     │  │
-│  │  (세션갱신+  │  │ /api/*       │  │  (대시보드, 랜딩 등)    │  │
-│  │   경로보호)  │  │              │  │                        │  │
-│  └─────────────┘  └──────┬───────┘  └────────────────────────┘  │
-└─────────────────────────┬┴────────────────────────────────────┬─┘
-                          │                                     │
-          ┌───────────────▼──────────────┐        ┌────────────▼──────────┐
-          │   Services / Repositories     │        │   External APIs       │
-          │                              │        │                       │
-          │  services/                   │        │  OpenAI API           │
-          │    parse-service.ts          │        │  Google AI API        │
-          │    deal-service.ts           │        │  Anthropic API        │
-          │    billing-service.ts        │        │  Polar API            │
-          │    alert-engine.ts           │        │  Resend API (이메일)  │
-          │    reply-generator.ts        │        │  PostHog              │
-          │                              │        │  Sentry               │
-          │  lib/email.ts (Resend)       │        └───────────────────────┘
-          │  repositories/               │
-          │    deals-repo.ts             │
-          │    inquiries-repo.ts         │
-          │    parse-cache-repo.ts       │
-          │    subscriptions-repo.ts     │
-          │    ...                       │
-          └───────────────┬──────────────┘
-                          │ Supabase Admin Client (bypasses RLS)
-          ┌───────────────▼──────────────────────────────────────┐
-          │              Supabase (PostgreSQL)                    │
-          │                                                      │
-          │  deals  deal_checks  deal_status_logs  reply_drafts  │
-          │  inquiries  parse_cache  creator_profiles            │
-          │  user_plans  subscriptions  usage_events             │
-          └──────────────────────────────────────────────────────┘
+```text
+Browser / Mobile
+  -> Next.js App Router
+    -> Route Handlers (/app/api/*)
+    -> Server Components
+    -> Client Components
+  -> Service Layer (services/*)
+  -> Repository Layer (repositories/*)
+  -> Supabase Postgres + Auth
+
+External integrations
+  - OpenAI / Gemini / Anthropic
+  - Polar
+  - Resend
+  - PostHog
+  - Sentry
 ```
 
-### 계층 분리 원칙
+### 계층 규칙
 
-```
+```text
 API Route
-   │  요청 검증, 인증 확인, plan gate
-   ▼
+  -> 인증, 요청 검증, 플랜 게이트
 Service
-   │  비즈니스 로직 (DB 직접 접근 금지)
-   ▼
+  -> 비즈니스 로직
 Repository
-   │  Supabase admin client로만 DB 접근
-   ▼
-Supabase DB (RLS는 브라우저 직접 접근 방어용)
+  -> Supabase admin client 기반 DB 접근
+Database
+  -> 실제 저장소
 ```
 
-> **규칙:** service는 DB를 모르고, repository는 비즈니스 로직을 모른다.
+규칙:
+
+- 클라이언트가 계산한 견적/체크/플랜 플래그는 신뢰하지 않습니다.
+- 플랜 제한은 `lib/plan-policy.ts`를 단일 소스로 사용합니다.
+- DB 접근은 repository에 모으고 서비스는 저장 방식 세부 구현을 알지 않도록 유지합니다.
 
 ---
 
 ## 4. 디렉터리 구조
 
-```
+```text
 creator-deal-copilot/
-│
-├── app/                          # Next.js App Router
-│   ├── api/                      # API Route Handlers
-│   │   ├── account/route.ts      # DELETE /api/account (계정 삭제)
-│   │   ├── analytics/event/      # POST (PostHog 서버사이드 브리지)
-│   │   ├── billing/
-│   │   │   ├── checkout/         # POST (Polar 체크아웃 세션 생성)
-│   │   │   └── webhook/          # POST (Polar 웹훅 수신)
-│   │   ├── creator-profile/      # GET / POST·PUT (프로필 upsert)
-│   │   ├── deals/
-│   │   │   ├── [id]/             # GET·PATCH (딜 상세 + 상태 전이)
-│   │   │   ├── alerts/           # GET (Standard-only 알림)
-│   │   │   └── route.ts          # GET·POST (목록 + 저장)
-│   │   ├── cron/unanswered-alert/ # GET (7일 이상 미응답 딜 메일 알림)
-│   │   ├── demo/parse/           # POST (비인증 데모 파싱)
-│   │   ├── health/               # GET (헬스체크)
-│   │   ├── inquiries/
-│   │   │   ├── [id]/             # GET (문의 상세)
-│   │   │   ├── parse/            # POST ⭐ 핵심 엔드포인트 (계약 불변)
-│   │   │   └── route.ts          # GET (문의 목록)
-│   │   └── replies/negotiation-ai/ # POST (AI 협상 답장)
-│   │
-│   ├── auth/callback/            # Supabase OAuth + OTP 콜백
-│   ├── dashboard/                # 인증 필요 앱 영역
-│   │   ├── deals/[id]/           # 딜 상세 화면
-│   │   ├── history/[id]/         # 저장된 파싱 결과 상세 / 초안 수정
-│   │   ├── history/              # 파싱 히스토리
-│   │   ├── intake/               # 문의 입력 & 파싱 워크스페이스
-│   │   ├── settings/             # 플랜·빌링 설정
-│   │   ├── layout.tsx            # 온보딩 리다이렉트 로직 포함
-│   │   └── page.tsx              # 대시보드 (딜 목록 + 알림)
-│   ├── onboarding/               # 크리에이터 프로필 온보딩
-│   ├── (public)/pricing/         # 공개 가격 페이지
-│   ├── about/, how-it-works/     # SEO 중심 공개 페이지
-│   ├── deal/[id]/                # 공개 파싱 결과 상세
-│   ├── history/, settings/       # 대시보드 내부로 리다이렉트
-│   ├── login/, signup/, parse/   # 인증/체험 진입점
-│   ├── privacy/, terms/          # 정책 페이지
-│   ├── layout.tsx                # Root layout (테마, analytics, SEO)
-│   └── globals.css
-│
-├── components/
-│   ├── dashboard/                # DealCard, AlertPanel, SummaryCards 등
-│   ├── intake/                   # IntakeWorkspace, IntakeBrief, IntakeChecks 등
-│   ├── landing/                  # LandingCtaButton, LandingProductMockup 등
-│   ├── onboarding/               # OnboardingWizard
-│   ├── results/                  # ChecksCard, QuoteCard, ReplyCard 등
-│   ├── settings/                 # SettingsBillingPanel
-│   └── ui/                       # 공용 UI (Button, Card, CopyButton 등)
-│
-├── services/                     # 비즈니스 로직 (DB 직접 접근 금지)
-│   ├── parse-service.ts          # ⭐ 파싱 파이프라인 오케스트레이터
-│   ├── parse-llm-service.ts      # LLM 호출 + fallback
-│   ├── deal-service.ts           # 딜 저장 + 견적/체크 재계산
-│   ├── billing-service.ts        # Polar checkout + webhook 처리
-│   ├── alert-engine.ts           # 미응답/마감 임박/연체 알림 계산
-│   ├── check-engine.ts           # 계약 체크리스트 생성
-│   ├── quote-engine.ts           # 견적 계산
-│   ├── reply-generator.ts        # 답장 초안 생성 (템플릿)
-│   ├── reply-routing-service.ts  # 플랜별 답장 라우팅
-│   ├── reply-template-service.ts # 톤별 답장 템플릿
-│   ├── status-transition.ts      # 딜 상태 머신 검증
-│   ├── auth-service.ts           # 인증 헬퍼
-│   ├── usage-guard.ts            # 플랜/월간 사용량 게이트
-│   └── llm-budget-guard.ts       # LLM 일일 비용 한도
-│
-├── repositories/                 # DB 접근 (Supabase admin client 전용)
-│   ├── deals-repo.ts
-│   ├── deal-checks-repo.ts
-│   ├── deal-status-log-repo.ts
-│   ├── inquiries-repo.ts
-│   ├── parse-cache-repo.ts
-│   ├── reply-drafts-repo.ts
-│   ├── creator-profiles-repo.ts
-│   └── subscriptions-repo.ts     # syncUserPlan() 포함
-│
-├── lib/
-│   ├── llm/                      # LLM 추상화 레이어
-│   │   ├── client-factory.ts     # primary/fallback 프로바이더 선택
-│   │   ├── provider.ts           # LLMProvider 인터페이스
-│   │   ├── registry.ts           # 프로바이더 등록
-│   │   ├── openai-client.ts
-│   │   ├── google-client.ts
-│   │   ├── anthropic-client.ts
-│   │   ├── extract-json.ts       # LLM 응답에서 JSON 추출
-│   │   └── prompts/
-│   │       ├── parse-inquiry.prompt.ts
-│   │       └── negotiation-reply.prompt.ts
-│   ├── supabase/
-│   │   ├── admin.ts              # createAdminClient() — repo 전용
-│   │   ├── server.ts             # createClient() — API route/서버 컴포넌트
-│   │   └── client.ts             # 클라이언트 컴포넌트용
-│   ├── plan-policy.ts            # ⭐ 플랜 정책 SSOT (여기만 수정)
-│   ├── analytics-contract.ts     # ⭐ 34개 이벤트 이름 SSOT
-│   ├── analytics.ts              # PostHog 서버사이드 래퍼
-│   ├── analytics-client.ts       # 클라이언트 → /api/analytics/event
-│   ├── api-response.ts           # successResponse / errorResponse 표준화
-│   ├── email.ts                  # Resend 메일 발송 래퍼
-│   ├── polar.ts                  # Polar SDK 싱글턴
-│   ├── parse-error.ts            # ParsePipelineError 타입
-│   ├── inquiry/
-│   │   ├── sanitize-raw-text.ts  # 개인정보·노이즈 제거
-│   │   └── hash-input.ts         # SHA-256 해시 (dedup 키)
-│   └── logger.ts                 # 구조화 로그 (logInfo, logError)
-│
-├── schemas/
-│   └── inquiry.schema.ts         # Zod: InquiryData 검증 스키마
-│
-├── types/
-│   └── inquiry.ts                # InquiryData, ParseInput, CreatorProfile 타입
-│
-├── supabase/
-│   └── migrations/               # 001~010 순서대로 적용
-│
-├── db/
-│   └── schema.sql                # 참조용 스냅샷 (001~006 기준, 최신 아님)
-│
-├── __tests__/                    # Vitest 테스트 (~52개 파일)
-├── middleware.ts                 # 세션 갱신 + 경로 보호
-├── vercel.json                   # Vercel 배포 설정 (Cron 포함)
-├── .env.example                  # 환경변수 템플릿
-└── package.json
+├─ app/
+│  ├─ api/
+│  │  ├─ account/                    # 계정 삭제
+│  │  ├─ account/check-nickname/     # 닉네임 중복 확인
+│  │  ├─ analytics/event/            # 클라이언트 이벤트 수집
+│  │  ├─ billing/checkout/           # Polar checkout URL 생성
+│  │  ├─ billing/webhook/            # Polar webhook
+│  │  ├─ creator-profile/            # 프로필 조회/저장
+│  │  ├─ cron/unanswered-alert/      # 미응답 딜 알림 메일
+│  │  ├─ deals/                      # 딜 목록/생성
+│  │  ├─ deals/[id]/                 # 딜 상세/수정
+│  │  ├─ deals/alerts/               # 알림 목록
+│  │  ├─ demo/parse/                 # 비로그인 데모 파싱
+│  │  ├─ inquiries/                  # 문의 목록/상세
+│  │  ├─ inquiries/parse/            # 핵심 파싱 엔드포인트
+│  │  └─ replies/negotiation-ai/     # Standard 협상 답장 AI
+│  ├─ dashboard/                     # 인증 사용자 워크스페이스
+│  ├─ auth/reset-password/           # 비밀번호 재설정 화면
+│  ├─ login/, signup/, onboarding/
+│  ├─ parse/                         # 파싱 체험/입력
+│  ├─ privacy/, terms/, about/, how-it-works/
+│  └─ page.tsx                       # 랜딩 페이지
+├─ components/
+│  ├─ dashboard/
+│  ├─ inquiry/
+│  ├─ intake/
+│  ├─ landing/
+│  ├─ results/
+│  ├─ settings/
+│  └─ ui/
+├─ services/                         # 비즈니스 로직
+├─ repositories/                     # DB 접근
+├─ lib/                              # 공통 유틸, analytics, llm, supabase, polar
+├─ schemas/                          # zod schema
+├─ types/
+├─ supabase/migrations/              # 001 ~ 010
+├─ __tests__/                        # 27개 테스트 파일
+├─ public/
+├─ wrangler.jsonc
+├─ open-next.config.ts
+└─ vercel.json
 ```
 
 ---
 
 ## 5. 데이터 모델 (ERD)
 
+핵심 테이블 관계는 아래와 같습니다.
+
 ```mermaid
 erDiagram
   auth_users ||--o| user_plans : has
   auth_users ||--o| subscriptions : has
   auth_users ||--o| creator_profiles : has
-  auth_users ||--o{ usage_events : tracks
+  auth_users ||--o{ usage_events : creates
   auth_users ||--o{ inquiries : creates
   inquiries ||--o{ deals : spawns
-
   deals ||--o{ deal_checks : has
-  deals ||--o{ deal_status_logs : logs
+  deals ||--o{ deal_status_logs : has
   deals ||--o{ reply_drafts : has
-
-  user_plans {
-    uuid user_id PK
-    string plan "free | standard"
-    timestamp updated_at
-  }
-
-  subscriptions {
-    uuid id PK
-    uuid user_id
-    string polar_customer_id
-    string polar_subscription_id
-    string polar_event_id "idempotency"
-    string status "active | canceled | past_due"
-    string plan
-    timestamp current_period_end
-  }
-
-  creator_profiles {
-    uuid user_id PK
-    string followers_band
-    string avg_views_band
-    string niche
-    int floor_rate
-    string primary_platform
-    string geo_region
-    string currency
-  }
-
-  inquiries {
-    uuid id PK
-    uuid user_id
-    string input_hash "dedup 키"
-    json parsed_json
-    json missing_fields
-    json quote_breakdown_json
-    json checks_json
-    json reply_drafts_json
-  }
-
-  deals {
-    uuid id PK
-    uuid user_id
-    uuid inquiry_id
-    string brand_name
-    string status "Lead|Replied|Negotiating|Confirmed|Delivered|Paid|ClosedLost"
-    int quote_floor
-    int quote_target
-    int quote_premium
-    timestamp deadline
-    timestamp payment_due_date
-    timestamp notified_at "미응답 알림 발송 시점"
-    timestamp created_at
-  }
-
-  deal_checks {
-    uuid id PK
-    uuid deal_id
-    string type
-    string message
-    string severity "HIGH | MEDIUM | LOW"
-    boolean resolved
-  }
-
-  reply_drafts {
-    uuid id PK
-    uuid deal_id
-    string tone "polite | negotiation | quick"
-    string body
-  }
-
-  parse_cache {
-    string input_hash PK
-    json parsed_json
-    json missing_fields
-    string parser_meta
-  }
 ```
 
-**RLS 정책 요약:**
+### 주요 테이블
 
-| 테이블 | 정책 |
-|--------|------|
-| deals, deal_checks, deal_status_logs, reply_drafts | user_id = auth.uid() |
-| inquiries, creator_profiles, usage_events, user_plans, subscriptions | user_id = auth.uid() |
-| parse_cache | RLS 없음 — admin client 전용 |
+| 테이블 | 역할 |
+|------|------|
+| `creator_profiles` | 팔로워/조회수/플랫폼/최저 단가 등 견적 계산 기준 |
+| `inquiries` | 파싱 결과와 누락 필드 저장 |
+| `parse_cache` | 입력 해시 기반 글로벌 파싱 캐시 |
+| `deals` | 실제 저장된 협업 딜 |
+| `deal_checks` | 리스크/체크리스트 |
+| `reply_drafts` | 생성된 답장 초안 |
+| `deal_status_logs` | 상태 전이 이력 |
+| `user_plans` | 현재 플랜 |
+| `subscriptions` | Polar 동기화 결과 |
+| `usage_events` | 플랜 사용량 집계용 이벤트 |
+
+### 마이그레이션 상태
+
+현재 저장소에는 `supabase/migrations/001_create_deal_tables.sql`부터 `010_add_deal_notified_at.sql`까지 포함돼 있습니다.
+
+최근 반영된 스키마 성격:
+
+- `subscriptions` 테이블 도입
+- Stripe 명칭을 Polar 기준으로 치환
+- creator profile 확장
+- `reply_drafts` 저장
+- `deals.notified_at` 추가로 알림 중복 발송 방지
 
 ---
 
 ## 6. 핵심 플로우 상세
 
-### 6-A. Parse Pipeline (가장 중요한 플로우)
+### 6-A. Parse Pipeline
 
-브랜드 문의 텍스트 한 줄이 어떻게 구조화된 데이터가 되는가.
-
-```mermaid
-flowchart TD
-  A[POST /api/inquiries/parse] --> B{플랜 한도 체크\nparse_per_month}
-  B -->|초과| Z1[402 PLAN_LIMIT_PARSE_REACHED]
-  B -->|통과| C[sanitizeRawText\n이메일·전화 마스킹, 10000자 truncate]
-  C --> D[SHA-256 hash\nsanitized + source_type + PROMPT_VERSION]
-  D --> E{inquiries 캐시 HIT?\nuser_id + input_hash}
-  E -->|HIT| R[기존 inquiry 반환\nLLM 호출 없음]
-  E -->|MISS| F{parse_cache HIT?\ninput_hash 전역}
-  F -->|HIT| G[createInquiry from cache]
-  G --> R
-  F -->|MISS| H[LLM 파싱\nprimary: gemini-2.0-flash-lite\nfallback: gpt-4o-mini]
-  H --> I[Zod 검증\ninquirySchema]
-  I --> J[누락 필드 감지\nnot specified 수집]
-  J --> K[createInquiry + storeParse 비동기]
-  K --> R
-  R --> END[응답\ninquiry_id, parsed_json, missing_fields]
-```
-
-**캐시 3단계 구조:**
-
-| 단계 | 저장소 | 키 | 특징 |
-|------|--------|-----|------|
-| 1차 | `inquiries` 테이블 | `user_id + input_hash` | 가장 빠름, 사용자별 |
-| 2차 | `parse_cache` 테이블 | `input_hash` | 전역, LLM 없이 재생성 |
-| 3차 | LLM 호출 | — | 비용 발생, 최후 수단 |
-
-**주의:** `POST /api/inquiries/parse` 의 응답 스키마(`{ inquiry_id, parsed_json, missing_fields }`)는 여러 클라이언트가 의존하므로 **절대 변경 불가**.
-
----
-
-### 6-B. Deal 저장 & 상태 머신
+`POST /api/inquiries/parse`
 
 ```mermaid
 flowchart TD
-  A["딜로 저장 클릭\nPOST /api/deals"] --> B{deal_save_limit 체크}
-  B -->|초과| Z1[402 PLAN_LIMIT_DEAL_SAVE_REACHED]
-  B -->|통과| C{inquiry_id 있음?}
-  C -->|Yes| D[getInquiry 조회]
-  C -->|No| E[parseService 재실행]
-  D --> F[서버사이드 재계산\nquoteEngine + checkEngine]
-  E --> F
-  F --> G[createDeal + createDealChecks]
-  G --> H[replyRoutingService\n플랜별 허용 tone만 초안 생성]
-  H --> END[딜 저장 완료]
+  A[raw_text 입력] --> B[요청 검증]
+  B --> C[플랜 사용량 확인]
+  C --> D[sanitizeRawText]
+  D --> E[input hash 생성]
+  E --> F{user scoped inquiry cache}
+  F -->|hit| G[기존 inquiry 반환]
+  F -->|miss| H{global parse_cache}
+  H -->|hit| I[inquiry 생성 후 반환]
+  H -->|miss| J[LLM 파싱]
+  J --> K[Zod 검증 + missing_fields 계산]
+  K --> L[inquiries 저장]
+  L --> M[parse_cache 저장]
+  M --> N[quote/check/reply draft 계산]
 ```
 
-**딜 상태 머신 (PATCH /api/deals/[id])**
+핵심 포인트:
 
-```mermaid
-stateDiagram-v2
-  direction LR
-  [*] --> Lead
-  Lead --> Replied
-  Lead --> ClosedLost
-  Replied --> Negotiating
-  Replied --> ClosedLost
-  Negotiating --> Confirmed
-  Negotiating --> ClosedLost
-  Confirmed --> Delivered
-  Delivered --> Paid
-  Paid --> [*]
-  ClosedLost --> [*]
+- 입력은 최대 10,000자까지만 사용합니다.
+- 해시는 `sanitized_text + source_type + prompt_version` 기준으로 생성합니다.
+- 사용자별 캐시와 글로벌 캐시 두 단계를 둡니다.
+- 파싱 후 즉시 견적, 체크리스트, 답장 초안을 함께 응답합니다.
+- Free는 전체 견적 breakdown과 체크리스트를 숨기고 축약 응답만 받습니다.
+
+### 6-B. Deal 저장과 상태 전이
+
+`POST /api/deals`
+
+1. 인증 확인
+2. `SAVE_DEAL` 플랜 제한 확인
+3. `inquiry_id` 또는 `raw_text + source_type` 기준으로 parse result 확보
+4. `buildDealPayload()`에서 견적/체크/답장 초안 계산
+5. `deals`, `deal_checks`, `reply_drafts` 저장
+6. 사용량 이벤트 기록
+
+상태 전이는 `services/status-transition.ts`의 허용 규칙만 따릅니다.
+
+```text
+Lead -> Replied -> Negotiating -> Confirmed -> Delivered -> Paid
+Lead/Replied/Negotiating -> ClosedLost
 ```
 
-> `services/status-transition.ts`의 `ALLOWED_TRANSITIONS`만 허용. 위반 시 → `400 INVALID_STATUS_TRANSITION`
+### 6-C. Billing (Polar)
+
+`POST /api/billing/checkout`
+
+- 로그인 사용자의 이메일과 user id를 Polar checkout metadata에 넣어 hosted checkout URL을 생성합니다.
+
+`POST /api/billing/webhook`
+
+- Polar 서명을 검증합니다.
+- `subscription.created`, `subscription.updated`, `subscription.revoked`를 처리합니다.
+- `subscriptions` upsert 후 `user_plans`를 `free` 또는 `standard`로 동기화합니다.
+
+### 6-D. 인증과 미들웨어
+
+`middleware.ts`
+
+- Supabase 세션을 refresh합니다.
+- `/dashboard`, `/settings`, `/onboarding` 경로를 보호합니다.
+- 비로그인 사용자는 `/login`으로 리다이렉트됩니다.
+
+### 6-E. 미응답 딜 알림 Cron
+
+`GET /api/cron/unanswered-alert`
+
+조건:
+
+- `Authorization: Bearer $CRON_SECRET`
+- `user_plans.plan = standard`
+- `deals.status = Lead`
+- 생성 후 7일 이상 경과
+- `notified_at IS NULL`
+
+처리:
+
+1. 대상 딜 조회
+2. 사용자별로 묶기
+3. Resend로 메일 발송
+4. 성공 건은 `notified_at` 업데이트
+
+### 6-F. 계정/설정 플로우
+
+최근 구현 범위:
+
+- `/dashboard/settings/profile`
+  - 닉네임 변경
+  - 이메일 계정의 비밀번호 변경
+  - 계정 삭제
+- `/dashboard/settings/billing`
+  - 현재 플랜/구독 상태 확인
+  - Standard 업그레이드 CTA
+- `/auth/reset-password`
+  - OTP/code 기반 비밀번호 재설정
 
 ---
 
-### 6-C. Billing 플로우 (Polar)
+## 7. API 인터페이스
 
-```mermaid
-flowchart TD
-  A[Standard 업그레이드 클릭] --> B[POST /api/billing/checkout]
-  B --> C[Polar 체크아웃 세션 생성]
-  C --> D[Polar 결제 페이지 이동]
-  D --> E[결제 완료]
-  E --> F[POST /api/billing/webhook\npolar-signature 헤더]
-  F --> G{서명 검증\nvalidateWebhook}
-  G -->|실패| Z[400 거절]
-  G -->|성공| H{이미 처리된 이벤트?\npolar_event_id 중복 체크}
-  H -->|Yes| I[200 early return]
-  H -->|No| J{이벤트 종류}
-  J -->|subscription.created| K[syncUserPlan standard]
-  J -->|subscription.updated| K
-  J -->|subscription.revoked| L[syncUserPlan free]
-  K --> M[user_plans.plan 업데이트\n이후 getPlanPolicy 반영]
-  L --> M
-```
+### 주요 엔드포인트
 
----
-
-### 6-D. 인증 & 미들웨어
-
-```mermaid
-flowchart TD
-  A[모든 요청] --> B[middleware.ts\nEdge Runtime]
-  B --> C[supabase.auth.getUser\n세션 쿠키 갱신]
-  C --> D{보호 경로?\n/dashboard /settings /onboarding}
-  D -->|Yes + 미인증| E[redirect /login]
-  D -->|No 또는 인증됨| F[통과]
-  F --> G{/dashboard/intake?}
-  G -->|Yes + 프로필 없음| H[redirect /onboarding]
-  G -->|No 또는 프로필 있음| I[페이지 렌더]
-```
-
-**API Route 인증 패턴:**
-
-```ts
-const supabase = await createClient()                    // lib/supabase/server.ts
-const { data: { user } } = await supabase.auth.getUser()
-if (!user) return NextResponse.json(errorResponse("UNAUTHORIZED"), { status: 401 })
-
-const admin = createAdminClient()                        // lib/supabase/admin.ts (RLS 우회)
-```
-
----
-
-### 6-E. 미응답 알림 Cron 플로우
-
-Standard 유저가 7일 이상 답장하지 않은 딜에 이메일로 알림을 보낸다.
-
-```mermaid
-flowchart TD
-  A[cron-job.org\n매일 KST 09:00] -->|Authorization: Bearer CRON_SECRET| B[GET /api/cron/unanswered-alert]
-  B --> C{Bearer 토큰 검증}
-  C -->|실패| Z[401 UNAUTHORIZED]
-  C -->|성공| D[user_plans WHERE plan = standard]
-  D --> E{Standard 유저 있음?}
-  E -->|No| G[200 processed:0]
-  E -->|Yes| F["deals WHERE\nstatus = Lead\nAND created_at < now - 7d\nAND notified_at IS NULL"]
-  F --> H{미응답 딜 있음?}
-  H -->|No| G
-  H -->|Yes| I[유저별 이메일 1통 발송\nResend]
-  I --> J{발송 성공?}
-  J -->|Yes| K[deals.notified_at = now 업데이트]
-  J -->|No| L[해당 유저 skip\n다음 유저 계속]
-  K --> M[200 processed:N skipped:M]
-  L --> M
-```
-
-**중복 발송 방지:** `notified_at IS NULL` 조건으로 이미 알림 발송된 딜은 재발송하지 않는다.
-
-**Cloudflare Workers 배포 환경:** Vercel Cron은 동작하지 않으므로, cron-job.org 외부 스케줄러가 `Authorization: Bearer $CRON_SECRET` 헤더를 포함해 엔드포인트를 직접 호출한다.
-
----
-
-## 7. API 레퍼런스
-
-### 범례
-- 🔒 = 인증 필요 (Supabase session)
-- 💎 = Standard 플랜 이상 필요
-- ⭐ = 응답 계약 불변 (클라이언트 의존)
-
-| 메서드 | 경로 | 설명 | 비고 |
-|--------|------|------|------|
-| GET | `/api/health` | 헬스체크 | |
-| GET | `/api/cron/unanswered-alert` | 내부 크론 알림 실행 | `Authorization: Bearer $CRON_SECRET` |
-| POST | `/api/demo/parse` | 비인증 데모 파싱 | 저장 없음, rate limit 별도 |
-| POST | `/api/inquiries/parse` ⭐ | 🔒 문의 AI 파싱 | 플랜 한도 적용, 응답 불변 |
-| GET | `/api/inquiries` | 🔒 문의 목록 | |
-| GET | `/api/inquiries/[id]` | 🔒 문의 상세 | |
-| GET | `/api/deals` | 🔒 딜 목록 | `?status=` 필터, alert summary 포함 |
-| POST | `/api/deals` | 🔒 딜 저장 | 플랜 한도 적용, 서버사이드 재계산 |
-| GET | `/api/deals/[id]` | 🔒 딜 상세 | checks + drafts + status_logs 포함 |
-| PATCH | `/api/deals/[id]` | 🔒 딜 수정 + 상태 전이 | ALLOWED_TRANSITIONS 검증 |
-| GET | `/api/deals/alerts` | 🔒💎 알림 목록 | Standard only |
-| GET | `/api/creator-profile` | 🔒 프로필 조회 | |
-| POST/PUT | `/api/creator-profile` | 🔒 프로필 upsert | |
-| POST | `/api/replies/negotiation-ai` | 🔒💎 AI 협상 답장 | Standard only, 예산 가드 |
-| POST | `/api/billing/checkout` | 🔒 Polar 체크아웃 세션 | |
-| POST | `/api/billing/webhook` | Polar 웹훅 | 서명 검증 필수 |
-| POST | `/api/analytics/event` | 🔒 클라이언트 이벤트 수집 | PostHog 서버 경유 |
-| DELETE | `/api/account` | 🔒 계정 삭제 | admin.deleteUser + 캐스케이드 |
+| 메서드 | 경로 | 설명 |
+|------|------|------|
+| `GET` | `/api/health` | 헬스체크 |
+| `POST` | `/api/demo/parse` | 비로그인 데모 파싱 |
+| `POST` | `/api/inquiries/parse` | 파싱 + 견적/체크/답장 초안 반환 |
+| `GET` | `/api/inquiries` | 문의 목록 |
+| `GET` | `/api/inquiries/[id]` | 문의 상세 |
+| `GET` | `/api/deals` | 딜 목록 + alerts 요약 |
+| `POST` | `/api/deals` | 딜 저장 |
+| `GET` | `/api/deals/[id]` | 딜 상세, checks, drafts, status logs |
+| `PATCH` | `/api/deals/[id]` | 상태/메모/후속 일정 수정 |
+| `GET` | `/api/deals/alerts` | Standard 알림 목록 |
+| `GET` | `/api/creator-profile` | 크리에이터 프로필 조회 |
+| `POST`,`PUT` | `/api/creator-profile` | 프로필 저장 |
+| `POST` | `/api/replies/negotiation-ai` | Standard 협상 답장 AI |
+| `POST` | `/api/billing/checkout` | Polar checkout URL 생성 |
+| `POST` | `/api/billing/webhook` | Polar webhook |
+| `GET` | `/api/account/check-nickname` | 닉네임 사용 가능 여부 |
+| `DELETE` | `/api/account` | 계정 삭제 |
+| `GET` | `/api/cron/unanswered-alert` | 미응답 딜 알림 cron |
+| `POST` | `/api/analytics/event` | 클라이언트 이벤트 수집 |
 
 ### 공통 응답 형식
 
 ```ts
-// 성공
-{ data: T }
+// success
+{ success: true, data: T }
 
-// 실패
-{ code: string, message?: string }
-// lib/api-response.ts 의 errorResponse(code, message?) 사용
+// error
+{ success: false, error: { code: string, message?: string } }
 ```
 
-**에러 코드 목록:**
+### 자주 쓰는 에러 코드
 
-| 코드 | HTTP | 의미 |
-|------|------|------|
-| `UNAUTHORIZED` | 401 | 인증 없음 |
-| `PLAN_LIMIT_PARSE_REACHED` | 402 | 파싱 월 한도 초과 |
-| `PLAN_LIMIT_DEAL_SAVE_REACHED` | 402 | 딜 저장 한도 초과 |
-| `FEATURE_NOT_AVAILABLE_ON_FREE` | 403 | Free 플랜 미지원 기능 |
-| `ALERTS_NOT_AVAILABLE_ON_FREE` | 403 | 알림 Free 미지원 |
-| `NEGOTIATION_AI_LIMIT_REACHED` | 402 | AI 협상 한도 초과 |
-| `DAILY_BUDGET_GUARD_TRIGGERED` | 429 | LLM 일일 예산 초과 |
-| `INVALID_STATUS_TRANSITION` | 400 | 허용되지 않은 딜 상태 전이 |
-| `INQUIRY_NOT_FOUND` | 404 | 문의 없음 |
-| `NOT_FOUND` | 404 | 리소스 없음 |
-| `INVALID_REQUEST` | 400 | 요청 형식 오류 |
-| `PARSE_FAILED` | 500 | LLM 파싱 실패 |
-| `INTERNAL_ERROR` | 500 | 서버 오류 |
+| 코드 | 의미 |
+|------|------|
+| `UNAUTHORIZED` | 인증 필요 |
+| `INVALID_REQUEST` | body/query 검증 실패 |
+| `PLAN_LIMIT_PARSE_REACHED` | Free 파싱 한도 초과 |
+| `PLAN_LIMIT_DEAL_SAVE_REACHED` | Free 저장 한도 초과 |
+| `FEATURE_NOT_AVAILABLE_ON_FREE` | Free에서 불가한 기능 |
+| `NEGOTIATION_AI_LIMIT_REACHED` | 협상 AI 사용량 초과 |
+| `DAILY_BUDGET_GUARD_TRIGGERED` | LLM 예산 보호 로직 작동 |
+| `INQUIRY_NOT_FOUND` | 문의 없음 |
+| `INVALID_STATUS_TRANSITION` | 잘못된 상태 변경 |
+| `PARSE_FAILED` | 파싱 실패 |
+| `INTERNAL_ERROR` | 서버 내부 오류 |
 
 ---
 
 ## 8. 플랜 정책
 
-**SSOT: `lib/plan-policy.ts`** — 여기 외에는 플랜 제한을 하드코딩하지 않는다.
+단일 소스:
 
-```mermaid
-flowchart TD
-  A[API 요청 수신] --> B{인증됨?}
-  B -->|No| Z1[401 UNAUTHORIZED]
-  B -->|Yes| C[user_plans 조회\ngetPlanPolicy]
-  C --> D{plan = standard?}
-  D -->|Yes| E[무제한 허용]
-  D -->|No: free| F{횟수 한도 초과?}
-  F -->|No| G[처리 진행]
-  F -->|Yes| H[402 PLAN_LIMIT_REACHED]
-  G --> I{기능 게이트?}
-  I -->|통과| J[성공 응답]
-  I -->|차단| K[403 FEATURE_NOT_AVAILABLE_ON_FREE]
-```
+- `lib/plan-policy.ts`
 
-| 기능 | Free | Standard |
+현재 정책:
+
+| 항목 | Free | Standard |
 |------|------|----------|
-| 월 파싱 횟수 | 5회 | 무제한 |
-| 딜 저장 | 10개 | 무제한 |
-| Negotiation AI | ❌ | 무제한 |
-| 답장 톤 | polite 1가지 | polite·quick·negotiation 3가지 |
-| 알림 패널 | ❌ | ✅ |
-| 견적 상세 breakdown | ❌ | ✅ |
-| 계약 체크 전체 목록 | ❌ | ✅ |
-| 미응답 이메일 알림 | ❌ | ✅ |
+| 월 파싱 횟수 | 5 | 무제한 |
+| 저장 딜 수 | 10 | 무제한 |
+| 협상 AI | 비활성화 | 무제한 |
+| 답장 초안 | polite | polite, quick, negotiation |
+| alerts | 비활성화 | 활성화 |
+| full quote breakdown | 비활성화 | 활성화 |
+| full checks list | 비활성화 | 활성화 |
 
-**플랜 게이트 추가 방법:**
+플랜 로직 추가 규칙:
 
-```ts
-// 1. lib/plan-policy.ts 에 필드 추가
-export type PlanPolicy = {
-  new_feature_enabled: boolean;
-  ...
-}
-export const PLAN_POLICIES = {
-  free:     { new_feature_enabled: false, ... },
-  standard: { new_feature_enabled: true,  ... },
-}
-
-// 2. API Route에서 확인
-const policy = getPlanPolicy(plan)
-if (!policy.new_feature_enabled) {
-  return NextResponse.json(errorResponse('FEATURE_NOT_AVAILABLE_ON_FREE'), { status: 403 })
-}
-```
+1. 서버에서만 검사합니다.
+2. 클라이언트 플래그를 신뢰하지 않습니다.
+3. 새 기능 게이트는 `PLAN_POLICIES`에 먼저 추가합니다.
 
 ---
 
 ## 9. 로컬 개발 셋업
 
-### 사전 요구사항
+### 요구사항
 
 - Node.js 20+
-- pnpm 또는 npm
-- Supabase 계정 (또는 `supabase start` 로컬)
-- OpenAI / Google AI API 키 (파싱 테스트용, 최소 1개)
+- npm
+- Supabase 프로젝트
+- OpenAI / Google / Anthropic 중 최소 1개 API 키
 
-### 1단계: 저장소 클론 및 의존성 설치
+### 설치
 
 ```bash
 git clone <repo-url>
@@ -672,318 +449,213 @@ cd creator-deal-copilot
 npm install
 ```
 
-### 2단계: 환경변수 설정
+### 환경변수
 
-```bash
-cp .env.example .env.local
-# .env.local 을 열어 아래 항목 채우기 (최소 셋)
-```
+현재 저장소에는 `.env.example`이 없습니다. 로컬에서는 직접 `.env.local`을 만들어 아래 값을 채워야 합니다.
 
-최소 동작에 필요한 env (섹션 10 참고):
+최소 실행 기준:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY` 또는 `GOOGLE_AI_API_KEY` (파싱 기능)
 - `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+- `OPENAI_API_KEY` 또는 `GOOGLE_AI_API_KEY`
 
-### 3단계: Supabase 마이그레이션 적용
+### DB 준비
+
+Supabase SQL Editor 또는 CLI로 `supabase/migrations/001_*.sql`부터 `010_*.sql`까지 순서대로 반영합니다.
 
 ```bash
-# Supabase 대시보드 → SQL Editor에서
-# supabase/migrations/001_*.sql ~ 010_*.sql 순서대로 실행
-
-# 또는 CLI 사용 (로컬 Supabase)
 npx supabase db push
 ```
 
-### 4단계: 개발 서버 실행
+### 실행
 
 ```bash
 npm run dev
-# http://localhost:3000
 ```
 
-### 5단계: 기능별 추가 셋업 (선택)
-
-| 기능 | 필요 env |
-|------|----------|
-| Negotiation AI | `ANTHROPIC_API_KEY` 또는 `OPENAI_API_KEY` |
-| 결제 (Polar) | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID` |
-| 미응답 알림 이메일 | `RESEND_API_KEY`, `FROM_EMAIL`, `CRON_SECRET` |
-| 분석 (PostHog) | `POSTHOG_API_KEY` |
-| 에러 추적 (Sentry) | `SENTRY_DSN` |
-
-### Polar 웹훅 로컬 테스트
+### Cloudflare 미리보기
 
 ```bash
-# Polar 대시보드에서 웹훅 URL을 ngrok 주소로 설정
-ngrok http 3000
-# 웹훅 URL: https://xxxx.ngrok.io/api/billing/webhook
+npm run preview
 ```
 
 ---
 
-## 10. 환경변수 레퍼런스
+## 10. 환경변수 인터페이스
 
-| 변수명 | 필수 | 용도 |
-|--------|------|------|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase 프로젝트 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon key (클라이언트) |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Admin client (RLS bypass, 서버만) |
-| `NEXT_PUBLIC_APP_URL` | ✅ | 배포 URL (Polar 리다이렉트 등에 사용) |
-| `OPENAI_API_KEY` | ✅¹ | GPT-4o-mini (파싱 fallback, 협상 AI primary) |
-| `GOOGLE_AI_API_KEY` | ✅¹ | Gemini (파싱 primary) |
-| `ANTHROPIC_API_KEY` | | Claude (협상 AI fallback) |
-| `POLAR_ACCESS_TOKEN` | 💳 | Polar API 인증 |
-| `POLAR_WEBHOOK_SECRET` | 💳 | 웹훅 서명 검증 |
-| `POLAR_PRODUCT_ID` | 💳 | Standard 상품 ID (현재 단일) |
-| `POSTHOG_API_KEY` | | 이벤트 분석 |
-| `SENTRY_DSN` | | 에러 추적 |
-| `GOOGLE_SITE_VERIFICATION` | | 구글 서치 콘솔 인증 |
-| `NAVER_SITE_VERIFICATION` | | 네이버 서치 어드바이저 인증 |
-| `RESEND_API_KEY` | | 미응답 알림 메일 발송 |
-| `FROM_EMAIL` | | 발신자 주소 (`noreply@delo-app.com` 기본값) |
-| `CRON_SECRET` | | `/api/cron/unanswered-alert` 보호용 Bearer 토큰 |
+| 변수명 | 필수 | 설명 |
+|------|------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | 예 | Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 예 | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | 예 | server/admin DB 작업 |
+| `NEXT_PUBLIC_APP_URL` | 예 | 앱 기준 URL |
+| `OPENAI_API_KEY` | 조건부 | OpenAI 호출 |
+| `GOOGLE_AI_API_KEY` | 조건부 | Gemini 호출 |
+| `ANTHROPIC_API_KEY` | 선택 | 협상 AI fallback |
+| `POLAR_ACCESS_TOKEN` | 결제 기능 시 예 | Polar API |
+| `POLAR_WEBHOOK_SECRET` | 결제 기능 시 예 | Polar webhook 검증 |
+| `POLAR_PRODUCT_ID` | 결제 기능 시 예 | Standard 상품 ID |
+| `RESEND_API_KEY` | 알림 메일 시 예 | Resend API |
+| `FROM_EMAIL` | 알림 메일 시 예 | 발신 주소 |
+| `CRON_SECRET` | cron 사용 시 예 | 알림 cron 보호 토큰 |
+| `POSTHOG_API_KEY` | 선택 | 서버 이벤트 전송 |
+| `SENTRY_DSN` | 선택 | 에러 추적 |
+| `GOOGLE_SITE_VERIFICATION` | 선택 | SEO 검증 |
+| `NAVER_SITE_VERIFICATION` | 선택 | SEO 검증 |
 
-> ¹ OPENAI 또는 GOOGLE 중 하나 이상 필요. 두 개 다 있으면 primary/fallback 동작.
-> 💳 결제 기능 사용 시 필수.
+설정 위치:
 
-**Cloudflare Workers 환경:** `wrangler.jsonc` 에 public 변수만 두고, 민감 정보(`SUPABASE_SERVICE_ROLE_KEY`, `POLAR_ACCESS_TOKEN`, `RESEND_API_KEY`, `CRON_SECRET`)는 Wrangler secret으로 주입한다. 로컬 개발은 `.env.local` 만 수정.
+- 로컬: `.env.local`
+- Cloudflare: `wrangler secret put` + `wrangler.jsonc` vars
+- Vercel: Project Settings > Environment Variables
 
 ---
 
 ## 11. 테스트 가이드
 
+### 실행
+
 ```bash
-# 전체 테스트 실행
 npm test
+```
 
-# watch 모드
+```bash
 npm run test:watch
+```
 
-# 커버리지
+```bash
 npx vitest run --coverage
 ```
 
-### 테스트 파일 구조
+### 현재 테스트 범위
 
-```
-__tests__/
-├── setup.ts                      # 전역 mock 설정
-├── mocks/server-only.ts          # server-only 패키지 mock
-│
-├── parse-service.test.ts         # ⭐ Parse 파이프라인 핵심 케이스
-├── parse-llm-service.test.ts     # LLM 호출 + fallback
-├── deal-service.test.ts          # 딜 저장 + 재계산
-├── billing-service.test.ts       # Polar 웹훅 처리
-├── alert-engine.test.ts          # 알림 계산 로직
-├── plan-policy.test.ts           # 플랜 정책
-├── plan-gating-integration.test.ts  # 플랜 게이트 통합
-│
-├── inquiries-parse-route.test.ts    # API Route 수준
-├── deals-route.test.ts
-├── deals-id-route.test.ts
-├── deals-alerts-route.test.ts
-├── billing-checkout-route.test.ts
-├── billing-webhook-route.test.ts
-├── creator-profile-route.test.ts
-│
-└── ...
-```
+- 파싱 파이프라인
+- LLM fallback
+- 딜 저장/상태 전이
+- 플랜 제한
+- usage guard
+- Polar 결제/웹훅
+- analytics contract
+- creator profile
+- 주요 API routes
 
-### 새 기능 테스트 작성 규칙
+### 테스트 파일 예시
 
-- Repository는 mock (실제 DB 불필요)
-- Service 유닛 테스트: repository를 vi.mock()으로 교체
-- API Route 테스트: NextRequest 직접 생성, auth mock 포함
-- plan-policy 테스트: `PLAN_POLICIES` 직접 import해서 검증
+- `__tests__/parse-service.test.ts`
+- `__tests__/parse-llm-service.test.ts`
+- `__tests__/deal-service.test.ts`
+- `__tests__/billing-service.test.ts`
+- `__tests__/billing-webhook-route.test.ts`
+- `__tests__/plan-gating-integration.test.ts`
+- `__tests__/usage-guard.test.ts`
+- `__tests__/deals-route.test.ts`
+- `__tests__/creator-profile-route.test.ts`
 
 ---
 
 ## 12. 배포
 
-### Vercel (기본 배포)
+### Cloudflare Workers
+
+실제 운영 배포 기준은 Cloudflare + OpenNext입니다.
 
 ```bash
-# vercel.json 설정 이미 있음
-git push origin main
-# Vercel 자동 배포 또는 vercel --prod
+npm run deploy
 ```
 
-환경변수는 Vercel 대시보드 → Settings → Environment Variables에 등록.
+관련 파일:
 
-현재 `vercel.json` 에 아래 크론이 포함되어 있다.
+- `open-next.config.ts`
+- `wrangler.jsonc`
+
+주의:
+
+- 공개값은 `wrangler.jsonc > vars`
+- 민감정보는 `wrangler secret put`
+- middleware는 edge wrapper로 분리 설정
+
+### Vercel
+
+`vercel.json`도 유지되고 있습니다.
+
+용도:
+
+- Next.js 기본 배포 설정 참고
+- cron 스케줄 정의 참고
+
+현재 cron 정의:
 
 ```json
 {
-  "crons": [
-    {
-      "path": "/api/cron/unanswered-alert",
-      "schedule": "0 0 * * *"
-    }
-  ]
+  "path": "/api/cron/unanswered-alert",
+  "schedule": "0 0 * * *"
 }
 ```
 
-UTC `00:00` 실행이므로 한국 시간 기준 오전 `09:00` 에 미응답 딜 알림 작업이 수행된다.
-
-### Cloudflare Workers (엣지 배포)
-
-```bash
-# 빌드 + 배포
-npm run deploy
-# = opennextjs-cloudflare build && opennextjs-cloudflare deploy
-
-# 로컬 미리보기
-npm run preview
-```
-
-**Cloudflare 주의사항:**
-- `wrangler.jsonc` 에 env vars 별도 관리 필요 (public 변수는 `vars`, 민감 정보는 `wrangler secret put`)
-- `server-only` 패키지 사용 모듈은 Edge 런타임 호환 확인 필요
-- Cloudflare Workers는 Node.js crypto 대신 Web Crypto API 사용
-- Vercel Cron은 Cloudflare에 자동 전달되지 않음 → **현재 cron-job.org 외부 스케줄러로 운영 중**
-  - `Authorization: Bearer $CRON_SECRET` 헤더 포함해 `GET /api/cron/unanswered-alert` 호출
-  - 스케줄: `0 0 * * *` (UTC 00:00 = KST 09:00)
+UTC 00:00 기준이며 한국 시간 09:00에 해당합니다.
 
 ---
 
-## 13. 코드 작성 패턴 가이드
+## 13. 코드 작성 규칙 가이드
 
-### 새 API 엔드포인트 추가하는 방법
+### 서버 규칙
 
-```ts
-// app/api/my-feature/route.ts
-import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { successResponse, errorResponse } from "@/lib/api-response"
-import { getPlanPolicy } from "@/lib/plan-policy"
+- 플랜 판단은 `lib/plan-policy.ts`만 사용
+- DB 접근은 repository에만 위치
+- API route는 인증, 검증, 에러 응답 조립에 집중
+- 서비스는 비즈니스 로직에 집중
 
-export async function POST(req: Request) {
-  // 1. 인증 확인
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json(errorResponse("UNAUTHORIZED"), { status: 401 })
-  }
+### 추가 기능을 넣을 때
 
-  // 2. 플랜 확인 (필요 시)
-  const admin = createAdminClient()
-  const { data: planRow } = await admin
-    .from("user_plans").select("plan").eq("user_id", user.id).single()
-  const policy = getPlanPolicy(planRow?.plan ?? "free")
-  if (!policy.some_feature_enabled) {
-    return NextResponse.json(
-      errorResponse("FEATURE_NOT_AVAILABLE_ON_FREE"), { status: 403 }
-    )
-  }
+1. 타입과 Zod schema를 먼저 맞춥니다.
+2. 플랜 제한이 있다면 `lib/plan-policy.ts`에 먼저 반영합니다.
+3. repository 없이 서비스에서 DB를 직접 만지지 않습니다.
+4. 분석 이벤트는 `lib/analytics-contract.ts`에 먼저 추가합니다.
 
-  // 3. 비즈니스 로직은 service로 위임
-  const result = await myFeatureService(user.id, ...)
+### LLM 관련 규칙
 
-  return NextResponse.json(successResponse(result))
-}
-```
-
-### Repository 패턴
-
-```ts
-// repositories/my-repo.ts
-import "server-only"
-import { createAdminClient } from "@/lib/supabase/admin"
-
-export async function getMyData(userId: string) {
-  const admin = createAdminClient()
-  const { data, error } = await admin
-    .from("my_table")
-    .select("*")
-    .eq("user_id", userId)
-  if (error) throw error
-  return data
-}
-```
-
-### Analytics 이벤트 추가 방법
-
-```ts
-// 1. lib/analytics-contract.ts 에 이벤트 이름 추가 (SSOT)
-export const EVENTS = {
-  ...
-  my_new_event: "my_new_event",
-}
-
-// 2. 서버사이드 (service, API route)
-import { trackEvent } from "@/lib/analytics"
-trackEvent(userId, EVENTS.my_new_event, { key: "value" })
-
-// 3. 클라이언트사이드 (React component)
-import { trackClientEvent } from "@/lib/analytics-client"
-await trackClientEvent(EVENTS.my_new_event, { key: "value" })
-```
-
-### LLM 호출 패턴
-
-```ts
-// 새 LLM 기능 추가 시
-import { getClientForTask } from "@/lib/llm/client-factory"
-
-const client = getClientForTask("my_task") // primary/fallback 자동 선택
-const result = await client.complete(prompt)
-// 항상 llm-budget-guard 통과 후 호출
-```
+- 직접 provider를 고르기보다 `lib/llm/client-factory.ts`를 사용합니다.
+- fallback 정책은 `lib/llm/registry.ts`에 둡니다.
+- 비용 보호는 `services/llm-budget-guard.ts`를 통합니다.
 
 ---
 
-## 14. 현재 미구현 / 로드맵
+## 14. 현재 상태 / 로드맵
 
-새 팀원이 "이건 왜 없지?" 하고 만들기 시작하면 안 되는 항목들.
+### 최근 코드 기준 반영 사항
 
-### Phase 1 미구현 (현재 sprint)
+- 공개 랜딩 페이지와 `/pricing` 페이지 UI 개편
+- 대시보드 설정을 `profile` / `billing` 하위 화면으로 분리
+- 닉네임 중복 확인 API 추가
+- 비밀번호 재설정 페이지 추가
+- 계정 삭제 API 추가
+- Standard 구독 상태 표시와 업그레이드 CTA 정리
+- 미응답 딜 이메일 알림 cron 유지
+- `deals.notified_at` 기반 중복 메일 방지 유지
 
-| 항목 | 이유 미구현 | 예상 작업 |
-|------|------------|-----------|
-| `stripe` 패키지 제거 | 잔존만 됨, 기능은 없음 | 30분 |
-| `db/schema.sql` 최신화 | 007~010 마이그레이션 반영 안 됨 | 1시간 |
+### 현재 남아 있는 기술 부채
 
-### 최근 반영된 업데이트 (2026-03 기준)
+| 항목 | 설명 |
+|------|------|
+| `stripe` dependency 잔존 | 현재 결제는 Polar인데 package에 Stripe가 남아 있음 |
+| `.env.example` 부재 | 로컬 세팅 진입장벽이 있음 |
+| `db/schema.sql`와 migration 역할 중복 | 실질 기준은 `supabase/migrations/*` |
+| Cloudflare/Vercel 이중 배포 설정 | 운영 기준과 보조 설정이 함께 존재 |
 
-- 공개 가격 페이지 `/pricing` 추가
-- Resend 기반 미응답 딜 알림 메일 발송 구현 (`lib/email.ts`, `app/api/cron/unanswered-alert/`)
-- `supabase/migrations/010_add_deal_notified_at.sql` 로 알림 중복 발송 방지 필드 추가
-- cron-job.org 외부 스케줄러 연결 완료 (매일 KST 09:00, `Authorization: Bearer $CRON_SECRET`)
-- 랜딩 nav 가격 링크 제거 (서비스 체험 전 가격 노출 → 이탈 유발)
-- 앱 내 페이월 흐름 추가: 파싱/저장 한도 초과 시 에러 대신 업그레이드 유도 UI 표시
+### 다음 우선순위 후보
 
-### Phase 2~3 계획 (3~6개월)
-
-- Standard 플랜 고도화 (도용 탐지, 트렌드 Top3, 카카오 알림톡)
-- Pro 플랜 출시 (29,900원, 계약서 AI 초안, 칸반 뷰, 인보이스 PDF)
-- `POLAR_PRODUCT_ID` 멀티플랜 대응 (현재 단일 상품 ID)
-
-### Phase 4+ (6개월~)
-
-- React Native (Expo) 모바일 앱
-- Business 플랜 (79,000원, 팀 공유, 전자서명)
-- 일본어 지원 (i18n)
-- Enterprise
-
-### 알아두면 좋은 기술 부채
-
-| 항목 | 위치 | 설명 |
-|------|------|------|
-| `stripe` 잔존 | `package.json` | 사용 안 함, 번들에 포함됨 |
-| `db/schema.sql` 스냅샷 미동기화 | `db/schema.sql` | 001~006 기준, 007~010 반영 안 됨 |
-| 단일 Polar 상품 ID | `POLAR_PRODUCT_ID` | 멀티플랜 시 구조 변경 필요 |
-| 라우트 리다이렉트 이중화 | `app/settings/`, `app/history/` | 공개 경로가 대시보드 경로로 리다이렉트됨 |
-| `vercel.json` cron 항목 잔존 | `vercel.json` | Cloudflare Workers 배포 환경에선 동작 안 함, 실제 스케줄러는 cron-job.org |
+- 구독 관리 버튼의 실제 self-serve billing portal 연결
+- 알림/대시보드 UX 고도화
+- Pro/Business 플랜 도입 여부 재정의
+- 문서화된 로컬 개발 템플릿 파일 추가
 
 ---
 
 ## 기여 가이드
 
-1. `main` 브랜치에서 feature 브랜치 분기
-2. `npm test` 통과 확인 후 PR
-3. API 응답 계약 변경 시 담당자 확인 필수 (`/api/inquiries/parse` 특히)
-4. 플랜 정책 변경은 `lib/plan-policy.ts` 만 수정, 다른 곳에 하드코딩 금지
-5. DB 변경 시 `supabase/migrations/` 에 순번 마이그레이션 파일 추가 (`db/schema.sql` 은 레퍼런스용이라 별도 업데이트)
+1. 기능 작업 전 `lib/plan-policy.ts`, 관련 route, service, repository를 함께 확인합니다.
+2. DB 변경은 새 migration 파일로 추가합니다.
+3. API 계약을 바꾸면 대응 테스트를 반드시 수정합니다.
+4. README는 실제 코드 기준으로만 업데이트합니다.
