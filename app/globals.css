@@ -1,4 +1,6 @@
-﻿@tailwind base;
+﻿@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -72,11 +74,12 @@ html.landing-light .parse-page {
 }
 
 .landing-page {
-  --landing-bg: #0a0a0f;
+  --landing-bg: #07070d;
+  --landing-surface: #111118;
   background-image:
-    linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
-  background-size: 64px 64px;
+    linear-gradient(rgba(99,102,241,0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.14) 1px, transparent 1px);
+  background-size: 16px 16px;
   --landing-nav-bg: rgba(10, 10, 15, 0.8);
   --landing-surface: #13131a;
   --landing-text: #f8fafc;
@@ -89,11 +92,12 @@ html.landing-light .parse-page {
 }
 
 html.landing-light .landing-page {
-  --landing-bg: #f8fafc;
+  --landing-bg: #eceffe;
+  --landing-surface: #f4f5ff;
   background-image:
-    linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px);
-  background-size: 64px 64px;
+    linear-gradient(rgba(79,70,229,0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,70,229,0.09) 1px, transparent 1px);
+  background-size: 16px 16px;
   --landing-nav-bg: rgba(248, 250, 252, 0.85);
   --landing-surface: #ffffff;
   --landing-text: #0f172a;
@@ -268,29 +272,186 @@ html.landing-light .parse-page {
 
 /* ─── Dashboard Theme Variables ─── */
 .dashboard-theme {
-  --d-bg:       #0A0A0F;
-  --d-surface:  #13131A;
-  --d-surface2: #0D0D14;
-  --d-border:   #1E1E2E;
-  --d-h:        #f8fafc;
-  --d-b:        #e2e8f0;
-  --d-m:        #94a3b8;
-  --d-f:        #475569;
+  --d-bg:         #0A0A0F;
+  --d-surface:    #13131A;
+  --d-surface2:   #0D0D14;
+  --d-border:     #1E1E2E;
+  --d-h:          #f8fafc;
+  --d-b:          #e2e8f0;
+  --d-m:          #94a3b8;
+  --d-f:          #475569;
+  --d-accent:     #6366F1;
+  --d-nav-hover:  rgba(255, 255, 255, 0.05);
+  --d-card-shadow: none;
   background-color: var(--d-bg);
   color: var(--d-h);
 }
 
 html.landing-light .dashboard-theme {
-  --d-bg:       #f8fafc;
-  --d-surface:  #ffffff;
-  --d-surface2: #f1f5f9;
-  --d-border:   #e2e8f0;
-  --d-h:        #0f172a;
-  --d-b:        #334155;
-  --d-m:        #64748b;
-  --d-f:        #94a3b8;
+  --d-bg:         #eef0fb;
+  --d-surface:    #ffffff;
+  --d-surface2:   #e6e9f7;
+  --d-border:     #d2d8ef;
+  --d-h:          #0f172a;
+  --d-b:          #1e293b;
+  --d-m:          #475569;
+  --d-f:          #7c87a2;
+  --d-accent:     #4f46e5;
+  --d-nav-hover:  rgba(79, 70, 229, 0.07);
+  --d-card-shadow: 0 1px 3px rgba(79,70,229,0.07), 0 0 0 0.5px rgba(99,102,241,0.06);
   background-color: var(--d-bg);
   color: var(--d-h);
+  background-image: radial-gradient(circle, rgba(99,102,241,0.13) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* ─── Light mode utility overrides ─── */
+
+html.landing-light ::-webkit-scrollbar-thumb { background: #c2c8e4; }
+html.landing-light ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+
+html.landing-light .glow-sm { box-shadow: 0 2px 16px rgba(79,70,229,0.15); }
+html.landing-light .glow-md { box-shadow: 0 4px 32px rgba(79,70,229,0.22); }
+
+html.landing-light .glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.10);
+}
+
+html.landing-light .card-hover {
+  box-shadow: 0 1px 4px rgba(79,70,229,0.08), 0 0 0 0.5px rgba(99,102,241,0.06);
+}
+html.landing-light .card-hover:hover {
+  transform: translateY(-3px);
+  border-color: rgba(79, 70, 229, 0.30) !important;
+  box-shadow: 0 12px 36px rgba(79, 70, 229, 0.16), 0 0 0 1px rgba(99, 102, 241, 0.12) !important;
+}
+
+/* Dashboard card elevation (section elements) */
+html.landing-light .dashboard-theme section {
+  box-shadow: var(--d-card-shadow);
+}
+
+html.landing-light .btn-gradient {
+  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.30);
+}
+html.landing-light .btn-gradient:hover {
+  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.40);
+}
+
+/* ─── Pixel Art Utilities ─── */
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+}
+
+/* Sidebar pixel grid background */
+.sidebar-pixel {
+  background-image:
+    linear-gradient(rgba(99,102,241,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.045) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+html.landing-light .sidebar-pixel {
+  background-image:
+    linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* ─── Pixel Art: Landing-wide border-radius removal ─── */
+
+.landing-page *[class*="rounded"] {
+  border-radius: 0 !important;
+}
+.landing-page input,
+.landing-page textarea,
+.landing-page select {
+  border-radius: 0 !important;
+}
+
+/* Exception: theme toggle stays pill-shaped */
+.landing-page [role="switch"],
+.landing-page [role="switch"] * {
+  border-radius: 9999px !important;
+}
+
+/* ── Pixel offset shadow — landing cards ── */
+/* Dark mode: accent-colored hard offset (no blur = true pixel) */
+.landing-pixel-card {
+  box-shadow: 6px 6px 0 #3730a3;
+  transition: box-shadow 0.08s steps(1) !important, transform 0.08s steps(1) !important;
+}
+.landing-pixel-card:hover {
+  box-shadow: 8px 8px 0 #4338ca;
+  transform: translate(-2px, -2px);
+}
+.landing-pixel-card:active {
+  box-shadow: 2px 2px 0 #3730a3;
+  transform: translate(4px, 4px);
+}
+html.landing-light .landing-pixel-card {
+  box-shadow: 6px 6px 0 #4338ca;
+}
+html.landing-light .landing-pixel-card:hover {
+  box-shadow: 8px 8px 0 #4f46e5;
+  transform: translate(-2px, -2px);
+}
+
+/* ── Pixel CTA button — chunky press effect ── */
+.landing-page .btn-gradient {
+  box-shadow: 6px 6px 0 #312e81 !important;
+  border-bottom: 3px solid transparent !important;
+}
+.landing-page .btn-gradient:hover {
+  box-shadow: 8px 8px 0 #312e81 !important;
+  transform: translate(-2px, -2px) !important;
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important;
+}
+.landing-page .btn-gradient:active {
+  box-shadow: 2px 2px 0 #312e81 !important;
+  transform: translate(4px, 4px) !important;
+}
+
+/* Secondary CTA button pixel style */
+.landing-page a[style*="boxShadow"] {
+  transition: box-shadow 0.08s steps(1) !important, transform 0.08s steps(1) !important;
+}
+.landing-page a[style*="boxShadow"]:hover {
+  transform: translate(-1px, -1px);
+}
+.landing-page a[style*="boxShadow"]:active {
+  transform: translate(2px, 2px);
+}
+
+/* ─── Pixel Art: Dashboard-wide border-radius removal ─── */
+
+/* Remove ALL rounding inside dashboard (pixel art = square edges) */
+.dashboard-theme *[class*="rounded"] {
+  border-radius: 0 !important;
+}
+.dashboard-theme input,
+.dashboard-theme textarea,
+.dashboard-theme select {
+  border-radius: 0 !important;
+}
+
+/* Exception: theme toggle stays pill-shaped */
+.dashboard-theme [role="switch"],
+.dashboard-theme [role="switch"] * {
+  border-radius: 9999px !important;
+}
+
+/* Pixel offset shadow for cards */
+.d-pixel-card {
+  box-shadow: 2px 2px 0 rgba(99, 102, 241, 0.18);
+}
+html.landing-light .d-pixel-card {
+  box-shadow: 2px 2px 0 rgba(79, 70, 229, 0.30);
 }
 
 /* ─── 2025 Design System Utilities ─── */

@@ -183,7 +183,7 @@ export default function AboutPage() {
                 },
                 {
                   label: "계약 관리",
-                  desc: "딜 진행 상태를 파이프라인으로 추적하고, 누락 조건·마감 임박 항목을 실시간으로 알립니다.",
+                  desc: "딜 진행 상태를 단계별로 추적하고, 누락 조건·마감 임박 항목을 실시간으로 알립니다.",
                 },
               ].map(({ label, desc }) => (
                 <li key={label} className="flex gap-3">

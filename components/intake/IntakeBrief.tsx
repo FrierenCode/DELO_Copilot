@@ -25,9 +25,9 @@ export function IntakeBrief({ data, missingFields }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
+      <h2 className="text-xl font-bold text-[var(--d-h)] flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-[#6366F1] inline-block" />
-        파싱 결과
+        문의 분석 결과
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {FIELD_LABELS.map(([label, key]) => {
@@ -35,9 +35,9 @@ export function IntakeBrief({ data, missingFields }: Props) {
           return (
             <div
               key={key}
-              className="p-4 bg-[#13131A] border border-[#1E1E2E] rounded-xl"
+              className="d-pixel-card p-4 bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl"
             >
-              <p className="text-[10px] text-[#64748B] font-bold mb-1 uppercase tracking-tight">
+              <p className="text-[10px] text-[var(--d-f)] font-bold mb-1 uppercase tracking-tight">
                 {label}
               </p>
               {isMissing ? (
@@ -45,7 +45,7 @@ export function IntakeBrief({ data, missingFields }: Props) {
                   미확인
                 </span>
               ) : (
-                <p className="font-semibold text-sm text-[#F8FAFC]">{data[key]}</p>
+                <p className="font-semibold text-sm text-[var(--d-h)]">{data[key]}</p>
               )}
             </div>
           );

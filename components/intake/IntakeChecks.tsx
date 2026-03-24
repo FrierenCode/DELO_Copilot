@@ -17,7 +17,7 @@ const BADGE_STYLES: Record<BadgeVariant, string> = {
   confirmed: "bg-green-500/10 text-green-500",
   needs_check: "bg-yellow-500/10 text-yellow-500",
   missing: "bg-red-500/10 text-red-500",
-  unanalyzed: "bg-[#1E1E2E] text-[#64748B]",
+  unanalyzed: "bg-[var(--d-border)] text-[var(--d-f)]",
 };
 
 const BADGE_DOTS: Record<BadgeVariant, string> = {
@@ -31,9 +31,9 @@ export function IntakeChecks({ checks }: Props) {
   if (checks.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-[#F8FAFC]">계약 체크리스트</h2>
-        <div className="bg-[#13131A] border border-[#1E1E2E] rounded-xl p-5">
-          <p className="text-sm text-[#64748B]">확인 필요 항목이 없습니다.</p>
+        <h2 className="text-xl font-bold text-[var(--d-h)]">계약 체크리스트</h2>
+        <div className="d-pixel-card bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl p-5">
+          <p className="text-sm text-[var(--d-f)]">확인 필요 항목이 없습니다.</p>
         </div>
       </div>
     );
@@ -46,9 +46,9 @@ export function IntakeChecks({ checks }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-[#F8FAFC]">계약 체크리스트</h2>
-      <div className="bg-[#13131A] border border-[#1E1E2E] rounded-xl overflow-hidden">
-        <div className="divide-y divide-[#1E1E2E]">
+      <h2 className="text-xl font-bold text-[var(--d-h)]">계약 체크리스트</h2>
+      <div className="d-pixel-card bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl overflow-hidden">
+        <div className="divide-y divide-[var(--d-border)]">
           {sorted.map((check) => {
             const { variant, label } = getBadge(check);
             return (
@@ -58,7 +58,7 @@ export function IntakeChecks({ checks }: Props) {
               >
                 <span className={[
                   "text-sm font-medium",
-                  variant === "unanalyzed" ? "text-[#64748B]" : "text-[#F8FAFC]",
+                  variant === "unanalyzed" ? "text-[var(--d-f)]" : "text-[var(--d-h)]",
                 ].join(" ")}>
                   {check.message}
                 </span>
@@ -73,7 +73,7 @@ export function IntakeChecks({ checks }: Props) {
           })}
         </div>
       </div>
-      <p className="text-xs text-[#334155]">
+      <p className="text-xs text-[var(--d-f)]">
         이 확인 항목은 운영 참고용이며, 법률 자문이 아닙니다.
       </p>
     </div>

@@ -4,7 +4,13 @@ import { Fragment, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { mapToApiProfile, type PrdOnboardingData } from "@/lib/creator-profile-mapper";
+
+function generateNickname(): string {
+  const rand = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `크리에이터_${rand}`;
+}
 
 // ─── Step options ─────────────────────────────────────────────────────────────
 
@@ -89,11 +95,12 @@ const GEO_OPTIONS: Option[] = [
   { value: "other", label: "기타 지역" },
 ];
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type WizardData = {
+  nickname: string;
   primary_platform: string;
   niche: string;
   audience_band: string;
@@ -103,6 +110,7 @@ type WizardData = {
 };
 
 const EMPTY_DATA: WizardData = {
+  nickname: "",
   primary_platform: "",
   niche: "",
   audience_band: "",
@@ -114,16 +122,18 @@ const EMPTY_DATA: WizardData = {
 function previewValue(step: number, data: WizardData): string | null {
   switch (step) {
     case 1:
-      return PLATFORM_OPTIONS.find((opt) => opt.value === data.primary_platform)?.label ?? null;
+      return data.nickname.trim() || null;
     case 2:
-      return NICHE_OPTIONS.find((opt) => opt.value === data.niche)?.label ?? null;
+      return PLATFORM_OPTIONS.find((opt) => opt.value === data.primary_platform)?.label ?? null;
     case 3:
-      return AUDIENCE_OPTIONS.find((opt) => opt.value === data.audience_band)?.label ?? null;
+      return NICHE_OPTIONS.find((opt) => opt.value === data.niche)?.label ?? null;
     case 4:
-      return AVG_VIEWS_OPTIONS.find((opt) => opt.value === data.avg_views_band)?.label ?? null;
+      return AUDIENCE_OPTIONS.find((opt) => opt.value === data.audience_band)?.label ?? null;
     case 5:
-      return GEO_OPTIONS.find((opt) => opt.value === data.geo_region)?.label ?? null;
+      return AVG_VIEWS_OPTIONS.find((opt) => opt.value === data.avg_views_band)?.label ?? null;
     case 6:
+      return GEO_OPTIONS.find((opt) => opt.value === data.geo_region)?.label ?? null;
+    case 7:
       return data.floor_rate ? `₩${Number(data.floor_rate).toLocaleString("ko-KR")}` : null;
     default:
       return null;
@@ -134,24 +144,26 @@ function previewValue(step: number, data: WizardData): string | null {
 
 function stepHeading(step: number): string {
   switch (step) {
-    case 1: return "주로 활동하는 플랫폼이 어디인가요?";
-    case 2: return "어떤 카테고리의 콘텐츠를 만드시나요?";
-    case 3: return "팔로워가 몇 명인가요?";
-    case 4: return "평균 조회수는 어느 정도인가요?";
-    case 5: return "주요 시청자는 어디에 계신가요?";
-    case 6: return "최소 희망 단가를 설정해 주세요";
+    case 1: return "DELO에서 사용할 닉네임을 설정해 주세요";
+    case 2: return "주로 활동하는 플랫폼이 어디인가요?";
+    case 3: return "어떤 카테고리의 콘텐츠를 만드시나요?";
+    case 4: return "팔로워가 몇 명인가요?";
+    case 5: return "평균 조회수는 어느 정도인가요?";
+    case 6: return "주요 시청자는 어디에 계신가요?";
+    case 7: return "최소 희망 단가를 설정해 주세요";
     default: return "";
   }
 }
 
 function stepSubheading(step: number): string {
   switch (step) {
-    case 1: return "가장 많은 팔로워가 있는 플랫폼을 선택해 주세요.";
-    case 2: return "내 콘텐츠를 가장 잘 나타내는 카테고리를 선택해 주세요.";
-    case 3: return "팔로워 수에 가장 가까운 구간을 선택해 주세요.";
-    case 4: return "게시물당 평균 조회수에 가장 가까운 구간을 선택해 주세요.";
-    case 5: return "주요 시청자가 위치한 지역을 선택해 주세요.";
-    case 6: return "수락할 최소 딜 금액을 KRW로 입력해 주세요. 양의 정수여야 합니다.";
+    case 1: return "입력하지 않으면 자동으로 닉네임이 설정됩니다.";
+    case 2: return "가장 많은 팔로워가 있는 플랫폼을 선택해 주세요.";
+    case 3: return "내 콘텐츠를 가장 잘 나타내는 카테고리를 선택해 주세요.";
+    case 4: return "팔로워 수에 가장 가까운 구간을 선택해 주세요.";
+    case 5: return "게시물당 평균 조회수에 가장 가까운 구간을 선택해 주세요.";
+    case 6: return "주요 시청자가 위치한 지역을 선택해 주세요.";
+    case 7: return "수락할 최소 딜 금액을 KRW로 입력해 주세요. 양의 정수여야 합니다.";
     default: return "";
   }
 }
@@ -238,12 +250,16 @@ export function OnboardingWizard() {
 
   function isStepValid(): boolean {
     switch (step) {
-      case 1: return data.primary_platform !== "";
-      case 2: return data.niche !== "";
-      case 3: return data.audience_band !== "";
-      case 4: return data.avg_views_band !== "";
-      case 5: return data.geo_region !== "";
-      case 6: return validateFloorRate(data.floor_rate) === null;
+      case 1: {
+        const trimmed = data.nickname.trim();
+        return trimmed.length === 0 || trimmed.length >= 2; // empty = auto-generate; typed = min 2 chars
+      }
+      case 2: return data.primary_platform !== "";
+      case 3: return data.niche !== "";
+      case 4: return data.audience_band !== "";
+      case 5: return data.avg_views_band !== "";
+      case 6: return data.geo_region !== "";
+      case 7: return validateFloorRate(data.floor_rate) === null;
       default: return false;
     }
   }
@@ -268,6 +284,11 @@ export function OnboardingWizard() {
 
     setSubmitting(true);
     setSubmitError("");
+
+    // Save nickname (use auto-generated if empty)
+    const finalNickname = data.nickname.trim() || generateNickname();
+    const supabase = createClient();
+    await supabase.auth.updateUser({ data: { full_name: finalNickname } });
 
     const prdData: PrdOnboardingData = {
       primary_platform: data.primary_platform,
@@ -308,6 +329,31 @@ export function OnboardingWizard() {
     switch (step) {
       case 1:
         return (
+          <div className="w-full max-w-sm mx-auto space-y-3">
+            <label
+              htmlFor="nickname"
+              className="block text-xs font-semibold text-[#94A3B8] uppercase tracking-wider ml-1"
+            >
+              닉네임 (선택, 2~20자)
+            </label>
+            <input
+              id="nickname"
+              type="text"
+              maxLength={20}
+              value={data.nickname}
+              onChange={(e) => handleSelect("nickname", e.target.value)}
+              placeholder="예: 뷰티크리에이터_지수"
+              className="w-full bg-[#13131A] border border-[#27272A] rounded-2xl px-5 py-4 text-lg text-[#F8FAFC] placeholder:text-[#94A3B8]/40 focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50 focus:border-[#6366F1] transition-all"
+            />
+            {data.nickname.trim().length > 0 && data.nickname.trim().length < 2 && (
+              <p className="text-sm text-red-400 ml-1">닉네임은 최소 2자 이상이어야 합니다.</p>
+            )}
+            <p className="text-xs text-[#94A3B8] ml-1">비워두면 자동으로 닉네임이 생성됩니다.</p>
+          </div>
+        );
+
+      case 2:
+        return (
           <div className="grid grid-cols-2 gap-4 w-full">
             {PLATFORM_OPTIONS.map((opt) => {
               const selected = data.primary_platform === opt.value;
@@ -340,7 +386,7 @@ export function OnboardingWizard() {
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <TextOptionGrid
             options={NICHE_OPTIONS}
@@ -349,7 +395,7 @@ export function OnboardingWizard() {
           />
         );
 
-      case 3:
+      case 4:
         return (
           <TextOptionGrid
             options={AUDIENCE_OPTIONS}
@@ -358,7 +404,7 @@ export function OnboardingWizard() {
           />
         );
 
-      case 4:
+      case 5:
         return (
           <TextOptionGrid
             options={AVG_VIEWS_OPTIONS}
@@ -367,7 +413,7 @@ export function OnboardingWizard() {
           />
         );
 
-      case 5:
+      case 6:
         return (
           <TextOptionGrid
             options={GEO_OPTIONS}
@@ -376,7 +422,7 @@ export function OnboardingWizard() {
           />
         );
 
-      case 6:
+      case 7:
         return (
           <div className="w-full max-w-sm mx-auto space-y-3">
             <label

@@ -200,7 +200,7 @@ export default function TermsPage() {
                   </h2>
                   <ol className="space-y-3 list-decimal list-inside marker:text-indigo-400 marker:text-sm">
                     <li><strong className="text-white">Free 플랜:</strong> 무료로 제공되며, 월 5회 문의 분석, 딜 10건 저장, 기본 견적 산출, 답장 초안 1가지 톤이 제공됩니다.</li>
-                    <li><strong className="text-white">Standard 플랜:</strong> 월 12,900원(VAT 포함)이며, 무제한 문의 분석, 딜 무제한 저장, 답장 초안 3가지 톤, 스마트 체크리스트, 딜 파이프라인 관리, 실시간 알림이 제공됩니다.</li>
+                    <li><strong className="text-white">Standard 플랜:</strong> 월 12,900원(VAT 포함)이며, 무제한 문의 분석, 딜 무제한 저장, 답장 초안 3가지 톤, 스마트 체크리스트, 딜 진행 관리, 실시간 알림이 제공됩니다.</li>
                     <li>결제는 <strong className="text-white">Polar</strong>(결제 대행사)를 통해 처리되며, 구독은 매월 자동으로 갱신됩니다.</li>
                     <li>요금제 및 가격은 사전 공지 후 변경될 수 있습니다. 가격 변경은 다음 구독 갱신 시점부터 적용됩니다.</li>
                     <li>결제 수단의 만료, 한도 초과 등 이용자의 귀책으로 인한 결제 실패 시 서비스 이용이 제한될 수 있습니다.</li>

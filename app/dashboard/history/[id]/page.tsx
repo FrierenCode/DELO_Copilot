@@ -210,7 +210,7 @@ export default function HistoryDetailPage() {
                 <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
                 <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
               </svg>
-              파싱 결과
+              문의 분석 결과
             </h2>
             <div className="grid grid-cols-3 gap-4">
               {parseFields.map(({ label, value }) => (

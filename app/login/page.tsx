@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Status = "idle" | "loading" | "error";
+type View = "login" | "forgot" | "forgot-sent";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [view, setView] = useState<View>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +20,8 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [discordLoading, setDiscordLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotStatus, setForgotStatus] = useState<Status>("idle");
 
   useEffect(() => {
     const supabase = createClient();
@@ -61,6 +65,24 @@ export default function LoginPage() {
     }
   }
 
+  async function handleForgotPassword(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (forgotStatus === "loading") return;
+    setForgotStatus("loading");
+    setErrorMessage("");
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    if (error) {
+      setErrorMessage("재설정 이메일 전송에 실패했습니다. 다시 시도해주세요");
+      setForgotStatus("error");
+      return;
+    }
+    setView("forgot-sent");
+    setForgotStatus("idle");
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (status === "loading") return;
@@ -86,6 +108,132 @@ export default function LoginPage() {
     router.push("/dashboard");
   }
 
+  const pageShell = (content: React.ReactNode) => (
+    <div className="login-page min-h-screen bg-[var(--login-bg-solid)] text-[var(--login-text)] transition-colors">
+      <header className="fixed left-0 top-0 z-10 w-full p-8">
+        <Link href="/" className="flex w-fit items-center gap-2.5">
+          <Image src="/fox-icon.svg" width={28} height={28} alt="DELO 로고" priority />
+          <span className="text-xl font-bold tracking-tight">DELO</span>
+        </Link>
+      </header>
+      <main className="relative flex min-h-screen items-center justify-center bg-[var(--login-background)] p-6 pt-28 transition-colors">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden dark-only-glow">
+          <div className="absolute left-1/4 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-[#6366F1]/6 blur-[100px]" />
+          <div className="absolute right-1/4 bottom-1/3 h-[300px] w-[300px] rounded-full bg-indigo-900/8 blur-[80px]" />
+        </div>
+        <div className="relative w-full max-w-[420px]">
+          <div className="glow-sm overflow-hidden rounded-2xl border border-[var(--login-border)] bg-[var(--login-surface)] shadow-2xl transition-colors">
+            <div className="h-px bg-gradient-to-r from-transparent via-[#6366F1]/60 to-transparent" />
+            <div className="p-8">{content}</div>
+          </div>
+        </div>
+      </main>
+      <footer className="p-8 text-center">
+        <p className="text-xs text-[var(--login-footer)]">© 2026 DELO. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+
+  // ── Forgot password: email sent ──
+  if (view === "forgot-sent") {
+    return pageShell(
+      <div className="flex flex-col items-center gap-6 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--login-accent-soft)] text-[var(--login-accent)]">
+          <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        </div>
+        <div>
+          <h1 className="mb-2 text-xl font-bold text-[var(--login-heading)]">이메일을 확인해 주세요</h1>
+          <p className="mb-1 text-sm leading-relaxed text-[var(--login-muted)]">
+            비밀번호 재설정 링크를
+          </p>
+          <p className="text-sm font-medium italic text-[var(--login-accent)]">{forgotEmail}</p>
+          <p className="text-sm leading-relaxed text-[var(--login-muted)]">로 전송했습니다.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setView("login"); setErrorMessage(""); }}
+          className="text-sm font-medium text-[var(--login-muted)] transition-colors hover:text-[var(--login-accent)]"
+        >
+          ← 로그인으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
+  // ── Forgot password: request form ──
+  if (view === "forgot") {
+    return pageShell(
+      <>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--login-accent-soft)] text-[var(--login-accent)]">
+            <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <h1 className="mb-2 text-2xl font-bold text-[var(--login-heading)]">비밀번호 찾기</h1>
+          <p className="text-sm text-[var(--login-muted)]">
+            가입한 이메일 주소를 입력하면 재설정 링크를 보내드립니다
+          </p>
+        </div>
+
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="forgot-email" className="ml-1 text-xs font-semibold uppercase tracking-wider text-[var(--login-muted)]">
+              이메일 주소
+            </label>
+            <input
+              id="forgot-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              placeholder="you@example.com"
+              disabled={forgotStatus === "loading"}
+              className="w-full rounded-xl border border-[var(--login-input-border)] bg-[var(--login-input-bg)] px-4 py-3.5 text-[var(--login-heading)] placeholder:text-[var(--login-placeholder)] transition-all focus:border-[var(--login-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--login-accent)]/30 disabled:opacity-50"
+            />
+          </div>
+
+          {(forgotStatus === "error" || errorMessage) && (
+            <p className="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+              {errorMessage}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={forgotStatus === "loading"}
+            className="btn-gradient w-full rounded-full py-3.5 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {forgotStatus === "loading" ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                전송 중...
+              </span>
+            ) : (
+              "재설정 링크 보내기"
+            )}
+          </button>
+        </form>
+
+        <button
+          type="button"
+          onClick={() => { setView("login"); setErrorMessage(""); }}
+          className="mt-6 w-full text-center text-sm text-[var(--login-muted)] transition-colors hover:text-[var(--login-accent)]"
+        >
+          ← 로그인으로 돌아가기
+        </button>
+      </>
+    );
+  }
+
+  // ── Login view ──
   return (
     <div className="login-page min-h-screen bg-[var(--login-bg-solid)] text-[var(--login-text)] transition-colors">
       <header className="fixed left-0 top-0 z-10 w-full p-8">
@@ -238,6 +386,16 @@ export default function LoginPage() {
                         )}
                       </button>
                     </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => { setView("forgot"); setForgotEmail(email); setErrorMessage(""); }}
+                      className="text-xs text-[var(--login-muted)] transition-colors hover:text-[var(--login-accent)]"
+                    >
+                      비밀번호를 잊으셨나요?
+                    </button>
                   </div>
 
                   {(status === "error" || errorMessage) && (

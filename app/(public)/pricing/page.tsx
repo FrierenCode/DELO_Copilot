@@ -10,7 +10,7 @@ import { PlanCard, type PlanFeature } from "@/components/pricing/plan-card";
 export const metadata: Metadata = {
   title: "DELO 가격 | 무료로 시작, 스탠다드로 확장",
   description:
-    "DELO 플랜 안내. 무료 플랜으로 브랜드 딜 관리를 시작하고, Standard 플랜으로 무제한 파싱·협상 AI·미응답 알림을 사용하세요. 월 12,900원, 언제든 취소 가능.",
+    "DELO 플랜 안내. 무료 플랜으로 브랜드 딜 관리를 시작하고, Standard 플랜으로 문의 분석 무제한·협상 AI·미응답 알림을 사용하세요. 월 12,900원, 언제든 취소 가능.",
   keywords: [
     "DELO 가격",
     "크리에이터 딜 관리 요금제",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "DELO 가격 | 무료로 시작, 스탠다드로 확장",
     description:
-      "무료 플랜으로 브랜드 딜 관리를 시작하고, Standard 플랜(월 12,900원)으로 무제한 파싱·협상 AI·미응답 알림을 사용하세요.",
+      "무료 플랜으로 브랜드 딜 관리를 시작하고, Standard 플랜(월 12,900원)으로 문의 분석 무제한·협상 AI·미응답 알림을 사용하세요.",
     type: "website",
     url: "/pricing",
   },
@@ -60,7 +60,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "무료 플랜에 기간 제한이 있나요?",
-    a: "아니요. 무료 플랜은 기간 제한 없이 영구적으로 사용할 수 있습니다. 월 AI 파싱 횟수와 딜 저장 한도 내에서 계속 이용하실 수 있습니다.",
+    a: "아니요. 무료 플랜은 기간 제한 없이 영구적으로 사용할 수 있습니다. 월 문의 분석 횟수와 딜 저장 한도 내에서 계속 이용하실 수 있습니다.",
   },
   {
     q: "환불 정책이 어떻게 되나요?",
@@ -78,7 +78,7 @@ export default async function PricingPage() {
   const free = PLAN_POLICIES.free;
 
   const freeFeatures: PlanFeature[] = [
-    { text: `AI 파싱 월 ${free.parse_per_month}건`, included: true },
+    { text: `문의 분석 월 ${free.parse_per_month}건`, included: true },
     { text: `딜 저장 ${free.deal_save_limit}건`, included: true },
     { text: "기본 체크리스트", included: true },
     { text: "답장 초안 (정중한 톤)", included: true },
@@ -88,7 +88,7 @@ export default async function PricingPage() {
   ];
 
   const standardFeatures: PlanFeature[] = [
-    { text: "AI 파싱 무제한", included: true },
+    { text: "문의 분석 무제한", included: true },
     { text: "딜 저장 무제한", included: true },
     { text: "스마트 체크리스트 전체", included: true },
     { text: "답장 초안 3가지 톤 (정중·빠른확인·협상)", included: true },
@@ -249,7 +249,7 @@ export default async function PricingPage() {
 
             {/* Rows */}
             {[
-              { feature: "AI 파싱", free: `월 ${free.parse_per_month}건`, standard: "무제한" },
+              { feature: "문의 분석", free: `월 ${free.parse_per_month}건`, standard: "무제한" },
               { feature: "딜 저장", free: `${free.deal_save_limit}건`, standard: "무제한" },
               { feature: "답장 초안 톤", free: "1가지 (정중)", standard: "3가지" },
               { feature: "체크리스트", free: "기본", standard: "전체" },
