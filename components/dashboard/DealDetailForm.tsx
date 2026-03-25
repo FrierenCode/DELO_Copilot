@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatKRW, formatDate, toDatetimeLocal, fromDatetimeLocal } from "@/lib/dashboard-helpers";
@@ -80,6 +80,11 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
   const [followupNeeded, setFollowupNeeded] = useState(deal.followup_needed);
   const [notes, setNotes] = useState(deal.notes ?? "");
 
+  const [memo, setMemo] = useState(deal.memo ?? "");
+  const memoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [memoSaving, setMemoSaving] = useState(false);
+  const [memoStatus, setMemoStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -91,6 +96,47 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
   const [activeDraftIdx, setActiveDraftIdx] = useState(0);
   const activeDraft = sortedDrafts[activeDraftIdx];
   const [copied, setCopied] = useState(false);
+
+  const saveMemo = useCallback(async (value: string) => {
+    setMemoSaving(true);
+    setMemoStatus("saving");
+    const payload = { memo: value === "" ? null : value };
+    try {
+      const res = await fetch(`/api/deals/${deal.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as { success: boolean };
+      if (!json.success) throw new Error();
+      setMemoStatus("saved");
+      setTimeout(() => setMemoStatus("idle"), 2000);
+    } catch {
+      setMemoStatus("error");
+      // 1회 재시도
+      try {
+        const res = await fetch(`/api/deals/${deal.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const json = (await res.json()) as { success: boolean };
+        if (!json.success) throw new Error();
+        setMemoStatus("saved");
+        setTimeout(() => setMemoStatus("idle"), 2000);
+      } catch {
+        // error stays
+      }
+    } finally {
+      setMemoSaving(false);
+    }
+  }, [deal.id]);
+
+  function handleMemoChange(value: string) {
+    setMemo(value);
+    if (memoTimerRef.current) clearTimeout(memoTimerRef.current);
+    memoTimerRef.current = setTimeout(() => saveMemo(value), 800);
+  }
 
   async function handleCopy() {
     if (!activeDraft) return;
@@ -422,6 +468,32 @@ export function DealDetailForm({ deal, checks, drafts, statusLogs }: Props) {
                 />
               </div>
             </div>
+          </section>
+
+          {/* 비공개 메모 */}
+          <section className="bg-[var(--d-surface)] border border-[var(--d-border)] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-xs font-bold text-[var(--d-f)] uppercase tracking-widest flex items-center gap-2">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path d="M15.232 5.232l3.536 3.536M9 13l6-6M3 17v4h4L17 11 13 7 3 17z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                비공개 메모
+              </h2>
+              <span className="text-[10px] text-[var(--d-f)]">
+                {memoStatus === "saving" && "저장 중..."}
+                {memoStatus === "saved" && "저장됨 ✓"}
+                {memoStatus === "error" && "저장 실패 — 다시 시도 중..."}
+              </span>
+            </div>
+            <p className="text-[10px] text-[var(--d-f)] mb-3">이 메모는 나만 볼 수 있어요</p>
+            <textarea
+              value={memo}
+              onChange={(e) => handleMemoChange(e.target.value)}
+              rows={4}
+              placeholder="이 브랜드에 대한 기록을 남겨두세요"
+              disabled={memoSaving}
+              className="w-full rounded-lg p-3 bg-[var(--d-surface)] border border-[var(--d-border)] text-[var(--d-h)] text-xs leading-relaxed focus:border-indigo-500 focus:outline-none placeholder:text-[var(--d-f)] resize-none disabled:opacity-60"
+            />
           </section>
 
           {/* 상태 로그 타임라인 */}

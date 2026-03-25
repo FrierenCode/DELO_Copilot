@@ -21,6 +21,7 @@ const dealStatuses: [DealStatus, ...DealStatus[]] = [
 const patchSchema = z.object({
   status: z.enum(dealStatuses).optional(),
   notes: z.string().max(2000).optional(),
+  memo: z.string().max(5000).nullable().optional(),
   next_action: z.string().max(500).optional(),
   next_action_due_at: z.string().datetime().optional(),
   followup_needed: z.boolean().optional(),
@@ -131,7 +132,7 @@ export async function PATCH(
       );
     }
 
-    const { status: newStatus, ...rest } = validated.data;
+    const { status: newStatus, memo, ...rest } = validated.data;
 
     if (newStatus && newStatus !== deal.status) {
       try {
@@ -147,7 +148,8 @@ export async function PATCH(
       }
     }
 
-    const updates = { ...rest, ...(newStatus ? { status: newStatus } : {}) };
+    const memoUpdate = memo !== undefined ? { memo: memo === "" ? null : memo } : {};
+    const updates = { ...rest, ...memoUpdate, ...(newStatus ? { status: newStatus } : {}) };
     const updated = await updateDeal(id, updates);
 
     if (newStatus && newStatus !== deal.status) {

@@ -37,6 +37,7 @@ export type Deal = {
 
   status: DealStatus;
   notes?: string;
+  memo?: string | null;
 
   created_at: string;
   updated_at: string;

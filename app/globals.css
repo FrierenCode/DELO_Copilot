@@ -77,9 +77,10 @@ html.landing-light .parse-page {
   --landing-bg: #07070d;
   --landing-surface: #111118;
   background-image:
-    linear-gradient(rgba(99,102,241,0.14) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.14) 1px, transparent 1px);
-  background-size: 16px 16px;
+    radial-gradient(circle, rgba(99,102,241,0.65) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(99,102,241,0.18) 1px,   transparent 1px);
+  background-size:     28px 28px, 14px 14px;
+  background-position: 0 0,       7px 7px;
   --landing-nav-bg: rgba(10, 10, 15, 0.8);
   --landing-surface: #13131a;
   --landing-text: #f8fafc;
@@ -95,9 +96,10 @@ html.landing-light .landing-page {
   --landing-bg: #eceffe;
   --landing-surface: #f4f5ff;
   background-image:
-    linear-gradient(rgba(79,70,229,0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79,70,229,0.09) 1px, transparent 1px);
-  background-size: 16px 16px;
+    radial-gradient(circle, rgba(79,70,229,0.32) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(79,70,229,0.1)  1px,   transparent 1px);
+  background-size:     28px 28px, 14px 14px;
+  background-position: 0 0,       7px 7px;
   --landing-nav-bg: rgba(248, 250, 252, 0.85);
   --landing-surface: #ffffff;
   --landing-text: #0f172a;
@@ -544,3 +546,211 @@ html.landing-light .d-pixel-card {
   100% { transform: translateX(320%); }
 }
 .animate-flow-right { animation: flow-right 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+/* ════════════════════════════════════════════════
+   3D & Dot Design Enhancements
+════════════════════════════════════════════════ */
+
+/* ── Floating dot particle ── */
+@keyframes dot-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.5; }
+  50%       { transform: translateY(-18px) scale(1.2); opacity: 0.95; }
+}
+@keyframes dot-pulse-glow {
+  0%, 100% { opacity: 0.3; box-shadow: 0 0 4px 2px rgba(99,102,241,0.4); transform: scale(0.85); }
+  50%       { opacity: 1;   box-shadow: 0 0 14px 5px rgba(99,102,241,0.75); transform: scale(1.35); }
+}
+.dot-particle {
+  position: absolute;
+  background: var(--landing-accent);
+  box-shadow: 0 0 8px rgba(99,102,241,0.75);
+  animation: dot-float var(--dp-dur, 4s) ease-in-out infinite var(--dp-del, 0s);
+}
+.dot-particle-glow {
+  position: absolute;
+  background: var(--landing-accent);
+  animation: dot-pulse-glow var(--dp-dur, 3.5s) ease-in-out infinite var(--dp-del, 0s);
+}
+
+/* ── Badge float ── */
+@keyframes badge-float {
+  0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
+  50%       { transform: translateY(-6px) rotate(0.5deg); }
+}
+.badge-float { animation: badge-float 3.2s ease-in-out infinite; }
+
+/* ── Accent glow pulse ── */
+@keyframes accent-glow {
+  0%, 100% { box-shadow: 4px 4px 0 rgba(99,102,241,0.5), 0 0 12px rgba(99,102,241,0.2); }
+  50%       { box-shadow: 4px 4px 0 rgba(99,102,241,0.9), 0 0 30px rgba(99,102,241,0.55); }
+}
+.glow-pulse-accent { animation: accent-glow 2.2s ease-in-out infinite; }
+
+/* ── 3D card hover (smooth perspective tilt) ── */
+.card-3d-hover {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+.card-3d-hover:hover {
+  transform: perspective(700px) rotateX(-2.5deg) rotateY(4deg) translateZ(10px) translate(-2px, -2px) !important;
+  box-shadow: 12px 12px 0 #3730a3, 0 0 35px rgba(99,102,241,0.3) !important;
+}
+
+/* ── 3D step number float ── */
+@keyframes step-3d-float {
+  0%, 100% {
+    transform: perspective(180px) rotateX(8deg) rotateY(-4deg) translateY(0);
+    box-shadow: 7px 7px 0 #1e1b4b, 0 0 16px rgba(99,102,241,0.35);
+  }
+  50% {
+    transform: perspective(180px) rotateX(-4deg) rotateY(6deg) translateY(-6px);
+    box-shadow: 9px 9px 0 #1e1b4b, 0 0 28px rgba(99,102,241,0.6);
+  }
+}
+.step-3d { animation: step-3d-float 4.2s ease-in-out infinite; }
+
+/* ── Scanline sweep (mockup) ── */
+@keyframes scan-down {
+  0%   { top: -4px; opacity: 0; }
+  4%   { opacity: 0.7; }
+  96%  { opacity: 0.7; }
+  100% { top: 100%; opacity: 0; }
+}
+.scanline {
+  pointer-events: none;
+  position: absolute;
+  left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(99,102,241,0.5) 25%,
+    rgba(167,139,250,0.85) 50%,
+    rgba(99,102,241,0.5) 75%,
+    transparent 100%
+  );
+  animation: scan-down 3.8s linear infinite;
+  z-index: 10;
+}
+
+/* ── CRT scanlines overlay ── */
+.crt-lines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.9) 2px,
+    rgba(0,0,0,0.9) 3px
+  );
+  background-size: 100% 3px;
+  z-index: 5;
+}
+
+/* ── Pixel corner blink ── */
+@keyframes corner-blink {
+  0%, 88%, 100% { opacity: 1; }
+  93% { opacity: 0.15; }
+}
+.pixel-corner-blink { animation: corner-blink 4s ease-in-out infinite; }
+
+/* ════════════════════════════════════════════════
+   Dot Design Utilities
+════════════════════════════════════════════════ */
+
+/* ── Dot cluster fill (use with fixed width/height) ── */
+.dot-cluster {
+  background-image: radial-gradient(circle, var(--landing-accent) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  background-repeat: repeat;
+}
+.dot-cluster-sm {
+  background-image: radial-gradient(circle, var(--landing-accent) 1px, transparent 1px);
+  background-size: 5px 5px;
+  background-repeat: repeat;
+}
+
+/* ── Horizontal dot-row divider ── */
+.dot-row-divider {
+  background-image: radial-gradient(circle, rgba(99,102,241,0.45) 1.5px, transparent 1.5px);
+  background-size: 10px 4px;
+  background-repeat: repeat-x;
+  background-position: 0 center;
+}
+html.landing-light .dot-row-divider {
+  background-image: radial-gradient(circle, rgba(79,70,229,0.35) 1.5px, transparent 1.5px);
+}
+
+/* ── Badge flanked by dot clusters ── */
+.dot-badge-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.dot-badge-row::before,
+.dot-badge-row::after {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 16px;
+  background-image: radial-gradient(circle, var(--landing-accent) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  opacity: 0.45;
+}
+
+/* ── Corner dot accent (inside cards) ── */
+.dot-corner-br {
+  position: relative;
+}
+.dot-corner-br::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 22px;
+  height: 18px;
+  background-image: radial-gradient(circle, var(--landing-accent) 1.5px, transparent 1.5px);
+  background-size: 7px 7px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* ── Dot-matrix step number box ── */
+.step-dot-matrix {
+  position: relative;
+  overflow: hidden;
+}
+.step-dot-matrix::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+/* ── Dot halftone radial (section BG overlay) ── */
+.dot-halftone-radial {
+  background-image:
+    radial-gradient(ellipse at center, transparent 35%, var(--landing-bg) 72%),
+    radial-gradient(circle, rgba(99,102,241,0.35) 1.5px, transparent 1.5px);
+  background-size: auto, 12px 12px;
+}
+
+/* ── Landing pixel card 3D enhanced variant ── */
+.landing-pixel-card-3d {
+  box-shadow: 6px 6px 0 #3730a3;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+.landing-pixel-card-3d:hover {
+  box-shadow: 12px 12px 0 #3730a3, 0 0 35px rgba(99,102,241,0.3);
+  transform: perspective(700px) rotateX(-2.5deg) rotateY(4deg) translateZ(10px) translate(-2px, -2px) !important;
+}
+html.landing-light .landing-pixel-card-3d {
+  box-shadow: 6px 6px 0 #4338ca;
+}
+html.landing-light .landing-pixel-card-3d:hover {
+  box-shadow: 12px 12px 0 #4338ca, 0 0 30px rgba(79,70,229,0.25);
+}

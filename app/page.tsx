@@ -236,6 +236,21 @@ const faqJsonLd = {
   ],
 };
 
+const HERO_DOTS = [
+  { left: "7%",  top: "22%", w: "5px",  h: "5px",  dur: "3.8s", del: "0s"    },
+  { left: "13%", top: "68%", w: "4px",  h: "4px",  dur: "4.5s", del: "0.9s"  },
+  { left: "89%", top: "18%", w: "6px",  h: "6px",  dur: "3.3s", del: "0.3s"  },
+  { left: "84%", top: "71%", w: "4px",  h: "4px",  dur: "5.1s", del: "1.5s"  },
+  { left: "77%", top: "9%",  w: "5px",  h: "5px",  dur: "4.2s", del: "2.1s"  },
+  { left: "4%",  top: "84%", w: "3px",  h: "3px",  dur: "3.5s", del: "0.6s"  },
+  { left: "61%", top: "87%", w: "5px",  h: "5px",  dur: "4.8s", del: "1.2s"  },
+  { left: "26%", top: "11%", w: "4px",  h: "4px",  dur: "3.7s", del: "1.8s"  },
+  { left: "50%", top: "5%",  w: "3px",  h: "3px",  dur: "4.1s", del: "0.4s"  },
+  { left: "94%", top: "46%", w: "4px",  h: "4px",  dur: "3.9s", del: "2.4s"  },
+  { left: "38%", top: "92%", w: "3px",  h: "3px",  dur: "4.6s", del: "1.0s"  },
+  { left: "2%",  top: "45%", w: "5px",  h: "5px",  dur: "5.2s", del: "0.7s"  },
+];
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://delo-app.com";
 
 const jsonLd = {
@@ -360,16 +375,36 @@ export default async function LandingPage() {
       <main>
         {/* ── Hero ── */}
         <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16">
+          {/* ── Floating dot particles ── */}
+          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+            {HERO_DOTS.map((dot, i) => (
+              <div
+                key={i}
+                className="dot-particle"
+                style={{
+                  left: dot.left,
+                  top: dot.top,
+                  width: dot.w,
+                  height: dot.h,
+                  "--dp-dur": dot.dur,
+                  "--dp-del": dot.del,
+                } as React.CSSProperties}
+              />
+            ))}
+          </div>
+
           {/* ── Dark mode aurora ── */}
           <div className="dark-only-glow pointer-events-none absolute inset-0 -z-10 overflow-hidden">
             {/* 중앙 코어 */}
-            <div className="absolute left-1/2 top-1/2 h-[560px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6366F1]/45 blur-[60px] animate-float" />
+            <div className="absolute left-1/2 top-1/2 h-[620px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6366F1]/50 blur-[65px] animate-float" />
             {/* 우상단 바이올렛 */}
-            <div className="absolute -right-10 top-[-60px] h-[480px] w-[480px] rounded-full bg-violet-500/35 blur-[55px] animate-drift" />
+            <div className="absolute -right-10 top-[-60px] h-[520px] w-[520px] rounded-full bg-violet-500/40 blur-[60px] animate-drift" />
             {/* 좌하단 퍼플 */}
-            <div className="absolute -left-10 bottom-[-40px] h-[420px] w-[420px] rounded-full bg-purple-600/30 blur-[55px] animate-drift" style={{ animationDelay: "6s" }} />
+            <div className="absolute -left-10 bottom-[-40px] h-[460px] w-[460px] rounded-full bg-purple-600/35 blur-[55px] animate-drift" style={{ animationDelay: "6s" }} />
             {/* 우하단 인디고 */}
-            <div className="absolute right-1/3 bottom-10 h-[320px] w-[320px] rounded-full bg-indigo-400/20 blur-[45px]" />
+            <div className="absolute right-1/3 bottom-10 h-[360px] w-[360px] rounded-full bg-indigo-400/25 blur-[50px]" />
+            {/* 중앙 하이라이트 코어 (작고 밝음) */}
+            <div className="absolute left-1/2 top-1/2 h-[180px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#818cf8]/30 blur-[30px] animate-float" style={{ animationDelay: "2s" }} />
           </div>
           {/* ── Light mode glow ── */}
           <div className="light-only-glow pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -379,14 +414,22 @@ export default async function LandingPage() {
           {/* Bottom vignette */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[var(--landing-bg)] to-transparent" />
 
+          {/* Corner dot decorations */}
+          <div className="dot-cluster pointer-events-none absolute left-4 top-20 opacity-30" style={{ width: "48px", height: "40px" }} />
+          <div className="dot-cluster pointer-events-none absolute right-4 top-20 opacity-30" style={{ width: "48px", height: "40px" }} />
+          <div className="dot-cluster pointer-events-none absolute left-4 bottom-16 opacity-20" style={{ width: "40px", height: "32px" }} />
+          <div className="dot-cluster pointer-events-none absolute right-4 bottom-16 opacity-20" style={{ width: "40px", height: "32px" }} />
+
           <div className="mx-auto w-full max-w-7xl">
             <div className="grid items-center gap-12 md:grid-cols-2 md:gap-16">
               {/* Left: text content */}
               <div className="text-center md:text-left">
 
                 {/* Trust badge */}
-                <div className="mb-6 inline-flex items-center gap-2 border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
-                  <span className="font-pixel text-[9px] text-[var(--landing-accent)]">▶ AI DEAL MANAGER</span>
+                <div className="mb-6 dot-badge-row badge-float">
+                  <div className="inline-flex items-center gap-2 border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 glow-pulse-accent">
+                    <span className="font-pixel text-[9px] text-[var(--landing-accent)]">▶ AI DEAL MANAGER</span>
+                  </div>
                 </div>
 
                 <h1 className="mb-4 break-keep text-5xl font-bold leading-tight tracking-tight md:text-6xl">
@@ -416,17 +459,17 @@ export default async function LandingPage() {
                 </div>
 
                 {/* Social proof */}
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-[var(--landing-muted)] md:justify-start">
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--landing-muted)] md:justify-start">
                   <span className="flex items-center gap-1.5">
-                    <span className="font-bold text-[var(--landing-accent)]">■</span> 무료로 시작
+                    <span className="inline-block h-2 w-2 bg-[var(--landing-accent)]" style={{ boxShadow: "0 0 6px rgba(99,102,241,0.8)" }} /> 무료로 시작
                   </span>
-                  <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
+                  <div className="dot-cluster-sm" style={{ width: "20px", height: "8px", opacity: 0.4 }} />
                   <span className="flex items-center gap-1.5">
-                    <span className="font-bold text-[var(--landing-accent)]">■</span> 신용카드 불필요
+                    <span className="inline-block h-2 w-2 bg-[var(--landing-accent)]" style={{ boxShadow: "0 0 6px rgba(99,102,241,0.8)" }} /> 신용카드 불필요
                   </span>
-                  <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
+                  <div className="dot-cluster-sm" style={{ width: "20px", height: "8px", opacity: 0.4 }} />
                   <span className="flex items-center gap-1.5">
-                    <span className="font-bold text-[var(--landing-accent)]">■</span> 30초 내 분석 완료
+                    <span className="inline-block h-2 w-2 bg-[var(--landing-accent)]" style={{ boxShadow: "0 0 6px rgba(99,102,241,0.8)" }} /> 30초 내 분석 완료
                   </span>
                 </div>
               </div>
@@ -440,13 +483,17 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Problem cards ── */}
-        <section className="border-t-4 border-[var(--landing-accent)]/20 bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
+        <section className="relative bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
+          {/* Dot row top divider */}
+          <div className="dot-row-divider absolute inset-x-0 top-0 h-[4px]" />
           <div className="mx-auto max-w-7xl">
             <ScrollReveal>
-              <div className="mb-5 text-center">
-                <span className="inline-block border-2 border-rose-400/50 bg-rose-400/10 px-4 py-2 font-pixel text-[9px] text-rose-400" style={{ boxShadow: "4px 4px 0 rgba(251,113,133,0.45)" }}>
-                  PROBLEM
-                </span>
+              <div className="mb-5 flex items-center justify-center">
+                <div className="dot-badge-row" style={{ "--landing-accent": "#f87171" } as React.CSSProperties}>
+                  <span className="inline-block border-2 border-rose-400/50 bg-rose-400/10 px-4 py-2 font-pixel text-[9px] text-rose-400" style={{ boxShadow: "4px 4px 0 rgba(251,113,133,0.45)" }}>
+                    PROBLEM
+                  </span>
+                </div>
               </div>
               <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
                 혼자 운영하면 자주 생기는 문제
@@ -460,9 +507,18 @@ export default async function LandingPage() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {PROBLEM_CARDS.map(({ emoji, tag, barFrom, barTo, tagBg, tagText, iconBg, impactText, title, quote, desc, impact }, index) => (
                 <ScrollReveal key={title} index={index} total={PROBLEM_CARDS.length} stagger={140}>
-                  <div className="landing-pixel-card group relative flex h-full flex-col overflow-hidden border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] transition-all duration-75 hover:border-[var(--landing-accent)]/50">
-                    {/* Top accent bar — 4px solid pixel stripe */}
-                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${barFrom} ${barTo}`} />
+                  <div className="landing-pixel-card-3d dot-corner-br group relative flex h-full flex-col overflow-hidden border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] transition-all hover:border-[var(--landing-accent)]/50">
+                    {/* Top accent bar — dot-row stripe */}
+                    <div className="absolute inset-x-0 top-0 h-[5px] overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${barFrom} ${barTo}`} />
+                      <div
+                        className="absolute inset-0 opacity-40"
+                        style={{
+                          backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.5) 1px, transparent 1px)",
+                          backgroundSize: "4px 4px",
+                        }}
+                      />
+                    </div>
 
                     <div className="flex flex-1 flex-col p-6 pt-7">
                       {/* Header */}
@@ -522,10 +578,12 @@ export default async function LandingPage() {
         <section id="how-it-works" className="bg-[var(--landing-bg)] px-6 py-[120px] transition-colors">
           <div className="mx-auto max-w-7xl">
             <ScrollReveal>
-              <div className="mb-5 text-center">
-                <span className="inline-block border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 font-pixel text-[9px] text-[var(--landing-accent)]" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
-                  HOW IT WORKS
-                </span>
+              <div className="mb-5 flex items-center justify-center">
+                <div className="dot-badge-row">
+                  <span className="inline-block border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 font-pixel text-[9px] text-[var(--landing-accent)]" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
+                    HOW IT WORKS
+                  </span>
+                </div>
               </div>
               <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
                 DELO는 이렇게 작동합니다
@@ -554,12 +612,12 @@ export default async function LandingPage() {
                     stagger={170}
                     variant={index === 0 ? "slide-left" : index === 2 ? "slide-right" : "fade-up"}
                   >
-                    <div className="landing-pixel-card group flex h-full flex-col border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-all duration-75 hover:border-[var(--landing-accent)]/50">
+                    <div className="landing-pixel-card-3d dot-corner-br group flex h-full flex-col border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] p-6 transition-all hover:border-[var(--landing-accent)]/50">
                       {/* Step header */}
                       <div className="mb-6 flex items-start justify-between gap-4">
                         {/* Big pixel step number */}
                         <div className="flex-shrink-0">
-                          <div className="flex h-14 w-14 items-center justify-center border-2 border-[var(--landing-accent)] bg-[var(--landing-accent)] font-pixel text-lg text-white" style={{ boxShadow: "5px 5px 0 #312e81" }}>
+                          <div className="step-3d step-dot-matrix flex h-14 w-14 items-center justify-center border-2 border-[var(--landing-accent)] bg-[var(--landing-accent)] font-pixel text-lg text-white">
                             {step}
                           </div>
                         </div>
@@ -590,12 +648,17 @@ export default async function LandingPage() {
                   </ScrollReveal>
 
                   {index < HOW_IT_WORKS.length - 1 && (
-                    <ScrollReveal className="hidden md:block flex-shrink-0 w-12 self-center" delay={index * 170 + 140} variant="fade-in">
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="h-px w-full border-t-2 border-dashed border-[var(--landing-accent)]/40" />
-                        <span className="font-pixel text-[10px] text-[var(--landing-accent)]/60">▶▶</span>
-                        <div className="h-px w-full border-t-2 border-dashed border-[var(--landing-accent)]/40" />
-                      </div>
+                    <ScrollReveal className="hidden md:flex flex-shrink-0 w-14 self-center items-center justify-between" delay={index * 170 + 140} variant="fade-in">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-2.5 w-2.5 border-2 border-[var(--landing-accent)]"
+                          style={{
+                            opacity: 0.15 + i * 0.17,
+                            boxShadow: i >= 3 ? `0 0 ${4 + i}px rgba(99,102,241,0.6)` : "none",
+                          }}
+                        />
+                      ))}
                     </ScrollReveal>
                   )}
                 </Fragment>
@@ -605,13 +668,18 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Comparison ── */}
-        <section className="border-y-4 border-dashed border-[var(--landing-accent)]/20 bg-[var(--landing-surface)] px-6 py-[120px] transition-colors">
+        <section className="relative bg-[var(--landing-surface)] px-6 py-[120px] transition-colors">
+          {/* Dot row top + bottom divider */}
+          <div className="dot-row-divider absolute inset-x-0 top-0 h-[4px]" />
+          <div className="dot-row-divider absolute inset-x-0 bottom-0 h-[4px]" />
           <div className="mx-auto max-w-5xl">
             <ScrollReveal>
-              <div className="mb-5 text-center">
-                <span className="inline-block border-2 border-rose-400/50 bg-rose-400/10 px-4 py-2 font-pixel text-[9px] text-rose-400" style={{ boxShadow: "4px 4px 0 rgba(251,113,133,0.45)" }}>
-                  BEFORE / AFTER
-                </span>
+              <div className="mb-5 flex items-center justify-center">
+                <div className="dot-badge-row" style={{ "--landing-accent": "#f87171" } as React.CSSProperties}>
+                  <span className="inline-block border-2 border-rose-400/50 bg-rose-400/10 px-4 py-2 font-pixel text-[9px] text-rose-400" style={{ boxShadow: "4px 4px 0 rgba(251,113,133,0.45)" }}>
+                    BEFORE / AFTER
+                  </span>
+                </div>
               </div>
               <h2 className="mb-4 text-center text-3xl font-bold md:text-4xl">
                 수작업 대신 DELO가 맡는 일
@@ -651,7 +719,7 @@ export default async function LandingPage() {
             <div className="space-y-3">
               {COMPARISON_ROWS.map(({ emoji, feature, agency, delo }, index) => (
                 <ScrollReveal key={feature} index={index} total={COMPARISON_ROWS.length} stagger={90}>
-                  <div className="landing-pixel-card group grid grid-cols-12 items-center border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] p-5 transition-all duration-150 hover:border-[var(--landing-accent)]/35">
+                  <div className="landing-pixel-card-3d dot-corner-br group grid grid-cols-12 items-center border-2 border-[var(--landing-border)] bg-[var(--landing-surface)] p-5 transition-all hover:border-[var(--landing-accent)]/35">
                     {/* Feature */}
                     <div className="col-span-12 mb-4 flex items-center gap-3 md:col-span-4 md:mb-0">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-[var(--landing-icon-bg)] text-base" style={{ boxShadow: "2px 2px 0 rgba(99,102,241,0.15)" }}>
@@ -681,21 +749,27 @@ export default async function LandingPage() {
         </section>
 
         {/* ── Closing CTA ── */}
-        <section className="relative overflow-hidden border-t-4 border-[var(--landing-accent)]/30 bg-[var(--landing-bg)] px-6 py-[120px] text-center transition-colors">
-          {/* Pixel corner accents */}
-          <div className="pointer-events-none absolute left-0 top-0 h-16 w-16 border-b-2 border-r-2 border-dashed border-[var(--landing-accent)]/25" />
-          <div className="pointer-events-none absolute right-0 top-0 h-16 w-16 border-b-2 border-l-2 border-dashed border-[var(--landing-accent)]/25" />
-          <div className="pointer-events-none absolute bottom-0 left-0 h-16 w-16 border-r-2 border-t-2 border-dashed border-[var(--landing-accent)]/25" />
-          <div className="pointer-events-none absolute bottom-0 right-0 h-16 w-16 border-l-2 border-t-2 border-dashed border-[var(--landing-accent)]/25" />
+        <section className="relative overflow-hidden bg-[var(--landing-bg)] px-6 py-[120px] text-center transition-colors">
+          {/* Dot row top divider */}
+          <div className="dot-row-divider absolute inset-x-0 top-0 h-[4px] opacity-60" />
+
+          {/* Dot cluster corner accents */}
+          <div className="dot-cluster pointer-events-none absolute left-4 top-8 opacity-40 pixel-corner-blink" style={{ width: "64px", height: "56px" }} />
+          <div className="dot-cluster pointer-events-none absolute right-4 top-8 opacity-40 pixel-corner-blink" style={{ width: "64px", height: "56px", animationDelay: "2s" }} />
+          <div className="dot-cluster pointer-events-none absolute left-4 bottom-8 opacity-30 pixel-corner-blink" style={{ width: "48px", height: "40px", animationDelay: "1s" }} />
+          <div className="dot-cluster pointer-events-none absolute right-4 bottom-8 opacity-30 pixel-corner-blink" style={{ width: "48px", height: "40px", animationDelay: "3s" }} />
+
           {/* Background glow */}
           <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute left-1/2 top-1/2 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--landing-accent)]/8 blur-[80px]" />
+            <div className="absolute left-1/2 top-1/2 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--landing-accent)]/10 blur-[80px]" />
           </div>
 
           <div className="mx-auto max-w-3xl">
             <ScrollReveal variant="scale-up" delay={80}>
-              <div className="mb-6 inline-block border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 font-pixel text-[9px] text-[var(--landing-accent)]" style={{ boxShadow: "4px 4px 0 rgba(99,102,241,0.50)" }}>
-                FREE START
+              <div className="mb-6 dot-badge-row badge-float">
+                <div className="inline-block border-2 border-[var(--landing-accent)]/60 bg-[var(--landing-accent-soft)] px-4 py-2 font-pixel text-[9px] text-[var(--landing-accent)] glow-pulse-accent">
+                  FREE START
+                </div>
               </div>
               <h2 className="mb-5 text-3xl font-bold leading-tight md:text-5xl">
                 첫 번째 브랜드 문의부터<br className="hidden md:block" /> 정리해보세요
@@ -722,17 +796,17 @@ export default async function LandingPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={380}>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-xs text-[var(--landing-muted)]">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--landing-muted)]">
                 <span className="flex items-center gap-1.5">
-                  <span className="font-bold text-emerald-400">■</span> 회원가입 없이 체험 가능
+                  <span className="inline-block h-2 w-2 bg-emerald-400" style={{ boxShadow: "0 0 6px rgba(52,211,153,0.8)" }} /> 회원가입 없이 체험 가능
                 </span>
-                <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
+                <div className="dot-cluster-sm" style={{ width: "20px", height: "8px", opacity: 0.35 }} />
                 <span className="flex items-center gap-1.5">
-                  <span className="font-bold text-emerald-400">■</span> 신용카드 불필요
+                  <span className="inline-block h-2 w-2 bg-emerald-400" style={{ boxShadow: "0 0 6px rgba(52,211,153,0.8)" }} /> 신용카드 불필요
                 </span>
-                <span className="h-px w-5 border-t-2 border-dashed border-[var(--landing-border)]" />
+                <div className="dot-cluster-sm" style={{ width: "20px", height: "8px", opacity: 0.35 }} />
                 <span className="flex items-center gap-1.5">
-                  <span className="font-bold text-emerald-400">■</span> 30초 내 분석 완료
+                  <span className="inline-block h-2 w-2 bg-emerald-400" style={{ boxShadow: "0 0 6px rgba(52,211,153,0.8)" }} /> 30초 내 분석 완료
                 </span>
               </div>
             </ScrollReveal>

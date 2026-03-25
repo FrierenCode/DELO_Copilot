@@ -87,13 +87,25 @@ export function DealCard({ deal }: { deal: Deal }) {
           <p className="text-xs font-black text-[var(--d-b)] tabular-nums">{formattedAmount}</p>
         </div>
 
-        {/* Next action + deadline chip */}
+        {/* Next action + deadline chip + memo icon */}
         <div className="flex items-start justify-between gap-3 sm:col-span-4 sm:items-center sm:justify-end">
           {deal.next_action && (
             <div className="text-right min-w-0">
               <p className="text-[11px] font-bold text-[var(--d-b)] truncate">{deal.next_action}</p>
               <p className="text-[10px] text-[var(--d-f)]">Next Action</p>
             </div>
+          )}
+          {deal.memo && (
+            <svg
+              className="w-3.5 h-3.5 text-[var(--d-f)] shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              aria-label="메모 있음"
+            >
+              <path d="M15.232 5.232l3.536 3.536M9 13l6-6M3 17v4h4L17 11 13 7 3 17z" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           )}
           {chip &&
             (chip.urgent ? (
